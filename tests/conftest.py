@@ -1,14 +1,12 @@
 """Test fixtures."""
 
 import os
-
 from typing import Generator
 
 from fastapi import FastAPI
 from pytest import fixture
 
 from ueditor import app
-from ueditor.settings import settings
 
 
 @fixture
