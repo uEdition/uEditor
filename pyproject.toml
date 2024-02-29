@@ -39,7 +39,7 @@ Source = "https://github.com/unknown/ueditor"
 path = "ueditor/__about__.py"
 
 [tool.hatch.envs.default]
-extra-dependencies = ["coverage[toml]>=6.5", "pytest"]
+extra-dependencies = ["coverage[toml]>=6.5", "httpx", "pytest"]
 
 [tool.hatch.envs.default.scripts]
 server = "uvicorn --reload --port 8000 ueditor:app {args}"
@@ -137,3 +137,5 @@ tests = ["tests", "*/ueditor/tests"]
 
 [tool.coverage.report]
 exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
+skip_covered = true
+show_missing = true

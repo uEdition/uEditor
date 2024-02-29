@@ -1,0 +1,12 @@
+author:
+  email: devs@example.com
+  name: uEditor TEI Fixture
+languages:
+- code: en
+  label: English
+  path: en
+output: site
+repository:
+  branch: main
+  url: null
+version: '1'

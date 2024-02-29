@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ueditor-development"
+description = 'The uEditor Development μEdition'
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = []
+authors = [{ name = "uEditor Devs", email = "devs@example.com" }]
+classifiers = []
+dependencies = []
+version = "1.0.0"
+
+[project.urls]
+Documentation = "/-#readme"
+Issues = "/-/issues"
+Source = "/-"
+
+[tool.hatch.envs.default]
+dependencies = ["uedition>=1.3.2,<2",]
+skip-install = true
+
+[tool.hatch.envs.default.scripts]
+build = "uEdition build {args}"
+serve = "uEdition serve {args}"
+update = "uEdition update {args}"
+add-language = "uEdition language add {args}"
+update-language = "uEdition language update {args}"
