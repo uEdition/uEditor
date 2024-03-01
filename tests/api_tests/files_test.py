@@ -77,12 +77,25 @@ def test_fetching_a_tei_file(tei_app: FastAPI) -> None:
                                     "text": "important",
                                 },
                                 {"type": "text", "marks": [], "text": " message."},
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {
+                                            "type": "footnote-ref",
+                                            "attributes": {
+                                                "type": "footnote",
+                                                "target": "5b24d8dd-c031-49e0-bcfd-5ab400ee836c",
+                                            },
+                                        }
+                                    ],
+                                    "text": "[1]",
+                                },
                             ],
                         },
                     ],
                 },
             },
-            {"name": "annotations", "title": "Annotations", "type": "textlist", "content": []},
+            {"name": "footnotes", "title": "Footnotes", "type": "textlist", "content": []},
         ],
     }
 

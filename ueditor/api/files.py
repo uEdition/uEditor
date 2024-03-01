@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from lxml import etree
 
-from ueditor.settings import Settings, settings, TEISettings
+from ueditor.settings import Settings, TEINodeAttribute, TEISettings, settings
 
 router = APIRouter(prefix="/files")
 namespaces = {"tei": "http://www.tei-c.org/ns/1.0", "uedition": "https://uedition.readthedocs.org"}
@@ -35,12 +35,27 @@ def get_files(settings: Annotated[Settings, Depends(settings)]) -> list[dict]:
     return build_file_tree(full_path)
 
 
+def parse_tei_attributes(attributes: etree._Attrib, settings: list[TEINodeAttribute]) -> list[dict]:
+    """Parse the attributes of a node, extracting the attribute settings"""
+    result = {}
+    for conf in settings:
+        if conf.name in attributes:
+            if conf.type == "id-ref" and attributes[conf.name].startswith("#"):
+                result[conf.name] = attributes[conf.name][1:]
+            else:
+                result[conf.name] = attributes[conf.name]
+        else:
+            result[conf.name] = conf.default
+    return result
+
+
 def parse_tei_subtree(node: etree.Element, settings: TEISettings) -> dict:
+    """Recursively parse a TEI subtree to create a Prosemirror document structure."""
     for conf in settings.blocks:
         if len(node.xpath(f"self::{conf.selector}", namespaces=namespaces)) > 0:
             return {
                 "type": conf.name,
-                "attributes": dict(node.attrib),
+                "attributes": parse_tei_attributes(node.attrib, conf.attributes),
                 "content": [parse_tei_subtree(child, settings) for child in node],
             }
     for conf in settings.marks:
@@ -49,13 +64,14 @@ def parse_tei_subtree(node: etree.Element, settings: TEISettings) -> dict:
                 child = parse_tei_subtree(node[0], settings)
                 return {
                     "type": "text",
-                    "marks": child["marks"] + [{"type": conf.name, "attributes": dict(node.attrib)}],
+                    "marks": child["marks"]
+                    + [{"type": conf.name, "attributes": parse_tei_attributes(node.attrib, conf.attributes)}],
                     "text": child["text"],
                 }
             else:
                 return {
                     "type": "text",
-                    "marks": [{"type": conf.name, "attributes": dict(node.attrib)}],
+                    "marks": [{"type": conf.name, "attributes": parse_tei_attributes(node.attrib, conf.attributes)}],
                     "text": node.text,
                 }
     if len(node) == 0:
@@ -65,12 +81,13 @@ def parse_tei_subtree(node: etree.Element, settings: TEISettings) -> dict:
 
 
 def parse_tei_subdoc(node: etree.Element, settings: TEISettings) -> dict:
+    """Parse part of the TEI document into a subdoc."""
     return {"type": "doc", "content": [parse_tei_subtree(child, settings) for child in node]}
 
 
 def parse_tei_file(path: str, settings: Settings) -> list[dict]:
     """Parse a TEI file into its constituent parts."""
-    doc = etree.parse(path)
+    doc = etree.parse(path)  # noqa: S320
     result = []
     for section in settings.tei.sections:
         section_root = doc.xpath(section.selector, namespaces=namespaces)
@@ -81,7 +98,7 @@ def parse_tei_file(path: str, settings: Settings) -> list[dict]:
                 result.append({"name": section.name, "title": section.title, "type": section.type, "content": {}})
             elif section.type == "textlist":
                 result.append({"name": section.name, "title": section.title, "type": section.type, "content": []})
-        else:
+        else:  # noqa: PLR5501
             if section.type == "metadata":
                 result.append({"name": section.name, "title": section.title, "type": section.type, "content": []})
             elif section.type == "text":

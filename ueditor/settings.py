@@ -3,11 +3,10 @@
 # SPDX-License-Identifier: MIT
 """Settings for the uEditor."""
 import os
-from typing import Annotated, Any, Dict, Tuple, Type, Literal
+from typing import Any, Dict, Literal, Tuple, Type
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
-from pydantic.functional_validators import BeforeValidator
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
 from yaml import safe_load
 
@@ -37,9 +36,9 @@ class YAMLConfigSettingsSource(PydanticBaseSettingsSource):
         self: "YAMLConfigSettingsSource",
         field_name: str,  # noqa: ARG002
         field: FieldInfo,  # noqa: ARG002
-        value: Any,  # noqa: ANN401
+        value: Any,
         value_is_complex: bool,  # noqa: ARG002, FBT001
-    ) -> Any:  # noqa: ANN401
+    ) -> Any:
         """Just return the value."""
         return value
 
@@ -63,6 +62,10 @@ class TEINodeAttribute(BaseModel):
     """The name of the attribute."""
     value: str | None = None
     """A fixed value to use for the attribute."""
+    type: Literal["string"] | Literal["static"] | Literal["id-ref"] = "string"
+    """The type of attribute this is."""
+    default: str = ""
+    """The default value to use if none is set."""
 
 
 class TEINode(BaseModel):
