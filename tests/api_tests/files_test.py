@@ -84,7 +84,7 @@ def test_fetching_a_tei_file(tei_app: FastAPI) -> None:
                                             "type": "footnote-ref",
                                             "attributes": {
                                                 "type": "footnote",
-                                                "target": "5b24d8dd-c031-49e0-bcfd-5ab400ee836c",
+                                                "target": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c",
                                             },
                                         }
                                     ],
@@ -95,7 +95,28 @@ def test_fetching_a_tei_file(tei_app: FastAPI) -> None:
                     ],
                 },
             },
-            {"name": "footnotes", "title": "Footnotes", "type": "textlist", "content": []},
+            {
+                "name": "footnotes",
+                "title": "Footnotes",
+                "type": "textlist",
+                "content": [
+                    {
+                        "attributes": {
+                            "{http://www.w3.org/XML/1998/namespace}id": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c",
+                        },
+                        "content": {
+                            "type": "doc",
+                            "content": [
+                                {
+                                    "type": "paragraph",
+                                    "attributes": {},
+                                    "content": [{"type": "text", "marks": [], "text": "This is just a footnote."}],
+                                }
+                            ],
+                        },
+                    }
+                ],
+            },
         ],
     }
 

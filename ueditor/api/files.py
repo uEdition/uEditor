@@ -111,7 +111,10 @@ def parse_tei_file(path: str, settings: Settings) -> list[dict]:
                     }
                 )
             elif section.type == "textlist":
-                result.append({"name": section.name, "title": section.title, "type": section.type, "content": []})
+                content = []
+                for node in section_root:
+                    content.append({"attributes": dict(node.attrib), "content": parse_tei_subdoc(node, settings.tei)})
+                result.append({"name": section.name, "title": section.title, "type": section.type, "content": content})
     return result
 
 

@@ -83,4 +83,4 @@ tei:
     - name: footnotes
       title: Footnotes
       type: textlist
-      selector: /tei:TEI/tei:text/tei:interpGrp/tei:note[@type="footnote"]
+      selector: /tei:TEI/tei:text/tei:noteGrp[@type="footnotes"]/tei:note
