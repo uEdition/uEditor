@@ -27,6 +27,7 @@ dependencies = [
   "lxml>=5,<6",
   "pydantic>=2,<3",
   "pydantic_settings>=2,<3",
+  "PyYaml>=6,<7",
   "uvicorn<1",
 ]
 

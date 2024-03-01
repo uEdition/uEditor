@@ -39,15 +39,50 @@ def test_fetching_a_tei_file(tei_app: FastAPI) -> None:
     assert response.json() == {
         "type": "tei",
         "content": [
+            {"name": "metadata", "title": "Metadata", "type": "metadata", "content": []},
             {
-                "id": "text",
+                "name": "text",
                 "title": "Text",
-                "type": "prosemirror",
+                "type": "text",
                 "content": {
                     "type": "doc",
-                    "content": [{"type": "block", "content": [{"type": "text", "text": "This is a test"}]}],
+                    "content": [
+                        {
+                            "type": "heading",
+                            "attributes": {"type": "level-1"},
+                            "content": [{"type": "text", "marks": [], "text": "Welcome"}],
+                        },
+                        {
+                            "type": "paragraph",
+                            "attributes": {},
+                            "content": [
+                                {"type": "text", "marks": [], "text": "This is a "},
+                                {
+                                    "type": "text",
+                                    "marks": [{"type": "bold", "attributes": {"style": "font-weight-bold"}}],
+                                    "text": "very, ",
+                                },
+                                {
+                                    "type": "text",
+                                    "marks": [
+                                        {"type": "italic", "attributes": {"style": "font-style-italic"}},
+                                        {"type": "bold", "attributes": {"style": "font-weight-bold"}},
+                                    ],
+                                    "text": "very",
+                                },
+                                {"type": "text", "marks": [], "text": " "},
+                                {
+                                    "type": "text",
+                                    "marks": [{"type": "italic", "attributes": {"style": "font-style-italic"}}],
+                                    "text": "important",
+                                },
+                                {"type": "text", "marks": [], "text": " message."},
+                            ],
+                        },
+                    ],
                 },
-            }
+            },
+            {"name": "annotations", "title": "Annotations", "type": "textlist", "content": []},
         ],
     }
 

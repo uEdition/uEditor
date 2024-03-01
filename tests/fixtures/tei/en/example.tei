@@ -1,3 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tei:TEI xmlns:tei="http://www.tei-c.org/ns/1.0">
+  <tei:text>
+    <tei:body>
+      <tei:head type="level-1">
+        <tei:span>Welcome</tei:span>
+      </tei:head>
+      <tei:p>
+        <tei:span>This is a </tei:span>
+        <tei:hi style="font-weight-bold">very, </tei:hi>
+        <tei:hi style="font-weight-bold"><tei:hi style="font-style-italic">very</tei:hi></tei:hi>
+        <tei:span> </tei:span>
+        <tei:hi style="font-style-italic">important</tei:hi>
+        <tei:span> message.</tei:span>
+      </tei:p>
+    </tei:body>
+  </tei:text>
 </tei:TEI>
