@@ -20,12 +20,11 @@ class YAMLConfigSettingsSource(PydanticBaseSettingsSource):
         """Get the value of a specific field."""
         encoding = self.config.get("env_file_encoding")
         file_content_json = None
-        if os.path.exists("uEditor.yaml"):
-            with open("uEditor.yaml", encoding=encoding) as in_f:
-                file_content_json = safe_load(in_f)
-        elif os.path.exists("uEditor.yml"):
-            with open("uEditor.yml", encoding=encoding) as in_f:
-                file_content_json = safe_load(in_f)
+        for filename in ["uEditor.yaml", "uEditor.yml"]:
+            if os.path.exists(filename):
+                with open(filename, encoding=encoding) as in_f:
+                    file_content_json = safe_load(in_f)
+                    break
         if file_content_json is not None:
             field_value = file_content_json.get(field_name)
         else:
