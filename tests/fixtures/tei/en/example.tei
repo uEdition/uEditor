@@ -16,6 +16,9 @@
         <tei:span> message.</tei:span>
         <tei:ref type="footnote" target="#footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c">[1]</tei:ref>
       </tei:p>
+      <tei:head>
+        <tei:span>Heading with the default type</tei:span>
+      </tei:head>
     </tei:body>
     <tei:noteGrp type="footnotes">
       <tei:note xml:id="footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c">

@@ -6,6 +6,7 @@ tei:
       selector: tei:head
       attributes:
         - name: type
+          default: level-1
   marks:
     - name: bold
       selector: tei:hi[@style="font-weight-bold"]

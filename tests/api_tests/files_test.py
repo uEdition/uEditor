@@ -92,6 +92,11 @@ def test_fetching_a_tei_file(tei_app: FastAPI) -> None:
                                 },
                             ],
                         },
+                        {
+                            "type": "heading",
+                            "attributes": {"type": "level-1"},
+                            "content": [{"type": "text", "marks": [], "text": "Heading with the default type"}],
+                        },
                     ],
                 },
             },
