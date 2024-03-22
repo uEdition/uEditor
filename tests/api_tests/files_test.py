@@ -126,6 +126,31 @@ def test_fetching_a_tei_file(tei_app: FastAPI) -> None:
     }
 
 
+def test_fetching_a_minimal_tei_file(tei_app: FastAPI) -> None:
+    """Test fetchng and parsing a TEI file."""
+    client = TestClient(app=tei_app)
+    response = client.get("/api/files/en/minimal.tei")
+    assert response.status_code == 200
+    assert response.json() == {
+        "type": "tei",
+        "content": [
+            {"name": "metadata", "title": "Metadata", "type": "metadata", "content": []},
+            {
+                "name": "text",
+                "title": "Text",
+                "type": "text",
+                "content": {},
+            },
+            {
+                "name": "footnotes",
+                "title": "Footnotes",
+                "type": "textlist",
+                "content": [],
+            },
+        ],
+    }
+
+
 def test_fetching_a_markdown_file(tei_app: FastAPI) -> None:
     """Test fetchng a Markdown file."""
     client = TestClient(app=tei_app)
