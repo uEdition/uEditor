@@ -4,9 +4,11 @@
 """The uEditor API for accessing configurations."""
 from fastapi import APIRouter
 
+from ueditor.settings import settings
+
 router = APIRouter(prefix="/configs")
 
 
 @router.get("/tei")
 def tei_config() -> dict:
-    return {}
+    return settings().tei.model_dump()
