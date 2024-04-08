@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.0.2",
+    "@tanstack/svelte-query": "^5.29.0",
     "@tiptap/core": "^2.2.6",
     "@tiptap/extension-bubble-menu": "^2.2.6",
     "@tiptap/extension-document": "^2.2.6",
