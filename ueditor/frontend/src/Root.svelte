@@ -10,10 +10,10 @@
 </svelte:head>
 
 <main class="flex flex-col w-screen h-screen overflow-hidden">
-  <Menubar.Root>
+  <Menubar.Root class="border-b border-silver-600">
     <Menubar.Menu>
       <Select.Root bind:selected>
-        <Select.Trigger>
+        <Select.Trigger class="px-2 py-1">
           <svg viewBox="0 0 24 24" class="inline-block w-6 h-6"
             ><path d={mdiBarn} /></svg
           >
@@ -23,11 +23,12 @@
             ><path d={mdiChevronDown} /></svg
           >
         </Select.Trigger>
-        <Select.Content>
-          <Select.Item value="a" label="A label goes here"
-            >A label goes here</Select.Item
+        <Select.Content class="z-50 bg-white">
+          <Select.Item value="a" label="A label goes here" class="w-full bg-blue-500 data-[highlighted]:bg-red-500"
+            >A label goes here
+            </Select.Item
           >
-          <Select.Item value="b" label="B label goes here"
+          <Select.Item value="b" label="B label goes here" class="w-full bg-blue-500 data-[highlighted]:bg-red-500"
             >B label goes here</Select.Item
           >
         </Select.Content>
