@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  [data-menu-trigger] {
+    @apply px-3 py-1;
+  }
+
+  [data-menu-content] {
+    @apply z-50 bg-white shadow-lg;
+  }
+
+  [data-menu-item] {
+    @apply flex items-center space-x-2 w-full px-3 py-1 cursor-pointer data-[highlighted]:bg-gray-300 border-l border-r last:border-b border-slate-300 aria-selected:font-bold;
+  }
+
+  [data-menu-separator] {
+    @apply border-b border-slate-300;
+  }
+}

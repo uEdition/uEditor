@@ -1,4 +1,4 @@
-# ueditor
+# uEditor
 
 [![PyPI - Version](https://img.shields.io/pypi/v/uedition-ueditor.svg)](https://pypi.org/project/uedition-ueditor)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ueditor.svg)](https://pypi.org/project/ueditor)
