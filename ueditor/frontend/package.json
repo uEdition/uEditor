@@ -10,6 +10,7 @@
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {
+    "@mdi/js": "^7.4.47",
     "@sveltejs/vite-plugin-svelte": "^3.0.2",
     "@tanstack/svelte-query": "^5.29.0",
     "@tiptap/core": "^2.2.6",
