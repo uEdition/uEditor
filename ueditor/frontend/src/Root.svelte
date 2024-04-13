@@ -1,10 +1,20 @@
 <script lang="ts">
   import { Menubar, Dialog } from "bits-ui";
   import { mdiSourceBranchPlus } from "@mdi/js";
+  import { fade } from "svelte/transition";
+  import { createQuery } from "@tanstack/svelte-query";
 
   import Icon from "./lib/Icon.svelte";
+  import { apiQueryHandler } from "./util";
+
+  const config = createQuery({
+    queryKey: ["/configs/app"],
+    queryFn: apiQueryHandler<Config>,
+    refetchInterval: 60000,
+  });
 
   let newBranchDialogOpen = false;
+  let test = true;
 </script>
 
 <svelte:head>
@@ -51,6 +61,45 @@
     <Dialog.Overlay />
     <Dialog.Content>
       <Dialog.Title>Create a new Branch</Dialog.Title>
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>
+
+<Dialog.Root
+  bind:open={$config.isPending}
+  closeOnEscape={false}
+  closeOnOutsideClick={false}
+>
+  <Dialog.Trigger class="hidden" />
+  <Dialog.Portal>
+    <Dialog.Overlay transition={fade} />
+    <Dialog.Content class="flex flex-col overflow-hidden">
+      <Dialog.Title>Loading the Configuration</Dialog.Title>
+      <div data-dialog-content-area>
+        <p>The configuration is being loaded. Please wait...</p>
+      </div>
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>
+
+<Dialog.Root
+  bind:open={$config.isError}
+  closeOnEscape={false}
+  closeOnOutsideClick={false}
+>
+  <Dialog.Trigger class="hidden" />
+  <Dialog.Portal>
+    <Dialog.Overlay transition={fade} />
+    <Dialog.Content class="flex flex-col overflow-hidden">
+      <Dialog.Title class="bg-rose-700"
+        >Loading the Configuration Failed</Dialog.Title
+      >
+      <div data-dialog-content-area>
+        <p>
+          Unfortunately loading the configuration failed. Please check the error
+          messages on the console to see what the problem is.
+        </p>
+      </div>
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>
