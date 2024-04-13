@@ -76,6 +76,7 @@ jobs:
           cd ../../tests/e2e_tests
           npm install
           npx playwright install
+          npx playwright install-deps
 
       - name: Build the Frontend
         run: |
