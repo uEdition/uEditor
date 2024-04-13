@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from lxml import etree
 
-from ueditor.settings import Settings, TEINodeAttribute, TEISettings, settings
+from ueditor.settings import TEINodeAttribute, TEISettings, UEditorSettings, get_settings, init_settings
 
 router = APIRouter(prefix="/files")
 namespaces = {"tei": "http://www.tei-c.org/ns/1.0", "uedition": "https://uedition.readthedocs.org"}
@@ -29,9 +29,9 @@ def build_file_tree(path: str) -> list[dict]:
 
 
 @router.get("/")
-def get_files(settings: Annotated[Settings, Depends(settings)]) -> list[dict]:
+def get_files() -> list[dict]:
     """Fetch the full tree of files."""
-    full_path = os.path.abspath(settings.local_repo_path)
+    full_path = os.path.abspath(init_settings.base_path)
     return build_file_tree(full_path)
 
 
@@ -85,7 +85,7 @@ def parse_tei_subdoc(node: etree.Element, settings: TEISettings) -> dict:
     return {"type": "doc", "content": [parse_tei_subtree(child, settings) for child in node]}
 
 
-def parse_tei_file(path: str, settings: Settings) -> list[dict]:
+def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
     """Parse a TEI file into its constituent parts."""
     doc = etree.parse(path)  # noqa: S320
     result = []
@@ -119,10 +119,10 @@ def parse_tei_file(path: str, settings: Settings) -> list[dict]:
 
 
 @router.get("/{path:path}")
-def get_file(path: str, settings: Annotated[Settings, Depends(settings)]) -> dict:
+def get_file(path: str, settings: Annotated[UEditorSettings, Depends(get_settings)]) -> dict:
     """Fetch a single file from the repo."""
-    full_path = os.path.abspath(os.path.join(settings.local_repo_path, *path.split("/")))
-    if full_path.startswith(os.path.abspath(settings.local_repo_path)) and os.path.isfile(full_path):
+    full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
+    if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
         if full_path.endswith(".tei"):
             return {"type": "tei", "content": parse_tei_file(full_path, settings)}
         elif full_path.endswith(".md"):

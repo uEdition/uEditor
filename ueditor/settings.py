@@ -11,6 +11,18 @@ from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, Settings
 from yaml import safe_load
 
 
+class InitSettings(BaseSettings):
+    """The initialisation settings."""
+
+    base_path: str = "./"
+    test: bool = False
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", env_prefix="ueditor", extra="ignore")
+
+
+init_settings = InitSettings()
+
+
 class YAMLConfigSettingsSource(PydanticBaseSettingsSource):
     """Loads the configuration settings from a YAML file."""
 
@@ -21,8 +33,8 @@ class YAMLConfigSettingsSource(PydanticBaseSettingsSource):
         encoding = self.config.get("env_file_encoding")
         file_content_json = None
         for filename in ["uEditor.yaml", "uEditor.yml"]:
-            if os.path.exists(filename):
-                with open(filename, encoding=encoding) as in_f:
+            if os.path.exists(os.path.join(init_settings.base_path, filename)):
+                with open(os.path.join(init_settings.base_path, filename), encoding=encoding) as in_f:
                     file_content_json = safe_load(in_f)
                     break
         if file_content_json is not None:
@@ -128,14 +140,14 @@ class TEISettings(BaseModel):
     """List of sections within the TEI document."""
 
 
-class Settings(BaseSettings):
+class UEditorSettings(BaseSettings):
     """The main application settings."""
 
     tei: TEISettings = TEISettings()
 
     @classmethod
     def settings_customise_sources(
-        cls: Type["Settings"],
+        cls: Type["UEditorSettings"],
         settings_cls: Type[BaseSettings],
         init_settings: PydanticBaseSettingsSource,
         env_settings: PydanticBaseSettingsSource,
@@ -152,17 +164,5 @@ class Settings(BaseSettings):
         )
 
 
-class InitSettings(BaseSettings):
-    """The initialisation settings."""
-
-    local_repo_path: str = "./"
-    test: bool = False
-
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
-
-
-init_settings = InitSettings()
-
-
-def settings() -> Settings:
-    return Settings()
+def get_settings() -> UEditorSettings:
+    return UEditorSettings()
