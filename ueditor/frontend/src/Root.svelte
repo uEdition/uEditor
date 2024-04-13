@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Menubar, Dialog } from "bits-ui";
   import { mdiSourceBranchPlus } from "@mdi/js";
+  import { derived } from "svelte/store";
   import { fade } from "svelte/transition";
   import { createQuery } from "@tanstack/svelte-query";
 
@@ -8,17 +9,30 @@
   import { apiQueryHandler } from "./util";
 
   const config = createQuery({
-    queryKey: ["/configs/app"],
+    queryKey: ["/configs/uEdition"],
     queryFn: apiQueryHandler<Config>,
-    refetchInterval: 60000,
+  });
+
+  const appTitle = derived(config, (config) => {
+    console.log(config.data);
+    if (
+      config.isSuccess &&
+      config.data.languages &&
+      config.data.languages.length > 0 &&
+      config.data.languages[0].code &&
+      config.data.title &&
+      config.data.title[config.data.languages[0].code]
+    ) {
+      return "μEditor - " + config.data.title[config.data.languages[0].code];
+    }
+    return "μEditor";
   });
 
   let newBranchDialogOpen = false;
-  let test = true;
 </script>
 
 <svelte:head>
-  <title>μEditor</title>
+  <title>{$appTitle}</title>
 </svelte:head>
 
 <main class="flex flex-col w-screen h-screen overflow-hidden">

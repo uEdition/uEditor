@@ -7,7 +7,7 @@ from typing import Any, Dict, Literal, Tuple, Type
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
-from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 from yaml import safe_load
 
 
@@ -131,7 +131,6 @@ class TEISettings(BaseModel):
 class Settings(BaseSettings):
     """The main application settings."""
 
-    local_repo_path: str = "./"
     tei: TEISettings = TEISettings()
 
     @classmethod
@@ -151,6 +150,18 @@ class Settings(BaseSettings):
             file_secret_settings,
             YAMLConfigSettingsSource(settings_cls),
         )
+
+
+class InitSettings(BaseSettings):
+    """The initialisation settings."""
+
+    local_repo_path: str = "./"
+    test: bool = False
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+
+init_settings = InitSettings()
 
 
 def settings() -> Settings:
