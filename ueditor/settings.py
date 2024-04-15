@@ -130,7 +130,7 @@ class TEITextListSection(BaseModel):
 
 
 class TEISettings(BaseModel):
-    """Settings for the TEI processing"""
+    """Settings for the TEI processing."""
 
     blocks: list[TEINode] = []
     """List of blocks supported in the TEI document."""
@@ -165,4 +165,5 @@ class UEditorSettings(BaseSettings):
 
 
 def get_settings() -> UEditorSettings:
+    """Load the current UEditorSettings."""
     return UEditorSettings()

@@ -36,7 +36,7 @@ def get_files() -> list[dict]:
 
 
 def parse_tei_attributes(attributes: etree._Attrib, settings: list[TEINodeAttribute]) -> list[dict]:
-    """Parse the attributes of a node, extracting the attribute settings"""
+    """Parse the attributes of a node, extracting the attribute settings."""
     result = {}
     for conf in settings:
         if conf.name in attributes:
