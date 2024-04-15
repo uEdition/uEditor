@@ -11,7 +11,7 @@ from lxml import etree
 
 from ueditor.settings import TEINodeAttribute, TEISettings, UEditorSettings, get_settings, init_settings
 
-router = APIRouter(prefix="/files")
+router = APIRouter(prefix="/branches/{branch_id}/files")
 namespaces = {"tei": "http://www.tei-c.org/ns/1.0", "uedition": "https://uedition.readthedocs.org"}
 
 
