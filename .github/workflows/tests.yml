@@ -7,17 +7,19 @@ on:
     branches: [ main ]
 
 jobs:
-  api-tests:
+  functional-tests:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python_version: ["3.10", "3.11"]
 
     steps:
     - uses: actions/checkout@v4
 
     - uses: actions/setup-python@v5
       with:
-        python-version: |
-          3.10
-          3.11
+        python-version: ${{ matrix.python_version }}
 
     - uses: actions/setup-node@v4
       with:
@@ -48,14 +50,16 @@ jobs:
   e2e-tests:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        python_version: ["3.10", "3.11"]
+
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: |
-            3.10
-            3.11
+          python-version: ${{ matrix.python_version }}
 
       - uses: actions/setup-node@v4
         with:
