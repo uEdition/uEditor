@@ -8,7 +8,7 @@ from typing import Any, Dict, Literal, Tuple, Type
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
-from uedition.settings import Settings as UEditonSettings
+from uedition.settings import Settings as UEditonSettingsBase
 from yaml import safe_load
 
 
@@ -18,7 +18,7 @@ class InitSettings(BaseSettings):
     base_path: str = "./"
     test: bool = False
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", env_prefix="ueditor", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", env_prefix="ueditor_", extra="ignore")
 
 
 init_settings = InitSettings()
@@ -27,19 +27,23 @@ init_settings = InitSettings()
 class YAMLConfigSettingsSource(PydanticBaseSettingsSource):
     """Loads the configuration settings from a YAML file."""
 
+    def __init__(self, settings_cls: Type[BaseSettings], source_files: list[str]):
+        """Initialise and load the data."""
+        super().__init__(settings_cls)
+        self._file_content = None
+        encoding = self.config.get("env_file_encoding")
+        for filename in source_files:
+            if os.path.exists(os.path.join(init_settings.base_path, filename)):
+                with open(os.path.join(init_settings.base_path, filename), encoding=encoding) as in_f:
+                    self._file_content = safe_load(in_f)
+                    break
+
     def get_field_value(
         self: "YAMLConfigSettingsSource", field: FieldInfo, field_name: str  # noqa: ARG002
     ) -> Tuple[Any, str, bool]:
         """Get the value of a specific field."""
-        encoding = self.config.get("env_file_encoding")
-        file_content_json = None
-        for filename in ["uEditor.yaml", "uEditor.yml"]:
-            if os.path.exists(os.path.join(init_settings.base_path, filename)):
-                with open(os.path.join(init_settings.base_path, filename), encoding=encoding) as in_f:
-                    file_content_json = safe_load(in_f)
-                    break
-        if file_content_json is not None:
-            field_value = file_content_json.get(field_name)
+        if self._file_content is not None:
+            field_value = self._file_content.get(field_name)
         else:
             field_value = None
         return field_value, field_name, False
@@ -142,7 +146,7 @@ class TEISettings(BaseModel):
 
 
 class UEditorSettings(BaseSettings):
-    """The main application settings."""
+    """The uEditor settings."""
 
     tei: TEISettings = TEISettings()
 
@@ -161,7 +165,29 @@ class UEditorSettings(BaseSettings):
             env_settings,
             dotenv_settings,
             file_secret_settings,
-            YAMLConfigSettingsSource(settings_cls),
+            YAMLConfigSettingsSource(settings_cls, ["uEditor.yaml", "uEditor.yml"]),
+        )
+
+
+class UEditonSettings(UEditonSettingsBase):
+    """The uEdition settings."""
+
+    @classmethod
+    def settings_customise_sources(
+        cls: Type["UEditorSettings"],
+        settings_cls: Type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> Tuple[PydanticBaseSettingsSource, ...]:
+        """Customise the settings sources."""
+        return (
+            init_settings,
+            env_settings,
+            dotenv_settings,
+            file_secret_settings,
+            YAMLConfigSettingsSource(settings_cls, ["uEdition.yaml", "uEdition.yml"]),
         )
 
 

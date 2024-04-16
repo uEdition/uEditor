@@ -132,3 +132,19 @@ def test_complex_tei_config(tei_app: FastAPI) -> None:
             },
         ],
     }
+
+
+def test_basic_uedition_config(simple_app: FastAPI) -> None:
+    """Test fetching a simple uEdition config."""
+    client = TestClient(app=simple_app)
+    response = client.get("/api/configs/uedition")
+    assert response.status_code == 200
+    assert response.json() == {
+        "version": "1",
+        "author": {"name": "uEditor Simple Fixture", "email": "devs@example.com"},
+        "languages": [{"code": "en", "label": "English", "path": "en"}],
+        "output": {"path": "site", "tei": True},
+        "repository": {"url": None, "branch": "main"},
+        "title": {"en": "Simple Fixture"},
+        "jb_config": {},
+    }

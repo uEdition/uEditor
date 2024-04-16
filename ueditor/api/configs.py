@@ -2,26 +2,19 @@
 #
 # SPDX-License-Identifier: MIT
 """The uEditor API for accessing configurations."""
-import os
+from typing import Annotated
 
-from fastapi import APIRouter
-from yaml import safe_load
+from fastapi import APIRouter, Depends
 
-from ueditor.settings import get_ueditor_settings, init_settings
+from ueditor.settings import UEditonSettings, get_uedition_settings, get_ueditor_settings
 
 router = APIRouter(prefix="/configs")
 
 
 @router.get("/uedition")
-def uedition_config() -> dict:
+def uedition_config(uedition_settings: Annotated[UEditonSettings, Depends(get_uedition_settings)]) -> dict:
     """Fetch the uEdition configuration."""
-    if os.path.exists(os.path.join(init_settings.base_path, "uEdition.yaml")):
-        with open(os.path.join(init_settings.base_path, "uEdition.yaml")) as in_f:
-            return safe_load(in_f)
-    if os.path.exists(os.path.join(init_settings.base_path, "uEdition.yml")):
-        with open(os.path.join(init_settings.base_path, "uEdition.yml")) as in_f:
-            return safe_load(in_f)
-    return {}
+    return uedition_settings.model_dump()
 
 
 @router.get("/tei")

@@ -8,12 +8,12 @@
   import Icon from "./lib/Icon.svelte";
   import { apiQueryHandler } from "./util";
 
-  const config = createQuery({
-    queryKey: ["/configs/uEdition"],
-    queryFn: apiQueryHandler<Config>,
+  const uEditionConfig = createQuery({
+    queryKey: ["/configs/uedition"],
+    queryFn: apiQueryHandler<UEditionSettings>,
   });
 
-  const appTitle = derived(config, (config) => {
+  const appTitle = derived(uEditionConfig, (config) => {
     console.log(config.data);
     if (
       config.isSuccess &&
@@ -80,7 +80,7 @@
 </Dialog.Root>
 
 <Dialog.Root
-  bind:open={$config.isPending}
+  bind:open={$uEditionConfig.isPending}
   closeOnEscape={false}
   closeOnOutsideClick={false}
 >
@@ -97,7 +97,7 @@
 </Dialog.Root>
 
 <Dialog.Root
-  bind:open={$config.isError}
+  bind:open={$uEditionConfig.isError}
   closeOnEscape={false}
   closeOnOutsideClick={false}
 >
