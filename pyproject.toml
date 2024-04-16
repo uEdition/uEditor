@@ -28,6 +28,7 @@ dependencies = [
   "pydantic>=2,<3",
   "pydantic_settings>=2,<3",
   "PyYaml>=6,<7",
+  "uedition>=1,<2",
   "uvicorn<1",
 ]
 

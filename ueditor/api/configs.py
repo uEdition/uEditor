@@ -7,12 +7,12 @@ import os
 from fastapi import APIRouter
 from yaml import safe_load
 
-from ueditor.settings import get_settings, init_settings
+from ueditor.settings import get_ueditor_settings, init_settings
 
 router = APIRouter(prefix="/configs")
 
 
-@router.get("/uEdition")
+@router.get("/uedition")
 def uedition_config() -> dict:
     """Fetch the uEdition configuration."""
     if os.path.exists(os.path.join(init_settings.base_path, "uEdition.yaml")):
@@ -27,4 +27,4 @@ def uedition_config() -> dict:
 @router.get("/tei")
 def tei_config() -> dict:
     """Fetch the TEI configuration."""
-    return get_settings().tei.model_dump()
+    return get_ueditor_settings().tei.model_dump()

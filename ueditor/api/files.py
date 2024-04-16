@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from lxml import etree
 
-from ueditor.settings import TEINodeAttribute, TEISettings, UEditorSettings, get_settings, init_settings
+from ueditor.settings import TEINodeAttribute, TEISettings, UEditorSettings, get_ueditor_settings, init_settings
 
 router = APIRouter(prefix="/branches/{branch_id}/files")
 namespaces = {"tei": "http://www.tei-c.org/ns/1.0", "uedition": "https://uedition.readthedocs.org"}
@@ -119,7 +119,7 @@ def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
 
 
 @router.get("/{path:path}")
-def get_file(path: str, settings: Annotated[UEditorSettings, Depends(get_settings)]) -> dict:
+def get_file(path: str, settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)]) -> dict:
     """Fetch a single file from the repo."""
     full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
     if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):

@@ -8,6 +8,7 @@ from typing import Any, Dict, Literal, Tuple, Type
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
+from uedition.settings import Settings as UEditonSettings
 from yaml import safe_load
 
 
@@ -164,6 +165,11 @@ class UEditorSettings(BaseSettings):
         )
 
 
-def get_settings() -> UEditorSettings:
+def get_ueditor_settings() -> UEditorSettings:
     """Load the current UEditorSettings."""
     return UEditorSettings()
+
+
+def get_uedition_settings() -> UEditonSettings:
+    """Load the current UEditionSettings."""
+    return UEditonSettings()
