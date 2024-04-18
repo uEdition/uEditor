@@ -3,7 +3,7 @@
   import { currentFile } from "../stores";
 </script>
 
-{#if $currentFile}
+{#if $currentFile !== null}
   {#if $currentFile.type === "directory"}
     <DirectoryEditor />
   {:else}

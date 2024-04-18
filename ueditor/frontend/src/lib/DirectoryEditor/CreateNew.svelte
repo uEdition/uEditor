@@ -35,7 +35,9 @@
     <Dialog.Content>
       <Dialog.Title
         >Create a new {newType === "file" ? "File" : "Directory"} in
-        <span class="font-mono">{$currentFile?.fullpath}</span></Dialog.Title
+        <span class="font-mono"
+          >{$currentFile?.fullpath ? $currentFile?.fullpath : "/"}</span
+        ></Dialog.Title
       >
       <form data-dialog-content-area on:submit={createNewFile}>
         <label>

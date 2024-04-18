@@ -39,7 +39,9 @@ def build_file_tree(path: str, strip_len) -> list[dict]:
 def get_files() -> list[dict]:
     """Fetch the full tree of files."""
     full_path = os.path.abspath(init_settings.base_path)
-    return build_file_tree(full_path, len(full_path) + 1)
+    return [
+        {"name": "/", "fullpath": "", "type": "directory", "content": build_file_tree(full_path, len(full_path) + 1)}
+    ]
 
 
 def parse_tei_attributes(attributes: etree._Attrib, settings: list[TEINodeAttribute]) -> list[dict]:

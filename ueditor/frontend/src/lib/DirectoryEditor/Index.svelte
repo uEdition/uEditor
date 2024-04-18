@@ -23,7 +23,9 @@
 
 <div bind:this={focusElement} class="flex-1 px-2 py-2" tabindex="-1">
   <h2 class="sr-only">
-    Actions for the directory {$currentFile?.fullpath}
+    Actions for the directory {$currentFile?.fullpath
+      ? $currentFile?.fullpath
+      : "/"}
   </h2>
   <div class="flex flex-col w-60 space-y-2">
     <CreateNew newType="file" />

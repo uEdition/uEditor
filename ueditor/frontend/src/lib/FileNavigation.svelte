@@ -13,7 +13,7 @@
     queryFn: apiQueryHandler<FileTreeEntry[]>,
   });
 
-  const ctx = createTreeView({});
+  const ctx = createTreeView({ defaultExpanded: ["file-tree--1-0"] });
   setContext("tree", ctx);
 
   const {
@@ -42,7 +42,7 @@
   const unsubscribe = selectedItem.subscribe((selectedElement) => {
     if (
       selectedItem !== null &&
-      selectedElement?.getAttribute("data-file-path") &&
+      selectedElement?.getAttribute("data-file-path") !== null &&
       $fileList.isSuccess
     ) {
       const selectedFileTreeEntry = recursiveFileSeach(
