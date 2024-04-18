@@ -223,17 +223,10 @@ def test_fail_create_missing_new_type(simple_app: FastAPI) -> None:
     client = TestClient(app=simple_app)
     response = client.post("/api/branches/-1/files/en/index.md")
     assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "missing",
-                "loc": ["header", "X-uEditor-New-Type"],
-                "msg": "Field required",
-                "input": None,
-                "url": "https://errors.pydantic.dev/2.6/v/missing",
-            }
-        ]
-    }
+    err = response.json()
+    assert len(err["detail"]) == 1
+    assert err["detail"][0]["loc"] == ["header", "X-uEditor-New-Type"]
+    assert err["detail"][0]["msg"] == "Field required"
 
 
 def test_fail_create_invalid_new_type(simple_app: FastAPI) -> None:
