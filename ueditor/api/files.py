@@ -15,15 +15,22 @@ router = APIRouter(prefix="/branches/{branch_id}/files")
 namespaces = {"tei": "http://www.tei-c.org/ns/1.0", "uedition": "https://uedition.readthedocs.org"}
 
 
-def build_file_tree(path: str) -> list[dict]:
+def build_file_tree(path: str, strip_len) -> list[dict]:
     """Recursively build a tree of directories and files."""
     files = []
     for filename in os.listdir(path):
         full_filename = os.path.join(path, filename)
         if os.path.isdir(full_filename):
-            files.append({"name": filename, "type": "directory", "content": build_file_tree(full_filename)})
+            files.append(
+                {
+                    "name": filename,
+                    "fullpath": full_filename[strip_len:],
+                    "type": "directory",
+                    "content": build_file_tree(full_filename, strip_len),
+                }
+            )
         elif os.path.isfile(full_filename):
-            files.append({"name": filename, "type": "file"})
+            files.append({"name": filename, "fullpath": full_filename[strip_len:], "type": "file"})
     files.sort(key=lambda entry: (0 if entry["type"] == "directory" else 1, entry["name"]))
     return files
 
@@ -32,7 +39,7 @@ def build_file_tree(path: str) -> list[dict]:
 def get_files() -> list[dict]:
     """Fetch the full tree of files."""
     full_path = os.path.abspath(init_settings.base_path)
-    return build_file_tree(full_path)
+    return build_file_tree(full_path, len(full_path) + 1)
 
 
 def parse_tei_attributes(attributes: etree._Attrib, settings: list[TEINodeAttribute]) -> list[dict]:

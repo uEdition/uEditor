@@ -12,15 +12,19 @@ def test_list_files(simple_app: FastAPI) -> None:
     assert response.json() == [
         {
             "name": "en",
+            "fullpath": "en",
             "type": "directory",
-            "content": [{"name": ".uEdition.answers", "type": "file"}, {"name": "index.md", "type": "file"}],
+            "content": [
+                {"name": ".uEdition.answers", "fullpath": "en/.uEdition.answers", "type": "file"},
+                {"name": "index.md", "fullpath": "en/index.md", "type": "file"},
+            ],
         },
-        {"name": ".gitignore", "type": "file"},
-        {"name": ".uEdition.answers", "type": "file"},
-        {"name": "pyproject.toml", "type": "file"},
-        {"name": "toc.yml", "type": "file"},
-        {"name": "uEdition.yml", "type": "file"},
-        {"name": "uEditor.yml", "type": "file"},
+        {"name": ".gitignore", "fullpath": ".gitignore", "type": "file"},
+        {"name": ".uEdition.answers", "fullpath": ".uEdition.answers", "type": "file"},
+        {"name": "pyproject.toml", "fullpath": "pyproject.toml", "type": "file"},
+        {"name": "toc.yml", "fullpath": "toc.yml", "type": "file"},
+        {"name": "uEdition.yml", "fullpath": "uEdition.yml", "type": "file"},
+        {"name": "uEditor.yml", "fullpath": "uEditor.yml", "type": "file"},
     ]
 
 

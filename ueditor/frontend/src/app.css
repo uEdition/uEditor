@@ -41,4 +41,15 @@
   [data-dialog-content-area] {
     @apply flex-1 px-3 py-2 overflow-auto;
   }
+
+  /**
+   * File tree components
+   */
+  [data-melt-tree-view-group] {
+    @apply pl-4;
+  }
+
+  [data-melt-tree-view-item][aria-selected="true"] {
+    @apply border-l-4 border-fuchsia-800 bg-gray-300;
+  }
 }

@@ -37,3 +37,10 @@ type UEditionSettings = {
   title: UEditionTitle,
   jb_config: any,
 };
+
+type FileTreeEntry = {
+  name: string,
+  fullpath: string,
+  type: "file" | "directory",
+  content?: FileTreeEntry[],
+}

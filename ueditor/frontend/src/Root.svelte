@@ -5,8 +5,10 @@
   import { fade } from "svelte/transition";
   import { createQuery } from "@tanstack/svelte-query";
 
+  import FileNavigation from "./lib/FileNavigation.svelte";
   import Icon from "./lib/Icon.svelte";
   import { apiQueryHandler } from "./util";
+  import { currentFile } from "./stores";
 
   const uEditionConfig = createQuery({
     queryKey: ["/configs/uedition"],
@@ -14,7 +16,6 @@
   });
 
   const appTitle = derived(uEditionConfig, (config) => {
-    console.log(config.data);
     if (
       config.isSuccess &&
       config.data.languages &&
@@ -62,11 +63,17 @@
   </Menubar.Root>
   <!--<nav aria-label="Toolbar" class="bg-blue-100">Editor Toolbar</nav>-->
   <div class="flex flex-row flex-1">
-    <nav aria-label="Files" class="w-3/12 bg-red-100">Navigation</nav>
-    <div class="flex-1 bg-green-100">Editor Content</div>
+    <FileNavigation />
+    <div class="flex-1 bg-green-100">
+      Editor Content{#if $currentFile}: {$currentFile.name}{/if}
+    </div>
     <div class="w-3/12 bg-orange-100">Editor Sidebar</div>
   </div>
-  <footer class="bg-yellow-100">Editor footer</footer>
+  <footer class="flex flex-row px-2 py-1 border-t border-slate-300 text-sm">
+    <span
+      >{#if $currentFile}{$currentFile.fullpath}{/if}</span
+    >
+  </footer>
 </main>
 
 <Dialog.Root bind:open={newBranchDialogOpen}>
