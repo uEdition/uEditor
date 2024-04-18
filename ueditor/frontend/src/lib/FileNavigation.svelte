@@ -4,12 +4,12 @@
   import { createQuery } from "@tanstack/svelte-query";
 
   import { apiQueryHandler } from "../util";
-  import { currentFile } from "../stores";
+  import { currentBranch, currentFile } from "../stores";
 
   import Tree from "./FileTree.svelte";
 
   const fileList = createQuery({
-    queryKey: ["/branches/-1/files/"],
+    queryKey: ["branches", $currentBranch, "files/"],
     queryFn: apiQueryHandler<FileTreeEntry[]>,
   });
 
@@ -59,7 +59,7 @@
 
 <nav
   aria-label="Files"
-  class="px-2 py-1 w-3/12 overflow-auto border-r border-slate-300"
+  class="px-2 py-1 w-3/12 overflow-auto border-r border-gray-300"
 >
   {#if $fileList.isSuccess}
     <ol {...$tree}>

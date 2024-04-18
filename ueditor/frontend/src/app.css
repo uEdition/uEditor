@@ -5,6 +5,13 @@
 @layer components {
 
   /**
+   * Button components
+   */
+  [data-button] {
+    @apply px-3 py-1 border-2 transition-colors border-fuchsia-700 bg-white hover:bg-fuchsia-700 hover:text-white focus:bg-fuchsia-700 focus:text-white rounded;
+  }
+
+  /**
    * Menu components
    */
   [data-menu-trigger] {
@@ -40,6 +47,10 @@
 
   [data-dialog-content-area] {
     @apply flex-1 px-3 py-2 overflow-auto;
+  }
+
+  [data-dialog-buttons] {
+    @apply flex flex-row justify-end space-x-4 mt-4 pt-4 pb-2 border-t border-gray-300;
   }
 
   /**

@@ -5,13 +5,14 @@
   import { fade } from "svelte/transition";
   import { createQuery } from "@tanstack/svelte-query";
 
+  import Editor from "./lib/Editor.svelte";
   import FileNavigation from "./lib/FileNavigation.svelte";
   import Icon from "./lib/Icon.svelte";
   import { apiQueryHandler } from "./util";
   import { currentFile } from "./stores";
 
   const uEditionConfig = createQuery({
-    queryKey: ["/configs/uedition"],
+    queryKey: ["configs", "uedition"],
     queryFn: apiQueryHandler<UEditionSettings>,
   });
 
@@ -37,7 +38,7 @@
 </svelte:head>
 
 <main class="flex flex-col w-screen h-screen overflow-hidden">
-  <Menubar.Root class="border-b border-slate-300 px-2 pt-px">
+  <Menubar.Root class="border-b border-gray-300 px-2 pt-px">
     <Menubar.Menu>
       <Menubar.Trigger>μEditor</Menubar.Trigger>
       <Menubar.Content>
@@ -64,13 +65,10 @@
   <!--<nav aria-label="Toolbar" class="bg-blue-100">Editor Toolbar</nav>-->
   <div class="flex flex-row flex-1">
     <FileNavigation />
-    <div class="flex-1 bg-green-100">
-      Editor Content{#if $currentFile}: {$currentFile.name}{/if}
-    </div>
-    <div class="w-3/12 bg-orange-100">Editor Sidebar</div>
+    <Editor />
   </div>
   <footer class="flex flex-row px-2 py-1 border-t border-slate-300 text-sm">
-    <span
+    <span class="font-mono font-bold"
       >{#if $currentFile}{$currentFile.fullpath}{/if}</span
     >
   </footer>
