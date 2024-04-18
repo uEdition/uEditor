@@ -1,7 +1,11 @@
 """Tests for the files API."""
 
+import os
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+
+from ueditor.settings import init_settings
 
 
 def test_list_files(simple_app: FastAPI) -> None:
@@ -171,8 +175,72 @@ def test_fetching_a_markdown_file(tei_app: FastAPI) -> None:
 
 
 def test_fetching_an_unknown_filetye(simple_app: FastAPI) -> None:
-    """Test fetchng a Markdown file."""
+    """Test fetchng a TOML file."""
     client = TestClient(app=simple_app)
     response = client.get("/api/branches/-1/files/pyproject.toml")
     assert response.status_code == 200
     assert response.json() == {"type": "unknown"}
+
+
+def test_create_new_file(simple_app: FastAPI) -> None:
+    """Test that creating a new file works."""
+    if os.path.exists(os.path.join(init_settings.base_path, "en", "upload_test.md")):
+        os.unlink(os.path.join(init_settings.base_path, "en", "upload_test.md"))
+    try:
+        client = TestClient(app=simple_app)
+        response = client.post("/api/branches/-1/files/en/upload_test.md", headers={"X-uEditor-New-Type": "file"})
+        assert response.status_code == 204
+        assert os.path.isfile(os.path.join(init_settings.base_path, "en", "upload_test.md"))
+    finally:
+        if os.path.exists(os.path.join(init_settings.base_path, "en", "upload_test.md")):
+            os.unlink(os.path.join(init_settings.base_path, "en", "upload_test.md"))
+
+
+def test_create_new_directory(simple_app: FastAPI) -> None:
+    """Test that creating a new directory works."""
+    if os.path.exists(os.path.join(init_settings.base_path, "en", "new_dir")):
+        os.rmdir(os.path.join(init_settings.base_path, "en", "new_dir"))
+    try:
+        client = TestClient(app=simple_app)
+        response = client.post("/api/branches/-1/files/en/new_dir", headers={"X-uEditor-New-Type": "directory"})
+        assert response.status_code == 204
+        assert os.path.isdir(os.path.join(init_settings.base_path, "en", "new_dir"))
+    finally:
+        if os.path.exists(os.path.join(init_settings.base_path, "en", "new_dir")):
+            os.rmdir(os.path.join(init_settings.base_path, "en", "new_dir"))
+
+
+def test_fail_create_file_exists(simple_app: FastAPI) -> None:
+    """Test that creating a file over an existing file fails."""
+    client = TestClient(app=simple_app)
+    response = client.post("/api/branches/-1/files/en/index.md", headers={"X-uEditor-New-Type": "file"})
+    assert response.status_code == 422
+    assert response.json() == {"detail": [{"loc": ["path", "path"], "msg": "this file or directory already exists"}]}
+
+
+def test_fail_create_missing_new_type(simple_app: FastAPI) -> None:
+    """Test that creating something new without a type fails."""
+    client = TestClient(app=simple_app)
+    response = client.post("/api/branches/-1/files/en/index.md")
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": [
+            {
+                "type": "missing",
+                "loc": ["header", "X-uEditor-New-Type"],
+                "msg": "Field required",
+                "input": None,
+                "url": "https://errors.pydantic.dev/2.6/v/missing",
+            }
+        ]
+    }
+
+
+def test_fail_create_invalid_new_type(simple_app: FastAPI) -> None:
+    """Test that creating something new without a type fails."""
+    client = TestClient(app=simple_app)
+    response = client.post("/api/branches/-1/files/en/index.md", headers={"X-uEditor-New-Type": "symlink"})
+    assert response.status_code == 422
+    assert response.json() == {
+        "detail": [{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or directory"}]
+    }

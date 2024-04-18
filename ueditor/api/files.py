@@ -5,7 +5,7 @@
 import os
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from fastapi.exceptions import HTTPException
 from lxml import etree
 
@@ -36,7 +36,7 @@ def build_file_tree(path: str, strip_len) -> list[dict]:
 
 
 @router.get("/")
-def get_files() -> list[dict]:
+def get_files(branch_id: int) -> list[dict]:  # noqa: ARG001
     """Fetch the full tree of files."""
     full_path = os.path.abspath(init_settings.base_path)
     return [
@@ -128,7 +128,9 @@ def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
 
 
 @router.get("/{path:path}")
-def get_file(path: str, settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)]) -> dict:
+def get_file(
+    branch_id: int, path: str, settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)]  # noqa: ARG001
+) -> dict:
     """Fetch a single file from the repo."""
     full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
     if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
@@ -138,3 +140,31 @@ def get_file(path: str, settings: Annotated[UEditorSettings, Depends(get_ueditor
             return {"type": "markdown"}
         return {"type": "unknown"}
     raise HTTPException(404)
+
+
+@router.post("/{path:path}", status_code=204)
+def create_file(
+    branch_id: int,  # noqa: ARG001
+    path: str,
+    new_type: Annotated[str, Header(alias="X-uEditor-New-Type")],
+) -> None:
+    """Create a new file in the repo."""
+    if new_type in ("file", "directory"):
+        full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
+        if full_path.startswith(os.path.abspath(init_settings.base_path)) and not os.path.exists(full_path):
+            if new_type == "file":
+                with open(full_path, "w") as out_f:  # noqa: F841
+                    pass
+                return
+            elif new_type == "directory":
+                os.makedirs(full_path)
+                return
+        else:
+            raise HTTPException(
+                422,
+                detail=[{"loc": ["path", "path"], "msg": "this file or directory already exists"}],
+            )
+    raise HTTPException(
+        422,
+        detail=[{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or directory"}],
+    )
