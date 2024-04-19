@@ -4,10 +4,12 @@
     mdiFolderEditOutline,
     mdiFolderMoveOutline,
     mdiFolderMultipleOutline,
+    mdiFolderPlusOutline,
     mdiFolderRemoveOutline,
   } from "@mdi/js";
 
   import Icon from "../Icon.svelte";
+  import { activeAction, Actions } from "../actions/Index.svelte";
   import { currentFile } from "../../stores";
   import DirectoryDelete from "../actions/DirectoryDelete.svelte";
 
@@ -25,6 +27,10 @@
 <Menubar.Menu>
   <Menubar.Trigger>Directory</Menubar.Trigger>
   <Menubar.Content>
+    <Menubar.Item on:click={() => {activeAction.set(Actions.FOLDER_CREATE)}}>
+      <Icon path={mdiFolderPlusOutline} size="w4 h-4" />
+      <span>New Folder</span>
+    </Menubar.Item>
     <Menubar.Item
       on:click={() => {
         action = Action.Rename;

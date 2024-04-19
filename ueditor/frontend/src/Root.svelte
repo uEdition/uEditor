@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { Menubar, Dialog } from "bits-ui";
-  import { mdiPencil, mdiSourceBranchPlus, mdiTrashCanOutline } from "@mdi/js";
+  import { Dialog } from "bits-ui";
   import { derived } from "svelte/store";
   import { fade } from "svelte/transition";
   import { createQuery } from "@tanstack/svelte-query";
@@ -8,7 +7,7 @@
   import MainMenu from "./lib/MainMenu/Index.svelte";
   import Editor from "./lib/Editor.svelte";
   import FileNavigation from "./lib/FileNavigation.svelte";
-  import Icon from "./lib/Icon.svelte";
+  import Actions from "./lib/actions/Index.svelte";
   import { apiQueryHandler } from "./util";
   import { currentFile } from "./stores";
 
@@ -30,8 +29,6 @@
     }
     return "μEditor";
   });
-
-  let newBranchDialogOpen = false;
 </script>
 
 <svelte:head>
@@ -51,6 +48,8 @@
     >
   </footer>
 </main>
+
+<Actions/>
 
 <Dialog.Root
   bind:open={$uEditionConfig.isPending}
