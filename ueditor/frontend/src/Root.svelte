@@ -1,10 +1,11 @@
 <script lang="ts">
   import { Menubar, Dialog } from "bits-ui";
-  import { mdiSourceBranchPlus } from "@mdi/js";
+  import { mdiPencil, mdiSourceBranchPlus, mdiTrashCanOutline } from "@mdi/js";
   import { derived } from "svelte/store";
   import { fade } from "svelte/transition";
   import { createQuery } from "@tanstack/svelte-query";
 
+  import MainMenu from "./lib/MainMenu/Index.svelte";
   import Editor from "./lib/Editor.svelte";
   import FileNavigation from "./lib/FileNavigation.svelte";
   import Icon from "./lib/Icon.svelte";
@@ -38,30 +39,7 @@
 </svelte:head>
 
 <main class="flex flex-col w-screen h-screen overflow-hidden">
-  <Menubar.Root class="border-b border-gray-300 px-2 pt-px">
-    <Menubar.Menu>
-      <Menubar.Trigger>μEditor</Menubar.Trigger>
-      <Menubar.Content>
-        <Menubar.Item
-          on:click={() => {
-            newBranchDialogOpen = true;
-          }}
-        >
-          <Icon path={mdiSourceBranchPlus} size="w-4 h-4"></Icon>
-          <span>New Branch</span>
-        </Menubar.Item>
-        <Menubar.Separator></Menubar.Separator>
-        <Menubar.Item>
-          <Icon size="w-4 h-4"></Icon>
-          <span>Branch 1</span>
-        </Menubar.Item>
-        <Menubar.Item>
-          <Icon size="w-4 h-4"></Icon>
-          <span>Branch 2</span>
-        </Menubar.Item>
-      </Menubar.Content>
-    </Menubar.Menu>
-  </Menubar.Root>
+  <MainMenu />
   <!--<nav aria-label="Toolbar" class="bg-blue-100">Editor Toolbar</nav>-->
   <div class="flex flex-row flex-1">
     <FileNavigation />
@@ -73,16 +51,6 @@
     >
   </footer>
 </main>
-
-<Dialog.Root bind:open={newBranchDialogOpen}>
-  <Dialog.Trigger class="hidden" />
-  <Dialog.Portal>
-    <Dialog.Overlay />
-    <Dialog.Content>
-      <Dialog.Title>Create a new Branch</Dialog.Title>
-    </Dialog.Content>
-  </Dialog.Portal>
-</Dialog.Root>
 
 <Dialog.Root
   bind:open={$uEditionConfig.isPending}

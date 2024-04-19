@@ -237,3 +237,32 @@ def test_fail_create_invalid_new_type(simple_app: FastAPI) -> None:
     assert response.json() == {
         "detail": [{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or directory"}]
     }
+
+
+def test_delete_file(simple_app: FastAPI) -> None:
+    """Test that deleting a file works."""
+    if not os.path.exists(os.path.join(init_settings.base_path, "en", "delete_test.md")):
+        with open(os.path.join(init_settings.base_path, "en", "delete_test.md"), "w") as out_f:  # noqa: F841
+            pass
+    try:
+        client = TestClient(app=simple_app)
+        response = client.delete("/api/branches/-1/files/en/delete_test.md")
+        assert response.status_code == 204
+        assert not os.path.exists(os.path.join(init_settings.base_path, "en", "delete_test.md"))
+    finally:
+        if os.path.exists(os.path.join(init_settings.base_path, "en", "delete_test.md")):
+            os.unlink(os.path.join(init_settings.base_path, "en", "delete_test.md"))
+
+
+def test_delete_directory(simple_app: FastAPI) -> None:
+    """Test that deleteing a directory works."""
+    if not os.path.exists(os.path.join(init_settings.base_path, "en", "delete_test")):
+        os.makedirs(os.path.join(init_settings.base_path, "en", "delete_test"))
+    try:
+        client = TestClient(app=simple_app)
+        response = client.delete("/api/branches/-1/files/en/delete_test")
+        assert response.status_code == 204
+        assert not os.path.exists(os.path.join(init_settings.base_path, "en", "delete_test"))
+    finally:
+        if os.path.exists(os.path.join(init_settings.base_path, "en", "delete_test")):
+            os.rmdir(os.path.join(init_settings.base_path, "en", "delete_test"))

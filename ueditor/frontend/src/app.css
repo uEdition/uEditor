@@ -63,4 +63,19 @@
   [data-melt-tree-view-item][aria-selected="true"] {
     @apply border-l-4 border-fuchsia-800 bg-gray-300;
   }
+
+  /**
+   * Form components
+   */
+  [data-form-field-label] {
+    @apply block text-sm pl-3;
+  }
+
+  [data-form-field-error] {
+    @apply block text-sm text-rose-700 font-bold pl-3 pt-1;
+  }
+
+  [data-form-field-text] {
+    @apply block w-full px-3 py-2 border transition-colors border-slate-300 focus:border-fuchsia-700 rounded;
+  }
 }

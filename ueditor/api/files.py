@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MIT
 """The uEditor API for manipulating files."""
 import os
+import shutil
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header
@@ -168,3 +169,25 @@ def create_file(
         422,
         detail=[{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or directory"}],
     )
+
+
+@router.delete("/{path:path}", status_code=204)
+def delete_file(
+    branch_id: int,  # noqa: ARG001
+    path: str,
+) -> None:
+    """Delete a file in the repo."""
+    full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
+    if full_path.startswith(os.path.abspath(init_settings.base_path)):
+        if os.path.isfile(full_path):
+            os.unlink(full_path)
+            return
+        elif os.path.isdir(full_path):
+            shutil.rmtree(full_path)
+            return
+        else:
+            raise HTTPException(
+                422,
+                detail=[{"loc": ["path", "path"], "msg": "Unknown type of file"}],
+            )
+    raise HTTPException(404)

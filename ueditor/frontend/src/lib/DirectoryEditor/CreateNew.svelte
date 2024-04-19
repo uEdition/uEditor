@@ -56,16 +56,10 @@
       >
       <form data-dialog-content-area on:submit={createNewFile}>
         <label>
-          <span class="block text-sm pl-3">New Filename</span>
-          <input
-            bind:value={newFileName}
-            class="block w-full px-3 py-2 border transition-colors border-slate-300 focus:border-fuchsia-700 rounded"
-            type="text"
-          />
+          <span data-form-field-label>New Filename</span>
+          <input bind:value={newFileName} type="text" data-form-field-text />
           {#if errorMessage}
-            <span class="block text-sm text-rose-700 font-bold pl-3 pt-1"
-              >{errorMessage}</span
-            >
+            <span data-form-field-error>{errorMessage}</span>
           {/if}
         </label>
         <div data-dialog-buttons>

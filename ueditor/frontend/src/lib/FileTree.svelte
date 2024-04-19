@@ -32,7 +32,6 @@
       })}
       data-file-path={fullpath}
     >
-      <!-- Add icon. -->
       {#if type === "directory" && hasChildren && $isExpanded(itemId)}
         <Icon path={mdiFolderOpenOutline} />
       {:else if type === "file"}
