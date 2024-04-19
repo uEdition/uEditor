@@ -41,6 +41,6 @@ type UEditionSettings = {
 type FileTreeEntry = {
   name: string,
   fullpath: string,
-  type: "file" | "directory",
+  type: "file" | "folder",
   content?: FileTreeEntry[],
 }

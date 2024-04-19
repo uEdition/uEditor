@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
 
-  import CreateNew from "./CreateNew.svelte";
-  import { currentFile } from "../../stores";
+  import { currentFile } from "../stores";
+  import { activeDialog, Dialogs } from "./dialogs/Index.svelte";
 
   let focusElement: HTMLHeadingElement | null = null;
 
@@ -28,8 +28,18 @@
       : "/"}
   </h2>
   <div class="flex flex-col w-60 space-y-2">
-    <CreateNew newType="file" />
-    <CreateNew newType="directory" />
+    <button
+      data-button
+      on:click={() => {
+        activeDialog.set(Dialogs.FOLDER_CREATE);
+      }}>Create a new Folder</button
+    >
+    <button
+      data-button
+      on:click={() => {
+        activeDialog.set(Dialogs.FILE_CREATE);
+      }}>Create a new File</button
+    >
     <button
       class="px-3 py-1 border-2 transition-colors border-fuchsia-700 bg-white hover:bg-fuchsia-700 hover:text-white focus:bg-fuchsia-700 focus:text-white rounded"
       >Upload a File</button
@@ -39,8 +49,10 @@
       >Rename</button
     >
     <button
-      class="px-3 py-1 border-2 transition-colors border-fuchsia-700 bg-white hover:bg-fuchsia-700 hover:text-white focus:bg-fuchsia-700 focus:text-white rounded"
-      >Delete</button
+      data-button
+      on:click={() => {
+        activeDialog.set(Dialogs.FOLDER_DELETE);
+      }}>Delete this Folder</button
     >
   </div>
 </div>

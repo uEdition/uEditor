@@ -26,13 +26,13 @@ def build_file_tree(path: str, strip_len) -> list[dict]:
                 {
                     "name": filename,
                     "fullpath": full_filename[strip_len:],
-                    "type": "directory",
+                    "type": "folder",
                     "content": build_file_tree(full_filename, strip_len),
                 }
             )
         elif os.path.isfile(full_filename):
             files.append({"name": filename, "fullpath": full_filename[strip_len:], "type": "file"})
-    files.sort(key=lambda entry: (0 if entry["type"] == "directory" else 1, entry["name"]))
+    files.sort(key=lambda entry: (0 if entry["type"] == "folder" else 1, entry["name"]))
     return files
 
 
@@ -40,9 +40,7 @@ def build_file_tree(path: str, strip_len) -> list[dict]:
 def get_files(branch_id: int) -> list[dict]:  # noqa: ARG001
     """Fetch the full tree of files."""
     full_path = os.path.abspath(init_settings.base_path)
-    return [
-        {"name": "/", "fullpath": "", "type": "directory", "content": build_file_tree(full_path, len(full_path) + 1)}
-    ]
+    return [{"name": "/", "fullpath": "", "type": "folder", "content": build_file_tree(full_path, len(full_path) + 1)}]
 
 
 def parse_tei_attributes(attributes: etree._Attrib, settings: list[TEINodeAttribute]) -> list[dict]:
@@ -150,24 +148,24 @@ def create_file(
     new_type: Annotated[str, Header(alias="X-uEditor-New-Type")],
 ) -> None:
     """Create a new file in the repo."""
-    if new_type in ("file", "directory"):
+    if new_type in ("file", "folder"):
         full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
         if full_path.startswith(os.path.abspath(init_settings.base_path)) and not os.path.exists(full_path):
             if new_type == "file":
                 with open(full_path, "w") as out_f:  # noqa: F841
                     pass
                 return
-            elif new_type == "directory":
+            elif new_type == "folder":
                 os.makedirs(full_path)
                 return
         else:
             raise HTTPException(
                 422,
-                detail=[{"loc": ["path", "path"], "msg": "this file or directory already exists"}],
+                detail=[{"loc": ["path", "path"], "msg": "this file or folder already exists"}],
             )
     raise HTTPException(
         422,
-        detail=[{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or directory"}],
+        detail=[{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or folder"}],
     )
 
 

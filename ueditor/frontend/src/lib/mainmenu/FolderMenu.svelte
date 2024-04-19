@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { Dialog, Menubar } from "bits-ui";
+  import { Dialog, Menubar, Separator } from "bits-ui";
   import {
+    mdiFileDocumentPlusOutline,
     mdiFolderEditOutline,
     mdiFolderMoveOutline,
     mdiFolderMultipleOutline,
@@ -9,9 +10,8 @@
   } from "@mdi/js";
 
   import Icon from "../Icon.svelte";
-  import { activeAction, Actions } from "../actions/Index.svelte";
-  import { currentFile } from "../../stores";
-  import DirectoryDelete from "../actions/DirectoryDelete.svelte";
+  import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
+  import DirectoryDelete from "../dialogs/folder/Delete.svelte";
 
   enum Action {
     Nothing = 1,
@@ -25,12 +25,25 @@
 </script>
 
 <Menubar.Menu>
-  <Menubar.Trigger>Directory</Menubar.Trigger>
+  <Menubar.Trigger>Folder</Menubar.Trigger>
   <Menubar.Content>
-    <Menubar.Item on:click={() => {activeAction.set(Actions.FOLDER_CREATE)}}>
+    <Menubar.Item
+      on:click={() => {
+        activeDialog.set(Dialogs.FOLDER_CREATE);
+      }}
+    >
       <Icon path={mdiFolderPlusOutline} size="w4 h-4" />
       <span>New Folder</span>
     </Menubar.Item>
+    <Menubar.Item
+      on:click={() => {
+        activeDialog.set(Dialogs.FILE_CREATE);
+      }}
+    >
+      <Icon path={mdiFileDocumentPlusOutline} size="w4 h-4" />
+      <span>New File</span>
+    </Menubar.Item>
+    <Menubar.Separator />
     <Menubar.Item
       on:click={() => {
         action = Action.Rename;

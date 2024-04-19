@@ -1,11 +1,11 @@
 <script lang="ts">
-  import DirectoryEditor from "./DirectoryEditor/Index.svelte";
+  import FolderEditor from "./FolderEditor.svelte";
   import { currentFile } from "../stores";
 </script>
 
 {#if $currentFile !== null}
-  {#if $currentFile.type === "directory"}
-    <DirectoryEditor />
+  {#if $currentFile.type === "folder"}
+    <FolderEditor />
   {:else}
     <div class="flex-1 px-2 py-1 text-rose-700">
       Unfortunately the μEditor does not know how to edit this file.
@@ -13,6 +13,6 @@
   {/if}
 {:else}
   <div class="flex-1 relative px-2 py-1 text-gray-700">
-    Please select a file from the file-browser on the left
+    Please select a file or folder from the file-browser on the left
   </div>
 {/if}

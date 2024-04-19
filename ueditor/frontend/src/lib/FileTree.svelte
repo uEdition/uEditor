@@ -2,7 +2,10 @@
   import {
     mdiFolderOpenOutline,
     mdiFolderOutline,
+    mdiFileDocumentOutline,
     mdiFileOutline,
+    mdiFileCogOutline,
+    mdiFileImageOutline,
   } from "@mdi/js";
   import { melt, type TreeView } from "@melt-ui/svelte";
   import slugify from "slugify";
@@ -32,12 +35,20 @@
       })}
       data-file-path={fullpath}
     >
-      {#if type === "directory" && hasChildren && $isExpanded(itemId)}
+      {#if type === "folder" && hasChildren && $isExpanded(itemId)}
         <Icon path={mdiFolderOpenOutline} />
-      {:else if type === "file"}
-        <Icon path={mdiFileOutline} />
-      {:else}
+      {:else if type === "folder"}
         <Icon path={mdiFolderOutline} />
+      {:else if type === "file"}
+        {#if name.endsWith(".md")}
+          <Icon path={mdiFileDocumentOutline} />
+        {:else if name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".tiff")}
+          <Icon path={mdiFileImageOutline} />
+        {:else if name === ".uEdition.answers" || name.endsWith(".toml") || name.endsWith(".yml") || name.endsWith(".yaml")}
+          <Icon path={mdiFileCogOutline} />
+        {:else}
+          <Icon path={mdiFileOutline} />
+        {/if}
       {/if}
 
       <span class="select-none">{name}</span>

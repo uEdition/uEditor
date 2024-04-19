@@ -17,12 +17,12 @@ def test_list_files(simple_app: FastAPI) -> None:
         {
             "name": "/",
             "fullpath": "",
-            "type": "directory",
+            "type": "folder",
             "content": [
                 {
                     "name": "en",
                     "fullpath": "en",
-                    "type": "directory",
+                    "type": "folder",
                     "content": [
                         {"name": ".uEdition.answers", "fullpath": "en/.uEdition.answers", "type": "file"},
                         {"name": "index.md", "fullpath": "en/index.md", "type": "file"},
@@ -196,13 +196,13 @@ def test_create_new_file(simple_app: FastAPI) -> None:
             os.unlink(os.path.join(init_settings.base_path, "en", "upload_test.md"))
 
 
-def test_create_new_directory(simple_app: FastAPI) -> None:
-    """Test that creating a new directory works."""
+def test_create_new_folder(simple_app: FastAPI) -> None:
+    """Test that creating a new folder works."""
     if os.path.exists(os.path.join(init_settings.base_path, "en", "new_dir")):
         os.rmdir(os.path.join(init_settings.base_path, "en", "new_dir"))
     try:
         client = TestClient(app=simple_app)
-        response = client.post("/api/branches/-1/files/en/new_dir", headers={"X-uEditor-New-Type": "directory"})
+        response = client.post("/api/branches/-1/files/en/new_dir", headers={"X-uEditor-New-Type": "folder"})
         assert response.status_code == 204
         assert os.path.isdir(os.path.join(init_settings.base_path, "en", "new_dir"))
     finally:
@@ -215,7 +215,7 @@ def test_fail_create_file_exists(simple_app: FastAPI) -> None:
     client = TestClient(app=simple_app)
     response = client.post("/api/branches/-1/files/en/index.md", headers={"X-uEditor-New-Type": "file"})
     assert response.status_code == 422
-    assert response.json() == {"detail": [{"loc": ["path", "path"], "msg": "this file or directory already exists"}]}
+    assert response.json() == {"detail": [{"loc": ["path", "path"], "msg": "this file or folder already exists"}]}
 
 
 def test_fail_create_missing_new_type(simple_app: FastAPI) -> None:
@@ -235,7 +235,7 @@ def test_fail_create_invalid_new_type(simple_app: FastAPI) -> None:
     response = client.post("/api/branches/-1/files/en/index.md", headers={"X-uEditor-New-Type": "symlink"})
     assert response.status_code == 422
     assert response.json() == {
-        "detail": [{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or directory"}]
+        "detail": [{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or folder"}]
     }
 
 
@@ -254,8 +254,8 @@ def test_delete_file(simple_app: FastAPI) -> None:
             os.unlink(os.path.join(init_settings.base_path, "en", "delete_test.md"))
 
 
-def test_delete_directory(simple_app: FastAPI) -> None:
-    """Test that deleteing a directory works."""
+def test_delete_folder(simple_app: FastAPI) -> None:
+    """Test that deleteing a folder works."""
     if not os.path.exists(os.path.join(init_settings.base_path, "en", "delete_test")):
         os.makedirs(os.path.join(init_settings.base_path, "en", "delete_test"))
     try:

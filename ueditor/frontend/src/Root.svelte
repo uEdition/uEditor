@@ -4,10 +4,10 @@
   import { fade } from "svelte/transition";
   import { createQuery } from "@tanstack/svelte-query";
 
-  import MainMenu from "./lib/MainMenu/Index.svelte";
+  import MainMenu from "./lib/mainmenu/Index.svelte";
   import Editor from "./lib/Editor.svelte";
   import FileNavigation from "./lib/FileNavigation.svelte";
-  import Actions from "./lib/actions/Index.svelte";
+  import Actions from "./lib/dialogs/Index.svelte";
   import { apiQueryHandler } from "./util";
   import { currentFile } from "./stores";
 
@@ -49,7 +49,7 @@
   </footer>
 </main>
 
-<Actions/>
+<Actions />
 
 <Dialog.Root
   bind:open={$uEditionConfig.isPending}
