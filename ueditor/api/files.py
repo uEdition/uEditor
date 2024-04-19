@@ -16,6 +16,13 @@ from ueditor.settings import TEINodeAttribute, TEISettings, UEditorSettings, get
 router = APIRouter(prefix="/branches/{branch_id}/files")
 namespaces = {"tei": "http://www.tei-c.org/ns/1.0", "uedition": "https://uedition.readthedocs.org"}
 
+MIMETYPE_EXTENSIONS = {
+    ".gitignore": "application/gitignore",
+    ".toml": "application/toml",
+    ".yaml": "application/yaml",
+    ".yml": "application/yaml",
+}
+
 
 def build_file_tree(path: str, strip_len) -> list[dict]:
     """Recursively build a tree of directories and files."""
@@ -35,7 +42,13 @@ def build_file_tree(path: str, strip_len) -> list[dict]:
         elif os.path.isfile(full_filename):
             mimetype = guess_type(filename)
             if mimetype[0] is None:
-                mimetype = ["application/unknown", None]
+                dot_idx = filename.rfind(".")
+                if dot_idx >= 0:
+                    fileext = filename[dot_idx:]
+                    if fileext in MIMETYPE_EXTENSIONS:
+                        mimetype = [MIMETYPE_EXTENSIONS[fileext], None]
+                if mimetype[0] is None:
+                    mimetype = ["application/unknown", None]
             files.append(
                 {
                     "name": filename,

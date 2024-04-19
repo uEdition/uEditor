@@ -35,7 +35,7 @@ def test_list_files(simple_app: FastAPI) -> None:
                         {"name": "index.md", "fullpath": "en/index.md", "type": "file", "mimetype": "text/markdown"},
                     ],
                 },
-                {"name": ".gitignore", "fullpath": ".gitignore", "type": "file", "mimetype": "application/unknown"},
+                {"name": ".gitignore", "fullpath": ".gitignore", "type": "file", "mimetype": "application/gitignore"},
                 {
                     "name": ".uEdition.answers",
                     "fullpath": ".uEdition.answers",
@@ -46,7 +46,7 @@ def test_list_files(simple_app: FastAPI) -> None:
                     "name": "pyproject.toml",
                     "fullpath": "pyproject.toml",
                     "type": "file",
-                    "mimetype": "application/unknown",
+                    "mimetype": "application/toml",
                 },
                 {"name": "toc.yml", "fullpath": "toc.yml", "type": "file", "mimetype": "application/yaml"},
                 {"name": "uEdition.yml", "fullpath": "uEdition.yml", "type": "file", "mimetype": "application/yaml"},

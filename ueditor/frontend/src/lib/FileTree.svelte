@@ -44,7 +44,7 @@
           <Icon path={mdiFileDocumentOutline} />
         {:else if mimetype.startsWith("image/")}
           <Icon path={mdiFileImageOutline} />
-        {:else if mimetype === "application/yaml"}
+        {:else if mimetype === "application/yaml" || mimetype === "application/toml" || mimetype === "application/gitignore"}
           <Icon path={mdiFileCogOutline} />
         {:else}
           <Icon path={mdiFileOutline} />
