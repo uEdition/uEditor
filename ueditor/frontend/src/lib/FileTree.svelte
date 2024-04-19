@@ -22,7 +22,7 @@
   } = getContext<TreeView>("tree");
 </script>
 
-{#each treeItems as { name, type, fullpath, content }, i}
+{#each treeItems as { name, type, fullpath, content, mimetype }, i}
   {@const itemId = `file-tree-${slugify(name, { strict: true })}-${level}-${i}`}
   {@const hasChildren = !!content?.length}
 
@@ -40,11 +40,11 @@
       {:else if type === "folder"}
         <Icon path={mdiFolderOutline} />
       {:else if type === "file"}
-        {#if name.endsWith(".md")}
+        {#if mimetype === "text/markdown"}
           <Icon path={mdiFileDocumentOutline} />
-        {:else if name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".tiff")}
+        {:else if mimetype.startsWith("image/")}
           <Icon path={mdiFileImageOutline} />
-        {:else if name === ".uEdition.answers" || name.endsWith(".toml") || name.endsWith(".yml") || name.endsWith(".yaml")}
+        {:else if mimetype === "application/yaml"}
           <Icon path={mdiFileCogOutline} />
         {:else}
           <Icon path={mdiFileOutline} />

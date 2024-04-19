@@ -43,4 +43,5 @@ type FileTreeEntry = {
   fullpath: string,
   type: "file" | "folder",
   content?: FileTreeEntry[],
+  mimetype: string,
 }

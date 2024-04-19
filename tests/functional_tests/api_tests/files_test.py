@@ -18,22 +18,39 @@ def test_list_files(simple_app: FastAPI) -> None:
             "name": "/",
             "fullpath": "",
             "type": "folder",
+            "mimetype": "application/folder",
             "content": [
                 {
                     "name": "en",
                     "fullpath": "en",
                     "type": "folder",
+                    "mimetype": "application/folder",
                     "content": [
-                        {"name": ".uEdition.answers", "fullpath": "en/.uEdition.answers", "type": "file"},
-                        {"name": "index.md", "fullpath": "en/index.md", "type": "file"},
+                        {
+                            "name": ".uEdition.answers",
+                            "fullpath": "en/.uEdition.answers",
+                            "type": "file",
+                            "mimetype": "application/unknown",
+                        },
+                        {"name": "index.md", "fullpath": "en/index.md", "type": "file", "mimetype": "text/markdown"},
                     ],
                 },
-                {"name": ".gitignore", "fullpath": ".gitignore", "type": "file"},
-                {"name": ".uEdition.answers", "fullpath": ".uEdition.answers", "type": "file"},
-                {"name": "pyproject.toml", "fullpath": "pyproject.toml", "type": "file"},
-                {"name": "toc.yml", "fullpath": "toc.yml", "type": "file"},
-                {"name": "uEdition.yml", "fullpath": "uEdition.yml", "type": "file"},
-                {"name": "uEditor.yml", "fullpath": "uEditor.yml", "type": "file"},
+                {"name": ".gitignore", "fullpath": ".gitignore", "type": "file", "mimetype": "application/unknown"},
+                {
+                    "name": ".uEdition.answers",
+                    "fullpath": ".uEdition.answers",
+                    "type": "file",
+                    "mimetype": "application/unknown",
+                },
+                {
+                    "name": "pyproject.toml",
+                    "fullpath": "pyproject.toml",
+                    "type": "file",
+                    "mimetype": "application/unknown",
+                },
+                {"name": "toc.yml", "fullpath": "toc.yml", "type": "file", "mimetype": "application/yaml"},
+                {"name": "uEdition.yml", "fullpath": "uEdition.yml", "type": "file", "mimetype": "application/yaml"},
+                {"name": "uEditor.yml", "fullpath": "uEditor.yml", "type": "file", "mimetype": "application/yaml"},
             ],
         }
     ]

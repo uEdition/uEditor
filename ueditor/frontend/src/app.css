@@ -60,8 +60,12 @@
     @apply pl-4;
   }
 
+  [data-melt-tree-view-item] {
+    @apply border-l-4 border-transparent transition-colors bg-transparent;
+  }
+
   [data-melt-tree-view-item][aria-selected="true"] {
-    @apply border-l-4 border-fuchsia-800 bg-gray-300;
+    @apply border-fuchsia-800 bg-gray-300;
   }
 
   /**
