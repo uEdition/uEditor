@@ -68,94 +68,91 @@ def test_fetching_a_tei_file(tei_app: FastAPI) -> None:
     client = TestClient(app=tei_app)
     response = client.get("/api/branches/-1/files/en/example.tei")
     assert response.status_code == 200
-    assert response.json() == {
-        "type": "tei",
-        "content": [
-            {"name": "metadata", "title": "Metadata", "type": "metadata", "content": []},
-            {
-                "name": "text",
-                "title": "Text",
-                "type": "text",
-                "content": {
-                    "type": "doc",
-                    "content": [
-                        {
-                            "type": "heading",
-                            "attributes": {"type": "level-1"},
-                            "content": [{"type": "text", "marks": [], "text": "Welcome"}],
-                        },
-                        {
-                            "type": "paragraph",
-                            "attributes": {},
-                            "content": [
-                                {"type": "text", "marks": [], "text": "This is a "},
-                                {
-                                    "type": "text",
-                                    "marks": [{"type": "bold", "attributes": {"style": "font-weight-bold"}}],
-                                    "text": "very, ",
-                                },
-                                {
-                                    "type": "text",
-                                    "marks": [
-                                        {"type": "italic", "attributes": {"style": "font-style-italic"}},
-                                        {"type": "bold", "attributes": {"style": "font-weight-bold"}},
-                                    ],
-                                    "text": "very",
-                                },
-                                {"type": "text", "marks": [], "text": " "},
-                                {
-                                    "type": "text",
-                                    "marks": [{"type": "italic", "attributes": {"style": "font-style-italic"}}],
-                                    "text": "important",
-                                },
-                                {"type": "text", "marks": [], "text": " message."},
-                                {
-                                    "type": "text",
-                                    "marks": [
-                                        {
-                                            "type": "footnote-ref",
-                                            "attributes": {
-                                                "type": "footnote",
-                                                "target": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c",
-                                            },
-                                        }
-                                    ],
-                                    "text": "[1]",
-                                },
-                            ],
-                        },
-                        {
-                            "type": "heading",
-                            "attributes": {"type": "level-1"},
-                            "content": [{"type": "text", "marks": [], "text": "Heading with the default type"}],
-                        },
-                    ],
-                },
-            },
-            {
-                "name": "footnotes",
-                "title": "Footnotes",
-                "type": "textlist",
+    assert response.json() == [
+        {"name": "metadata", "title": "Metadata", "type": "metadata", "content": []},
+        {
+            "name": "text",
+            "title": "Text",
+            "type": "text",
+            "content": {
+                "type": "doc",
                 "content": [
                     {
-                        "attributes": {
-                            "{http://www.w3.org/XML/1998/namespace}id": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c",
-                        },
-                        "content": {
-                            "type": "doc",
-                            "content": [
-                                {
-                                    "type": "paragraph",
-                                    "attributes": {},
-                                    "content": [{"type": "text", "marks": [], "text": "This is just a footnote."}],
-                                }
-                            ],
-                        },
-                    }
+                        "type": "heading",
+                        "attributes": {"type": "level-1"},
+                        "content": [{"type": "text", "marks": [], "text": "Welcome"}],
+                    },
+                    {
+                        "type": "paragraph",
+                        "attributes": {},
+                        "content": [
+                            {"type": "text", "marks": [], "text": "This is a "},
+                            {
+                                "type": "text",
+                                "marks": [{"type": "bold", "attributes": {"style": "font-weight-bold"}}],
+                                "text": "very, ",
+                            },
+                            {
+                                "type": "text",
+                                "marks": [
+                                    {"type": "italic", "attributes": {"style": "font-style-italic"}},
+                                    {"type": "bold", "attributes": {"style": "font-weight-bold"}},
+                                ],
+                                "text": "very",
+                            },
+                            {"type": "text", "marks": [], "text": " "},
+                            {
+                                "type": "text",
+                                "marks": [{"type": "italic", "attributes": {"style": "font-style-italic"}}],
+                                "text": "important",
+                            },
+                            {"type": "text", "marks": [], "text": " message."},
+                            {
+                                "type": "text",
+                                "marks": [
+                                    {
+                                        "type": "footnote-ref",
+                                        "attributes": {
+                                            "type": "footnote",
+                                            "target": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c",
+                                        },
+                                    }
+                                ],
+                                "text": "[1]",
+                            },
+                        ],
+                    },
+                    {
+                        "type": "heading",
+                        "attributes": {"type": "level-1"},
+                        "content": [{"type": "text", "marks": [], "text": "Heading with the default type"}],
+                    },
                 ],
             },
-        ],
-    }
+        },
+        {
+            "name": "footnotes",
+            "title": "Footnotes",
+            "type": "textlist",
+            "content": [
+                {
+                    "attributes": {
+                        "{http://www.w3.org/XML/1998/namespace}id": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c",
+                    },
+                    "content": {
+                        "type": "doc",
+                        "content": [
+                            {
+                                "type": "paragraph",
+                                "attributes": {},
+                                "content": [{"type": "text", "marks": [], "text": "This is just a footnote."}],
+                            }
+                        ],
+                    },
+                }
+            ],
+        },
+    ]
 
 
 def test_fetching_a_minimal_tei_file(tei_app: FastAPI) -> None:
@@ -163,24 +160,21 @@ def test_fetching_a_minimal_tei_file(tei_app: FastAPI) -> None:
     client = TestClient(app=tei_app)
     response = client.get("/api/branches/-1/files/en/minimal.tei")
     assert response.status_code == 200
-    assert response.json() == {
-        "type": "tei",
-        "content": [
-            {"name": "metadata", "title": "Metadata", "type": "metadata", "content": []},
-            {
-                "name": "text",
-                "title": "Text",
-                "type": "text",
-                "content": {},
-            },
-            {
-                "name": "footnotes",
-                "title": "Footnotes",
-                "type": "textlist",
-                "content": [],
-            },
-        ],
-    }
+    assert response.json() == [
+        {"name": "metadata", "title": "Metadata", "type": "metadata", "content": []},
+        {
+            "name": "text",
+            "title": "Text",
+            "type": "text",
+            "content": {},
+        },
+        {
+            "name": "footnotes",
+            "title": "Footnotes",
+            "type": "textlist",
+            "content": [],
+        },
+    ]
 
 
 def test_fetching_a_markdown_file(tei_app: FastAPI) -> None:
@@ -188,7 +182,7 @@ def test_fetching_a_markdown_file(tei_app: FastAPI) -> None:
     client = TestClient(app=tei_app)
     response = client.get("/api/branches/-1/files/en/index.md")
     assert response.status_code == 200
-    assert response.json() == {"type": "markdown"}
+    assert response.text == "# English\n"
 
 
 def test_fetching_an_unknown_filetye(simple_app: FastAPI) -> None:
@@ -196,7 +190,40 @@ def test_fetching_an_unknown_filetye(simple_app: FastAPI) -> None:
     client = TestClient(app=simple_app)
     response = client.get("/api/branches/-1/files/pyproject.toml")
     assert response.status_code == 200
-    assert response.json() == {"type": "unknown"}
+    assert (
+        response.text
+        == """[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ueditor-development"
+description = 'The uEditor Development μEdition'
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = []
+authors = [{ name = "uEditor Devs", email = "devs@example.com" }]
+classifiers = []
+dependencies = []
+version = "1.0.0"
+
+[project.urls]
+Documentation = "/-#readme"
+Issues = "/-/issues"
+Source = "/-"
+
+[tool.hatch.envs.default]
+dependencies = ["uedition>=1.3.2,<2",]
+skip-install = true
+
+[tool.hatch.envs.default.scripts]
+build = "uEdition build {args}"
+serve = "uEdition serve {args}"
+update = "uEdition update {args}"
+add-language = "uEdition language add {args}"
+update-language = "uEdition language update {args}"
+"""
+    )
 
 
 def test_create_new_file(simple_app: FastAPI) -> None:
