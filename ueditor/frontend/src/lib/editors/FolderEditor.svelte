@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
 
-  import { currentFile } from "../stores";
-  import { activeDialog, Dialogs } from "./dialogs/Index.svelte";
+  import { currentFile } from "../../stores";
+  import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
 
   let focusElement: HTMLHeadingElement | null = null;
 

@@ -82,4 +82,12 @@
   [data-form-field-text] {
     @apply block w-full px-3 py-2 border transition-colors border-slate-300 focus:border-fuchsia-700 rounded;
   }
+
+  /**
+   * CodeMirror editor
+   */
+  [class~="codemirror-wrapper"],
+  [class~="cm-editor"] {
+    @apply h-full w-full overflow-hidden;
+  }
 }

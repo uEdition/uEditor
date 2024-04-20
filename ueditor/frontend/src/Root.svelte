@@ -5,7 +5,7 @@
   import { createQuery } from "@tanstack/svelte-query";
 
   import MainMenu from "./lib/mainmenu/Index.svelte";
-  import Editor from "./lib/Editor.svelte";
+  import Editor from "./lib/editors/Index.svelte";
   import FileNavigation from "./lib/FileNavigation.svelte";
   import Actions from "./lib/dialogs/Index.svelte";
   import { apiQueryHandler } from "./util";
@@ -38,7 +38,7 @@
 <main class="flex flex-col w-screen h-screen overflow-hidden">
   <MainMenu />
   <!--<nav aria-label="Toolbar" class="bg-blue-100">Editor Toolbar</nav>-->
-  <div class="flex flex-row flex-1">
+  <div class="flex flex-row flex-1 overflow-hidden">
     <FileNavigation />
     <Editor />
   </div>

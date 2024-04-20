@@ -2,13 +2,14 @@
 #
 # SPDX-License-Identifier: MIT
 """The uEditor API for manipulating files."""
+import mimetypes
 import os
 import shutil
-from mimetypes import guess_type
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header
 from fastapi.exceptions import HTTPException
+from fastapi.responses import FileResponse
 from lxml import etree
 
 from ueditor.settings import TEINodeAttribute, TEISettings, UEditorSettings, get_ueditor_settings, init_settings
@@ -18,10 +19,25 @@ namespaces = {"tei": "http://www.tei-c.org/ns/1.0", "uedition": "https://ueditio
 
 MIMETYPE_EXTENSIONS = {
     ".gitignore": "application/gitignore",
+    ".md": "text/markdown",
     ".toml": "application/toml",
     ".yaml": "application/yaml",
     ".yml": "application/yaml",
 }
+
+
+def guess_type(url: str) -> tuple[str | None, str | None]:
+    """Guess the mimetype of a file, applying the backport extensions."""
+    mimetype = mimetypes.guess_type(url)
+    if mimetype is not None and mimetype[0] is not None:
+        return mimetype
+    else:
+        dot_idx = url.rfind(".")
+        if dot_idx >= 0:
+            fileext = url[dot_idx:]
+            if fileext in MIMETYPE_EXTENSIONS:
+                return (MIMETYPE_EXTENSIONS[fileext], None)
+        return ("application/unknown", None)
 
 
 def build_file_tree(path: str, strip_len) -> list[dict]:
@@ -41,14 +57,6 @@ def build_file_tree(path: str, strip_len) -> list[dict]:
             )
         elif os.path.isfile(full_filename):
             mimetype = guess_type(filename)
-            if mimetype[0] is None:
-                dot_idx = filename.rfind(".")
-                if dot_idx >= 0:
-                    fileext = filename[dot_idx:]
-                    if fileext in MIMETYPE_EXTENSIONS:
-                        mimetype = [MIMETYPE_EXTENSIONS[fileext], None]
-                if mimetype[0] is None:
-                    mimetype = ["application/unknown", None]
             files.append(
                 {
                     "name": filename,
@@ -159,18 +167,17 @@ def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
     return result
 
 
-@router.get("/{path:path}")
+@router.get("/{path:path}", response_model=None)
 def get_file(
     branch_id: int, path: str, settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)]  # noqa: ARG001
-) -> dict:
+) -> dict | FileResponse:
     """Fetch a single file from the repo."""
     full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
     if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
         if full_path.endswith(".tei"):
-            return {"type": "tei", "content": parse_tei_file(full_path, settings)}
-        elif full_path.endswith(".md"):
-            return {"type": "markdown"}
-        return {"type": "unknown"}
+            return parse_tei_file(full_path, settings)
+        else:
+            return FileResponse(full_path, media_type=guess_type(full_path)[0])
     raise HTTPException(404)
 
 
