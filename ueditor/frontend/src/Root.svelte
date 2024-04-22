@@ -9,7 +9,8 @@
   import FileNavigation from "./lib/FileNavigation.svelte";
   import Actions from "./lib/dialogs/Index.svelte";
   import { apiQueryHandler } from "./util";
-  import { currentFile } from "./stores";
+  import { currentFile, currentFileModified } from "./stores";
+  import Toolbar from "./lib/Toolbar.svelte";
 
   const uEditionConfig = createQuery({
     queryKey: ["configs", "uedition"],
@@ -37,7 +38,7 @@
 
 <main class="flex flex-col w-screen h-screen overflow-hidden">
   <MainMenu />
-  <!--<nav aria-label="Toolbar" class="bg-blue-100">Editor Toolbar</nav>-->
+  <Toolbar/>
   <div class="flex flex-row flex-1 overflow-hidden">
     <FileNavigation />
     <Editor />
