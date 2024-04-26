@@ -4,13 +4,14 @@
   import { fade } from "svelte/transition";
   import { createQuery } from "@tanstack/svelte-query";
 
-  import MainMenu from "./lib/mainmenu/Index.svelte";
+  import Actions from "./lib/actions/Index.svelte";
+  import Dialogs from "./lib/dialogs/Index.svelte";
   import Editor from "./lib/editors/Index.svelte";
   import FileNavigation from "./lib/FileNavigation.svelte";
-  import Actions from "./lib/dialogs/Index.svelte";
+  import MainMenu from "./lib/mainmenu/Index.svelte";
+  import Toolbar from "./lib/Toolbar.svelte";
   import { apiQueryHandler } from "./util";
   import { currentFile, currentFileModified } from "./stores";
-  import Toolbar from "./lib/Toolbar.svelte";
 
   const uEditionConfig = createQuery({
     queryKey: ["configs", "uedition"],
@@ -38,19 +39,21 @@
 
 <main class="flex flex-col w-screen h-screen overflow-hidden">
   <MainMenu />
-  <Toolbar/>
+  <Toolbar />
   <div class="flex flex-row flex-1 overflow-hidden">
     <FileNavigation />
     <Editor />
   </div>
   <footer class="flex flex-row px-2 py-1 border-t border-slate-300 text-sm">
-    <span class="font-mono font-bold"
-      >{#if $currentFile}{$currentFile.fullpath}{/if}</span
-    >
+    <div class="font-mono font-bold">
+      {#if $currentFile}{$currentFile.fullpath}{/if}
+    </div>
+    <div class="flex-1"></div>
+    <Actions />
   </footer>
 </main>
 
-<Actions />
+<Dialogs />
 
 <Dialog.Root
   bind:open={$uEditionConfig.isPending}
