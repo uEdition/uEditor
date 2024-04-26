@@ -5,10 +5,20 @@
     LOAD_TEXT_FILE = 1,
   }
 
-  export const activeActions = writable([] as Actions[]);
+  const activeActions = writable([] as Action[]);
+
+  export function runAction(action: Action) {
+    activeActions.update((actions) => {
+      return actions.concat([action]);
+    });
+  }
 </script>
 
 <script lang="ts">
 </script>
 
-<div>Ready</div>
+<div>
+  {#each $activeActions as action}
+    <span>{action.type}</span>
+  {/each}
+</div>

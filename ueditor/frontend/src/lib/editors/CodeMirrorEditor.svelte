@@ -8,13 +8,39 @@
   import { createQuery } from "@tanstack/svelte-query";
 
   import LoadingIndicator from "../LoadingIndicator.svelte";
-  import { currentBranch, currentFile, currentFileContent, currentFileModified } from "../../stores";
+  import {
+    currentBranch,
+    currentFile,
+    currentFileContent,
+    currentFileModified,
+  } from "../../stores";
+  import { runAction, Actions } from "../actions/Index.svelte";
   import { fileQueryHandler } from "../../util";
 
   let focusElement: HTMLHeadingElement | null = null;
   let value: string | null = "";
   let lang: LanguageSupport | null = null;
 
+  const currentFileUnsubscribe = currentFile.subscribe((currentFile) => {
+    if (currentFile) {
+      runAction({
+        type: Actions.LOAD_TEXT_FILE,
+        params: { filename: currentFile.fullpath },
+      });
+    }
+  });
+  const currentFileContentUnsubscribe = currentFileContent.subscribe(
+    (content) => {
+      value = content;
+    }
+  );
+
+  onDestroy(() => {
+    currentFileUnsubscribe();
+    currentFileContentUnsubscribe();
+    value = null;
+  });
+  /*
   const fileContentQueryParams = derived(currentFile, (currentFile) => {
     if (currentFile) {
       if (currentFile.mimetype === "application/yaml") {
@@ -51,7 +77,7 @@
   });
 
   onDestroy(fileContentQueryUnsubscribe);
-
+*/
   $: {
     if (value !== null) {
       currentFileContent.update((currentValue) => {
@@ -69,18 +95,14 @@
   }
 </script>
 
-{#if $fileContentQuery.isLoading}
+{#if value === null}
   <LoadingIndicator />
-{:else if value !== null}
+{:else}
   <div bind:this={focusElement} class="flex-1 overflow-hidden" tabindex="-1">
     <span class="sr-only"
       >In the editor the Tab key will indent the text content. To escape the
       editor with the keyboard press the Escape key, followed by the Tab key.</span
     >
     <CodeMirror bind:value {lang} />
-  </div>
-  {:else}
-  <div bind:this={focusElement} class="flex-1 overflow-hidden" tabindex="-1">
-    <p class="text-rose-700">Unfortunately the file could not be loaded into the text editor.</p>
   </div>
 {/if}
