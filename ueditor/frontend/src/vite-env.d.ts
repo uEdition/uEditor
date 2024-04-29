@@ -46,7 +46,12 @@ type FileTreeEntry = {
   mimetype: string;
 };
 
-type Action = {
-  type: Actions;
-  params: any;
+type LoadTextFileAction = {
+  action: "LoadTextFile";
+  branch: string;
+  filename: string;
+  callback: (data: string) => void;
+  status?: string;
 };
+
+type Action = LoadTextFileAction;

@@ -32,7 +32,7 @@
         activeDialog.set(Dialogs.FOLDER_CREATE);
       }}
     >
-      <Icon path={mdiFolderPlusOutline} size="w4 h-4" />
+      <Icon path={mdiFolderPlusOutline} class="w4 h-4" />
       <span>New Folder</span>
     </Menubar.Item>
     <Menubar.Item
@@ -40,7 +40,7 @@
         activeDialog.set(Dialogs.FILE_CREATE);
       }}
     >
-      <Icon path={mdiFileDocumentPlusOutline} size="w4 h-4" />
+      <Icon path={mdiFileDocumentPlusOutline} class="w4 h-4" />
       <span>New File</span>
     </Menubar.Item>
     <Menubar.Separator />
@@ -49,7 +49,7 @@
         action = Action.Rename;
       }}
     >
-      <Icon path={mdiFolderEditOutline} size="w-4 h-4"></Icon>
+      <Icon path={mdiFolderEditOutline} class="w-4 h-4"></Icon>
       <span>Rename</span>
     </Menubar.Item>
     <Menubar.Item
@@ -57,7 +57,7 @@
         action = Action.Move;
       }}
     >
-      <Icon path={mdiFolderMoveOutline} size="w-4 h-4"></Icon>
+      <Icon path={mdiFolderMoveOutline} class="w-4 h-4"></Icon>
       <span>Move</span>
     </Menubar.Item>
     <Menubar.Item
@@ -65,7 +65,7 @@
         action = Action.Copy;
       }}
     >
-      <Icon path={mdiFolderMultipleOutline} size="w-4 h-4"></Icon>
+      <Icon path={mdiFolderMultipleOutline} class="w-4 h-4"></Icon>
       <span>Copy</span>
     </Menubar.Item>
     <Menubar.Item
@@ -73,7 +73,7 @@
         action = Action.Delete;
       }}
     >
-      <Icon path={mdiFolderRemoveOutline} size="w-4 h-4"></Icon>
+      <Icon path={mdiFolderRemoveOutline} class="w-4 h-4"></Icon>
       <span>Delete</span>
     </Menubar.Item>
   </Menubar.Content>

@@ -1,24 +1,77 @@
 <script context="module" lang="ts">
+  import { Popover } from "bits-ui";
   import { writable } from "svelte/store";
-
-  export enum Actions {
-    LOAD_TEXT_FILE = 1,
-  }
 
   const activeActions = writable([] as Action[]);
 
+  /**
+   * Start running a new action.
+   *
+   * @param action The action to start running
+   */
   export function runAction(action: Action) {
+    action.status = "active";
     activeActions.update((actions) => {
       return actions.concat([action]);
     });
+    let promise: Promise<void> | null = null;
+    if (action.action === "LoadTextFile") {
+      promise = fetchTextFile(action);
+    }
+    if (promise !== null) {
+      promise.then(() => {
+        activeActions.update((actions) => {
+          const idx = actions.indexOf(action);
+          if (idx >= 0) {
+            return actions.slice(0, idx).concat(actions.slice(idx + 1));
+          } else {
+            return actions;
+          }
+        });
+      });
+    }
+  }
+
+  /**
+   * Fetch a text file from remote.
+   *
+   * @param action The action with the details of the text file to load
+   */
+  async function fetchTextFile(action: Action) {
+    const response = await window.fetch(
+      "/api/branches/" + action.branch + "/files/" + action.filename
+    );
+    action.callback(await response.text());
   }
 </script>
 
 <script lang="ts">
+  import { mdiRefresh, mdiSync } from "@mdi/js";
+  import Icon from "../Icon.svelte";
 </script>
 
-<div>
-  {#each $activeActions as action}
-    <span>{action.type}</span>
-  {/each}
-</div>
+<Popover.Root>
+  <Popover.Trigger>
+    {#if $activeActions.length === 0}
+      Idle
+    {:else if $activeActions.length === 1}
+      1 action running
+    {:else}
+      {$activeActions.length} actions running
+    {/if}
+    <Popover.Content class="z-50 bg-white shadow-lg">
+      <ul>
+        {#each $activeActions as action}
+          <li
+            class="flex flex-row items-center space-x-2 px-3 py-1 border-l border-r last:border-b first-border-t border-slate-300"
+          >
+            {#if action.action === "LoadTextFile"}
+              <Icon path={mdiSync} class="w-4 h-4 animate-spin" />
+              <span class="flex-1">Loading file...</span>
+            {/if}
+          </li>
+        {/each}
+      </ul>
+    </Popover.Content>
+  </Popover.Trigger>
+</Popover.Root>

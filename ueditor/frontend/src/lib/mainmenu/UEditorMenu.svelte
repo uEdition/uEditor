@@ -15,16 +15,16 @@
         newBranchDialogOpen = true;
       }}
     >
-      <Icon path={mdiSourceBranchPlus} size="w-4 h-4"></Icon>
+      <Icon path={mdiSourceBranchPlus} class="w-4 h-4"></Icon>
       <span>New Branch</span>
     </Menubar.Item>
     <Menubar.Separator></Menubar.Separator>
     <Menubar.Item>
-      <Icon size="w-4 h-4"></Icon>
+      <Icon class="w-4 h-4"></Icon>
       <span>Branch 1</span>
     </Menubar.Item>
     <Menubar.Item>
-      <Icon size="w-4 h-4"></Icon>
+      <Icon class="w-4 h-4"></Icon>
       <span>Branch 2</span>
     </Menubar.Item>
   </Menubar.Content>

@@ -10,7 +10,7 @@
   <Menubar.Trigger>File</Menubar.Trigger>
   <Menubar.Content>
     <Menubar.Item>
-      <Icon path={mdiPencil} size="w-4 h-4"></Icon>
+      <Icon path={mdiPencil} class="w-4 h-4"></Icon>
       <span>Rename</span>
     </Menubar.Item>
     <Menubar.Item
@@ -18,7 +18,7 @@
         activeDialog.set(Dialogs.FILE_DELETE);
       }}
     >
-      <Icon path={mdiTrashCanOutline} size="w-4 h-4"></Icon>
+      <Icon path={mdiTrashCanOutline} class="w-4 h-4"></Icon>
       <span>Delete</span>
     </Menubar.Item>
   </Menubar.Content>

@@ -2,10 +2,8 @@
   import { LanguageSupport } from "@codemirror/language";
   import { markdown } from "@codemirror/lang-markdown";
   import { yaml } from "@codemirror/lang-yaml";
-  import { onMount, onDestroy } from "svelte";
-  import { derived } from "svelte/store";
+  import { onDestroy } from "svelte";
   import CodeMirror from "svelte-codemirror-editor";
-  import { createQuery } from "@tanstack/svelte-query";
 
   import LoadingIndicator from "../LoadingIndicator.svelte";
   import {
@@ -14,8 +12,7 @@
     currentFileContent,
     currentFileModified,
   } from "../../stores";
-  import { runAction, Actions } from "../actions/Index.svelte";
-  import { fileQueryHandler } from "../../util";
+  import { runAction } from "../actions/Index.svelte";
 
   let focusElement: HTMLHeadingElement | null = null;
   let value: string | null = "";
@@ -23,10 +20,25 @@
 
   const currentFileUnsubscribe = currentFile.subscribe((currentFile) => {
     if (currentFile) {
+      if (currentFile.mimetype === "application/yaml") {
+        lang = yaml();
+      } else if (currentFile.mimetype === "text/markdown") {
+        lang = markdown();
+      } else {
+        lang = null;
+      }
       runAction({
-        type: Actions.LOAD_TEXT_FILE,
-        params: { filename: currentFile.fullpath },
+        action: "LoadTextFile",
+        branch: $currentBranch,
+        filename: currentFile.fullpath,
+        callback: (data: string) => {
+          value = data;
+          currentFileContent.set(data);
+          currentFileModified.set(false);
+        },
       });
+    } else {
+      lang = null;
     }
   });
   const currentFileContentUnsubscribe = currentFileContent.subscribe(
@@ -40,58 +52,12 @@
     currentFileContentUnsubscribe();
     value = null;
   });
-  /*
-  const fileContentQueryParams = derived(currentFile, (currentFile) => {
-    if (currentFile) {
-      if (currentFile.mimetype === "application/yaml") {
-        lang = yaml();
-      } else if (currentFile.mimetype === "text/markdown") {
-        lang = markdown();
-      }
-    } else {
-      lang = null;
-    }
-    return {
-      queryKey: ["branches", $currentBranch, "files", currentFile?.fullpath],
-      queryFn: fileQueryHandler,
-      enabled: currentFile?.type === "file",
-    };
-  });
 
-  const fileContentQuery = createQuery(fileContentQueryParams);
-
-  const fileContentQueryUnsubscribe = fileContentQuery.subscribe(
-    (fileContentQuery) => {
-      value = null;
-      if (fileContentQuery.isSuccess) {
-        const decoder = new TextDecoder();
-        value = decoder.decode(fileContentQuery.data);
-      }
-    },
-  );
-
-  onMount(() => {
-    if (focusElement) {
-      focusElement.focus();
-    }
-  });
-
-  onDestroy(fileContentQueryUnsubscribe);
-*/
   $: {
-    if (value !== null) {
-      currentFileContent.update((currentValue) => {
-        if (currentValue !== null && currentValue !== value) {
-          currentFileModified.set(true);
-        } else {
-          currentFileModified.set(false);
-        }
-        return value;
-      });
-    } else {
-      currentFileContent.set(null);
-      currentFileModified.set(false);
+    if ($currentFileContent !== value) {
+      currentFileModified.set(true);
     }
+    currentFileContent.set(value);
   }
 </script>
 
