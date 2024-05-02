@@ -89,5 +89,4 @@ jobs:
 
       - name: Run the Tests
         run: |
-          cd tests/e2e_tests
-          npx playwright test
+          hatch run e2e-tests
