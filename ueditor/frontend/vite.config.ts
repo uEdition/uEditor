@@ -8,4 +8,7 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["codemirror",],
   },
-})
+  build: {
+    chunkSizeWarningLimit: 1024
+  },
+});
