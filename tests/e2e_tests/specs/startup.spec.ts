@@ -8,7 +8,7 @@ test.beforeEach(async ({ request }) => {
 test.afterEach(async ({ request }) => {
   const response = await request.delete("/api/tests/fixtures/simple");
   expect(response.status()).toBe(204);
-})
+});
 
 test('Load configuration', async ({ page }) => {
   await page.goto('/');
