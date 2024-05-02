@@ -46,5 +46,6 @@ export default defineConfig({
     command: 'hatch run server',
     url: 'http://127.0.0.1:8000',
     reuseExistingServer: !process.env.CI,
+    env: { "UEDITOR_BASE_PATH": "./", "UEDITOR_TEST": "true", },
   },
 });
