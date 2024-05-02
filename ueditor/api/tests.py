@@ -17,7 +17,9 @@ router = APIRouter(prefix="/tests")
 def activate_fixture(fixture: str) -> None:
     """Set the uEdition test fixture to use."""
     source_path = None
-    if fixture == "simple":
+    if fixture == "empty":
+        source_path = "tests/fixtures/empty"
+    elif fixture == "simple":
         source_path = "tests/fixtures/simple"
     if source_path is not None:
         if os.path.exists("tmp_fixtures"):
@@ -27,11 +29,8 @@ def activate_fixture(fixture: str) -> None:
         raise HTTPException(404)
 
 
-@router.delete("/fixtures/{fixture}", status_code=204)
-def deactivate_fixture(fixture: str) -> None:
+@router.delete("/fixtures", status_code=204)
+def deactivate_fixtures() -> None:
     """Reset the uEdition test fixture to use."""
-    if fixture in ("simple",):
-        if os.path.exists("tmp_fixtures"):
-            rmtree("tmp_fixtures")
-    else:
-        raise HTTPException(404)
+    if os.path.exists("tmp_fixtures"):
+        rmtree("tmp_fixtures")
