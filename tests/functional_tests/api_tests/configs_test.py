@@ -1,21 +1,18 @@
 """Tests for the config API."""
 
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 
-def test_basic_tei_config(simple_app: FastAPI) -> None:
+def test_basic_tei_config(simple_app: TestClient) -> None:
     """Test fetching a simple TEI config."""
-    client = TestClient(app=simple_app)
-    response = client.get("/api/configs/tei")
+    response = simple_app.get("/api/configs/tei")
     assert response.status_code == 200
     assert response.json() == {"blocks": [], "marks": [], "sections": []}
 
 
-def test_complex_tei_config(tei_app: FastAPI) -> None:
+def test_complex_tei_config(tei_app: TestClient) -> None:
     """Test fetching a complex TEI config."""
-    client = TestClient(app=tei_app)
-    response = client.get("/api/configs/tei")
+    response = tei_app.get("/api/configs/tei")
     assert response.status_code == 200
     assert response.json() == {
         "blocks": [
@@ -134,10 +131,9 @@ def test_complex_tei_config(tei_app: FastAPI) -> None:
     }
 
 
-def test_basic_uedition_config(simple_app: FastAPI) -> None:
+def test_basic_uedition_config(simple_app: TestClient) -> None:
     """Test fetching a simple uEdition config."""
-    client = TestClient(app=simple_app)
-    response = client.get("/api/configs/uedition")
+    response = simple_app.get("/api/configs/uedition")
     assert response.status_code == 200
     assert response.json() == {
         "version": "1",

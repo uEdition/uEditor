@@ -47,8 +47,8 @@ extra-dependencies = ["coverage[toml]>=6.5", "httpx", "pytest"]
 server = "uvicorn --reload --port 8000 ueditor:app {args}"
 frontend-build = "cd ueditor/frontend && vite build --watch"
 e2e-tests = "cd tests/e2e_tests && UEDITOR_BASE_PATH=./tmp_fixtures UEDITOR_TEST=true npx playwright test"
-test = "pytest {args:tests}"
-test-cov = "coverage run -m pytest {args:tests}"
+test = "UEDITOR_BASE_PATH=./tmp_fixtures UEDITOR_TEST=true pytest {args:tests}"
+test-cov = "UEDITOR_BASE_PATH=./tmp_fixtures UEDITOR_TEST=true coverage run -m pytest {args:tests}"
 cov-report = ["- coverage combine", "coverage report"]
 cov = ["test-cov", "cov-report"]
 

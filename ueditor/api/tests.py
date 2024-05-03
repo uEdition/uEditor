@@ -21,6 +21,8 @@ def activate_fixture(fixture: str) -> None:
         source_path = "tests/fixtures/empty"
     elif fixture == "simple":
         source_path = "tests/fixtures/simple"
+    elif fixture == "tei":
+        source_path = "tests/fixtures/tei"
     if source_path is not None:
         if os.path.exists("tmp_fixtures"):
             rmtree("tmp_fixtures")

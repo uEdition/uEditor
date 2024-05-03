@@ -7,7 +7,7 @@ from ueditor.settings import get_uedition_settings, get_ueditor_settings, init_s
 
 def test_basic_env_settings(simple_app: FastAPI) -> None:  # noqa: ARG001
     """Test that the basic env settings are loaded."""
-    assert init_settings.base_path == "tests/fixtures/simple"
+    assert init_settings.base_path == "./tmp_fixtures"
 
 
 def test_empty_yaml_settings(empty_app: FastAPI) -> None:  # noqa: ARG001
