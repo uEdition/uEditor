@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from ueditor.api import router as api_router
 from ueditor.settings import init_settings
 
-if init_settings.test:
+if init_settings.test:  # pragma: no cover
     logging.basicConfig(level=logging.DEBUG)
 
 app = FastAPI()

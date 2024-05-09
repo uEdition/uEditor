@@ -11,7 +11,7 @@ from ueditor.settings import init_settings
 router = APIRouter(prefix="/api")
 router.include_router(configs_router)
 router.include_router(files_router)
-if init_settings.test:
+if init_settings.test:  # pragma: no cover
     from ueditor.api.tests import router as tests_router
 
     router.include_router(tests_router)
