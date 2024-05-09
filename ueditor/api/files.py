@@ -223,7 +223,7 @@ def delete_file(
         elif os.path.isdir(full_path):
             shutil.rmtree(full_path)
             return
-        else:
+        else:  # pragma: no cover
             raise HTTPException(
                 422,
                 detail=[{"loc": ["path", "path"], "msg": "Unknown type of file"}],
