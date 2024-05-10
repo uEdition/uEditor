@@ -217,9 +217,32 @@ def create_file(
     )
 
 
-def serialise_metadata(root: dict, data: dict, settings: TEIMetadataSection) -> dict:  # noqa: ARG001
+def find_nodes(path: list[str], node: dict) -> list[dict]:
+    """Find the set of nodes matching the path."""
+    nodes = []
+    if len(path) > 0:
+        if path[0] == node["name"]:
+            if len(path) > 1:
+                if "children" in node and len(node["children"]) > 0:
+                    for child in node["children"]:
+                        nodes.extend(find_nodes(path[1:], child))
+            else:
+                nodes.append(node)
+    return nodes
+
+
+def serialise_metadata(root: dict, data: dict, settings: TEIMetadataSection) -> None:  # noqa: ARG001
     """Serialise a metadata section."""
-    return {"name": "tei:TEI"}
+    selector = settings.selector
+    if selector.startswith("/"):
+        selector = selector[1:]
+    path = selector.split("/")
+    parents = find_nodes(path[:-1], root)
+    if len(parents) > 0:
+        parent = parents[0]
+        if "children" not in parent:
+            parent["children"] = []
+        parent["children"].append({"name": "tei:teiHeader"})
 
 
 def xml_dict_to_etree(data: dict) -> etree.Element:
@@ -228,6 +251,9 @@ def xml_dict_to_etree(data: dict) -> etree.Element:
     for prefix, uri in namespaces.items():
         name = name.replace(f"{prefix}:", f"{{{uri}}}")
     node = etree.Element(name)
+    if "children" in data:
+        for child in data["children"]:
+            node.append(xml_dict_to_etree(child))
     return node
 
 
@@ -250,32 +276,6 @@ def serialise_tei_file(path: str, json_doc: list, settings: UEditorSettings) -> 
             elif section.type == "textlist":
                 pass
     return xml_dict_to_etree(root)
-    # section_root = doc.xpath(section.selector, namespaces=namespaces)
-    # if len(section_root) == 0:
-    #    if section.type == "metadata":
-    #        result.append({"name": section.name, "title": section.title, "type": section.type, "content": []})
-    #    elif section.type == "text":
-    #        result.append({"name": section.name, "title": section.title, "type": section.type, "content": {}})
-    #    elif section.type == "textlist":
-    #        result.append({"name": section.name, "title": section.title, "type": section.type, "content": []})
-    # else:
-    #    if section.type == "metadata":
-    #        result.append({"name": section.name, "title": section.title, "type": section.type, "content": []})
-    #    elif section.type == "text":
-    #        result.append(
-    #            {
-    #                "name": section.name,
-    #                "title": section.title,
-    #                "type": section.type,
-    #                "content": parse_tei_subdoc(section_root[0], settings.tei),
-    #            }
-    #        )
-    #    elif section.type == "textlist":
-    #        content = []
-    #        for node in section_root:
-    #            content.append({"attributes": dict(node.attrib), "content": parse_tei_subdoc(node, settings.tei)})
-    #        result.append({"name": section.name, "title": section.title, "type": section.type, "content": content})
-    # return result
 
 
 @router.put("/{path:path}", status_code=204)

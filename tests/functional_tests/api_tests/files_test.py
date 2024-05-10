@@ -370,8 +370,7 @@ def test_update_tei_file(tei_app: TestClient) -> None:
             in_f.read()
             == """<?xml version="1.0" encoding="UTF-8"?>
 <tei:TEI xmlns:tei="http://www.tei-c.org/ns/1.0">
-  <tei:teiHeader>
-  </tei:teiHeader>
+  <tei:teiHeader/>
   <tei:text>
     <tei:body>
       <tei:head type="level-1">
