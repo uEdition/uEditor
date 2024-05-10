@@ -2,17 +2,25 @@
 #
 # SPDX-License-Identifier: MIT
 """The uEditor API for manipulating files."""
+import json
 import mimetypes
 import os
 import shutil
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, UploadFile
 from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from lxml import etree
 
-from ueditor.settings import TEINodeAttribute, TEISettings, UEditorSettings, get_ueditor_settings, init_settings
+from ueditor.settings import (
+    TEIMetadataSection,
+    TEINodeAttribute,
+    TEISettings,
+    UEditorSettings,
+    get_ueditor_settings,
+    init_settings,
+)
 
 router = APIRouter(prefix="/branches/{branch_id}/files")
 namespaces = {"tei": "http://www.tei-c.org/ns/1.0", "uedition": "https://uedition.readthedocs.org"}
@@ -207,6 +215,92 @@ def create_file(
         422,
         detail=[{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or folder"}],
     )
+
+
+def serialise_metadata(root: dict, data: dict, settings: TEIMetadataSection) -> dict:  # noqa: ARG001
+    """Serialise a metadata section."""
+    return {"name": "tei:TEI"}
+
+
+def xml_dict_to_etree(data: dict) -> etree.Element:
+    """Convert an XML tree into an Element tree."""
+    name = data["name"]
+    for prefix, uri in namespaces.items():
+        name = name.replace(f"{prefix}:", f"{{{uri}}}")
+    node = etree.Element(name)
+    return node
+
+
+def serialise_tei_file(path: str, json_doc: list, settings: UEditorSettings) -> etree.Element:  # noqa: ARG001
+    """Serialise a TEI file."""
+    for prefix, uri in namespaces.items():
+        etree.register_namespace(prefix, uri)
+    root = {"name": "tei:TEI"}
+    for section in settings.tei.sections:
+        doc_section = None
+        for tmp in json_doc:
+            if "name" in tmp and tmp["name"] == section.name:
+                doc_section = tmp
+                break
+        if doc_section is not None:
+            if section.type == "metadata":
+                serialise_metadata(root, doc_section, section)
+            elif section.type == "text":
+                pass
+            elif section.type == "textlist":
+                pass
+    return xml_dict_to_etree(root)
+    # section_root = doc.xpath(section.selector, namespaces=namespaces)
+    # if len(section_root) == 0:
+    #    if section.type == "metadata":
+    #        result.append({"name": section.name, "title": section.title, "type": section.type, "content": []})
+    #    elif section.type == "text":
+    #        result.append({"name": section.name, "title": section.title, "type": section.type, "content": {}})
+    #    elif section.type == "textlist":
+    #        result.append({"name": section.name, "title": section.title, "type": section.type, "content": []})
+    # else:
+    #    if section.type == "metadata":
+    #        result.append({"name": section.name, "title": section.title, "type": section.type, "content": []})
+    #    elif section.type == "text":
+    #        result.append(
+    #            {
+    #                "name": section.name,
+    #                "title": section.title,
+    #                "type": section.type,
+    #                "content": parse_tei_subdoc(section_root[0], settings.tei),
+    #            }
+    #        )
+    #    elif section.type == "textlist":
+    #        content = []
+    #        for node in section_root:
+    #            content.append({"attributes": dict(node.attrib), "content": parse_tei_subdoc(node, settings.tei)})
+    #        result.append({"name": section.name, "title": section.title, "type": section.type, "content": content})
+    # return result
+
+
+@router.put("/{path:path}", status_code=204)
+async def update_file(
+    branch_id: int,  # noqa: ARG001
+    path: str,
+    content: UploadFile,
+    settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)],
+) -> None:
+    """Update the file in the repo."""
+    full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
+    if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
+        if full_path.endswith(".tei"):
+            with open(full_path, "wb") as out_f:
+                root = serialise_tei_file(full_path, json.load(content.file), settings)
+                out_f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
+                out_f.write(etree.tostring(root, encoding="utf-8", xml_declaration=False, pretty_print=True))
+        else:
+            with open(full_path, "wb") as out_f:
+                out_f.write(await content.read())
+    else:
+        raise HTTPException(
+            422,
+            detail=[{"loc": ["body", "content"], "msg": "this file or folder does not exist"}],
+        )
 
 
 @router.delete("/{path:path}", status_code=204)

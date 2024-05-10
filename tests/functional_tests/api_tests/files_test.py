@@ -1,5 +1,6 @@
 """Tests for the files API."""
 
+import json
 import os
 
 from fastapi.testclient import TestClient
@@ -257,6 +258,155 @@ def test_fail_create_invalid_new_type(simple_app: TestClient) -> None:
     assert response.json() == {
         "detail": [{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or folder"}]
     }
+
+
+def test_update_simple_file(simple_app: TestClient) -> None:
+    """Test that updating a simple file works."""
+    response = simple_app.put("/api/branches/-1/files/en/index.md", files={"content": b"# This is new"})
+    assert response.status_code == 204
+    with open(os.path.join(init_settings.base_path, "en", "index.md")) as in_f:
+        assert in_f.read() == "# This is new"
+
+
+def test_update_tei_file(tei_app: TestClient) -> None:
+    """Test that updating a TEI file works."""
+    response = tei_app.put(
+        "/api/branches/-1/files/en/minimal.tei",
+        files={
+            "content": json.dumps(
+                [
+                    {"name": "metadata", "title": "Metadata", "type": "metadata", "content": []},
+                    {
+                        "name": "text",
+                        "title": "Text",
+                        "type": "text",
+                        "content": {
+                            "type": "doc",
+                            "content": [
+                                {
+                                    "type": "heading",
+                                    "attributes": {"type": "level-1"},
+                                    "content": [{"type": "text", "marks": [], "text": "Welcome"}],
+                                },
+                                {
+                                    "type": "paragraph",
+                                    "attributes": {},
+                                    "content": [
+                                        {"type": "text", "marks": [], "text": "This is a "},
+                                        {
+                                            "type": "text",
+                                            "marks": [{"type": "bold", "attributes": {"style": "font-weight-bold"}}],
+                                            "text": "very, ",
+                                        },
+                                        {
+                                            "type": "text",
+                                            "marks": [
+                                                {"type": "italic", "attributes": {"style": "font-style-italic"}},
+                                                {"type": "bold", "attributes": {"style": "font-weight-bold"}},
+                                            ],
+                                            "text": "very",
+                                        },
+                                        {"type": "text", "marks": [], "text": " "},
+                                        {
+                                            "type": "text",
+                                            "marks": [{"type": "italic", "attributes": {"style": "font-style-italic"}}],
+                                            "text": "important",
+                                        },
+                                        {"type": "text", "marks": [], "text": " message."},
+                                        {
+                                            "type": "text",
+                                            "marks": [
+                                                {
+                                                    "type": "footnote-ref",
+                                                    "attributes": {
+                                                        "type": "footnote",
+                                                        "target": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c",
+                                                    },
+                                                }
+                                            ],
+                                            "text": "[1]",
+                                        },
+                                    ],
+                                },
+                                {
+                                    "type": "heading",
+                                    "attributes": {"type": "level-1"},
+                                    "content": [{"type": "text", "marks": [], "text": "Heading with the default type"}],
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        "name": "footnotes",
+                        "title": "Footnotes",
+                        "type": "textlist",
+                        "content": [
+                            {
+                                "attributes": {
+                                    "{http://www.w3.org/XML/1998/namespace}id": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c",  # noqa:E501
+                                },
+                                "content": {
+                                    "type": "doc",
+                                    "content": [
+                                        {
+                                            "type": "paragraph",
+                                            "attributes": {},
+                                            "content": [
+                                                {"type": "text", "marks": [], "text": "This is just a footnote."}
+                                            ],
+                                        }
+                                    ],
+                                },
+                            }
+                        ],
+                    },
+                ]
+            ).encode("utf-8")
+        },
+    )
+    assert response.status_code == 204
+    with open(os.path.join(init_settings.base_path, "en", "minimal.tei")) as in_f:
+        assert (
+            in_f.read()
+            == """<?xml version="1.0" encoding="UTF-8"?>
+<tei:TEI xmlns:tei="http://www.tei-c.org/ns/1.0">
+  <tei:teiHeader>
+  </tei:teiHeader>
+  <tei:text>
+    <tei:body>
+      <tei:head type="level-1">
+        <tei:span>Welcome</tei:span>
+      </tei:head>
+      <tei:p>
+        <tei:span>This is a </tei:span>
+        <tei:hi style="font-weight-bold">very, </tei:hi>
+        <tei:hi style="font-weight-bold"><tei:hi style="font-style-italic">very</tei:hi></tei:hi>
+        <tei:span> </tei:span>
+        <tei:hi style="font-style-italic">important</tei:hi>
+        <tei:span> message.</tei:span>
+        <tei:ref type="footnote" target="#footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c">[1]</tei:ref>
+      </tei:p>
+      <tei:head>
+        <tei:span>Heading with the default type</tei:span>
+      </tei:head>
+    </tei:body>
+    <tei:noteGrp type="footnotes">
+      <tei:note xml:id="footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c">
+        <tei:p>
+          <tei:span>This is just a footnote.</tei:span>
+        </tei:p>
+      </tei:note>
+    </tei:noteGrp>
+  </tei:text>
+</tei:TEI>
+"""
+        )
+
+
+def test_fail_update_directory(simple_app: TestClient) -> None:
+    """Test that updating a directory fails."""
+    response = simple_app.put("/api/branches/-1/files/en", files={"content": b"# This is new"})
+    assert response.status_code == 422
 
 
 def test_delete_file(simple_app: TestClient) -> None:
