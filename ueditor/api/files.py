@@ -17,6 +17,7 @@ from ueditor.settings import (
     TEIMetadataSection,
     TEINodeAttribute,
     TEISettings,
+    TEITextSection,
     UEditorSettings,
     get_ueditor_settings,
     init_settings,
@@ -217,7 +218,7 @@ def create_file(
     )
 
 
-def find_nodes(path: list[str], node: dict) -> list[dict]:
+def find_nodes(node: dict, path: list[str]) -> list[dict]:
     """Find the set of nodes matching the path."""
     nodes = []
     if len(path) > 0:
@@ -225,24 +226,79 @@ def find_nodes(path: list[str], node: dict) -> list[dict]:
             if len(path) > 1:
                 if "children" in node and len(node["children"]) > 0:
                     for child in node["children"]:
-                        nodes.extend(find_nodes(path[1:], child))
+                        nodes.extend(find_nodes(child, path[1:]))
             else:
                 nodes.append(node)
     return nodes
 
 
-def serialise_metadata(root: dict, data: dict, settings: TEIMetadataSection) -> None:  # noqa: ARG001
-    """Serialise a metadata section."""
-    selector = settings.selector
-    if selector.startswith("/"):
-        selector = selector[1:]
-    path = selector.split("/")
-    parents = find_nodes(path[:-1], root)
-    if len(parents) > 0:
-        parent = parents[0]
+def create_path_node(path_part: str) -> dict:
+    """Create a single node on an XPath expression."""
+    return {"name": path_part}
+
+
+def create_path(parent: dict, path: list[str]) -> None:
+    """Create the given path of nodes."""
+    for part in path:
         if "children" not in parent:
             parent["children"] = []
-        parent["children"].append({"name": "tei:teiHeader"})
+        node = create_path_node(part)
+        parent["children"].append(node)
+        parent = node
+
+
+def ensure_exists(root: dict, path: list[str]) -> None:
+    """Ensure that the given selector identifies at least one node."""
+    pivot = len(path)
+    while pivot > 0:
+        nodes = find_nodes(root, path[:pivot])
+        if len(nodes) > 0:
+            if len(path[pivot:]) > 0:
+                create_path(nodes[0], path[pivot:])
+            return
+        else:
+            pivot = pivot - 1
+    msg = f"Failed to ensure {'/'.join(path)} exists"
+    raise Exception(message=msg)
+
+
+def selector_to_path(selector: str) -> list[str]:
+    """Convert an XPath selector into a list of path elements."""
+    if selector.startswith("/"):
+        selector = selector[1:]
+    return selector.split("/")
+
+
+def serialise_tei_metadata(root: dict, data: dict, settings: TEIMetadataSection) -> None:  # noqa: ARG001
+    """Serialise a metadata section."""
+    path = selector_to_path(settings.selector)
+    ensure_exists(root, path)
+
+
+def serialise_tei_text_block(node: dict, settings: TEISettings) -> dict:
+    """Serialise a TEI text block."""
+    selector = None
+    for block_settings in settings.blocks:
+        if block_settings.name == node["type"]:
+            selector = block_settings.selector
+    if selector is not None:
+        tmp = {}
+        create_path(tmp, selector_to_path(selector))
+        node = tmp["children"][0]
+        return node
+
+
+def serialise_tei_text(root: dict, data: dict, settings: TEITextSection, tei_settings: TEISettings) -> None:
+    """Serialise a text section."""
+    path = selector_to_path(settings.selector)
+    ensure_exists(root, path)
+    parent = find_nodes(root, path)[0]
+    if "children" not in parent:
+        parent["children"] = []
+    doc = data["content"]
+    # TODO: Add docu attributes to the parent node
+    for element in doc["content"]:
+        parent["children"].append(serialise_tei_text_block(element, tei_settings))
 
 
 def xml_dict_to_etree(data: dict) -> etree.Element:
@@ -270,9 +326,9 @@ def serialise_tei_file(path: str, json_doc: list, settings: UEditorSettings) -> 
                 break
         if doc_section is not None:
             if section.type == "metadata":
-                serialise_metadata(root, doc_section, section)
+                serialise_tei_metadata(root, doc_section, section)
             elif section.type == "text":
-                pass
+                serialise_tei_text(root, doc_section, section, settings.tei)
             elif section.type == "textlist":
                 pass
     return xml_dict_to_etree(root)
