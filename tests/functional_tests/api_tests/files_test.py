@@ -379,13 +379,15 @@ def test_update_tei_file(tei_app: TestClient) -> None:
       <tei:p>
         <tei:span>This is a </tei:span>
         <tei:hi style="font-weight-bold">very, </tei:hi>
-        <tei:hi style="font-weight-bold"><tei:hi style="font-style-italic">very</tei:hi></tei:hi>
+        <tei:hi style="font-weight-bold">
+          <tei:hi style="font-style-italic">very</tei:hi>
+        </tei:hi>
         <tei:span> </tei:span>
         <tei:hi style="font-style-italic">important</tei:hi>
         <tei:span> message.</tei:span>
-        <tei:ref type="footnote" target="#footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c">[1]</tei:ref>
+        <tei:ref target="#footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c" type="footnote">[1]</tei:ref>
       </tei:p>
-      <tei:head>
+      <tei:head type="level-1">
         <tei:span>Heading with the default type</tei:span>
       </tei:head>
     </tei:body>

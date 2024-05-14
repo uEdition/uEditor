@@ -38,7 +38,7 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
                 "name": "footnote-ref",
                 "selector": 'tei:ref[@type="footnote"]',
                 "attributes": [
-                    {"name": "type", "value": "footnote", "type": "string", "default": ""},
+                    {"name": "type", "value": "footnote", "type": "static", "default": ""},
                     {"name": "target", "type": "id-ref", "value": None, "default": ""},
                 ],
             },

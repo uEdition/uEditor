@@ -5,6 +5,7 @@
 import json
 import mimetypes
 import os
+import re
 import shutil
 from typing import Annotated
 
@@ -234,7 +235,11 @@ def find_nodes(node: dict, path: list[str]) -> list[dict]:
 
 def create_path_node(path_part: str) -> dict:
     """Create a single node on an XPath expression."""
-    return {"name": path_part}
+    match = re.match(r'([a-z]+:[a-zA-Z][a-zA-Z0-9]*)(?:\[@([a-zA-Z]*:?[a-zA-Z]+)\="(.*)"])?', path_part)
+    new_node = {"name": match.group(1)}
+    if match.group(2) is not None and match.group(3) is not None:
+        new_node["attributes"] = {match.group(2): match.group(3)}
+    return new_node
 
 
 def create_path(parent: dict, path: list[str]) -> None:
@@ -277,15 +282,76 @@ def serialise_tei_metadata(root: dict, data: dict, settings: TEIMetadataSection)
 
 def serialise_tei_text_block(node: dict, settings: TEISettings) -> dict:
     """Serialise a TEI text block."""
-    selector = None
-    for block_settings in settings.blocks:
-        if block_settings.name == node["type"]:
-            selector = block_settings.selector
-    if selector is not None:
-        tmp = {}
-        create_path(tmp, selector_to_path(selector))
-        node = tmp["children"][0]
-        return node
+    if node["type"] == "text":
+        output_node = {}
+        if "marks" in node and len(node["marks"]) > 0:
+            node["marks"].sort(key=lambda m: m["type"])
+            inner_node = output_node
+            for mark in node["marks"]:
+                mark_settings = None
+                for tmp in settings.marks:
+                    if tmp.name == mark["type"]:
+                        mark_settings = tmp
+                        break
+                if mark_settings is not None:
+                    tmp = {}
+                    create_path(tmp, selector_to_path(mark_settings.selector))
+                    mark_node = tmp["children"][0]
+                    mark_node["text"] = node["text"]
+                    if "attributes" not in output_node:
+                        mark_node["attributes"] = {}
+                    for attr_settings in mark_settings.attributes:
+                        if attr_settings.type == "string":
+                            if "attributes" in mark and attr_settings.name in mark["attributes"]:
+                                mark_node["attributes"][attr_settings.name] = mark["attributes"][attr_settings.name]
+                            elif attr_settings.default:
+                                mark_node["attributes"][attr_settings.name] = attr_settings.default
+                        elif attr_settings.type == "static":
+                            mark_node["attributes"][attr_settings.name] = attr_settings.value
+                        elif attr_settings.type == "id-ref":
+                            if "attributes" in mark and attr_settings.name in mark["attributes"]:
+                                mark_node["attributes"][
+                                    attr_settings.name
+                                ] = f"#{mark['attributes'][attr_settings.name]}"
+                    if "name" in inner_node:
+                        del inner_node["text"]
+                        inner_node["children"] = [mark_node]
+                        inner_node = mark_node
+                    else:
+                        inner_node.update(mark_node)
+        else:
+            output_node = {"name": "tei:span", "text": node["text"]}
+        return output_node
+    else:
+        block_settings = None
+        for tmp in settings.blocks:
+            if tmp.name == node["type"]:
+                block_settings = tmp
+                break
+        if block_settings is not None:
+            tmp = {}
+            create_path(tmp, selector_to_path(block_settings.selector))
+            output_node = tmp["children"][0]
+            if "attributes" not in output_node:
+                output_node["attributes"] = {}
+            for attr_settings in block_settings.attributes:
+                if attr_settings.type == "string":
+                    if "attributes" in node and attr_settings.name in node["attributes"]:
+                        output_node["attributes"][attr_settings.name] = node["attributes"][attr_settings.name]
+                    elif attr_settings.default:
+                        output_node["attributes"][attr_settings.name] = attr_settings.default
+                elif attr_settings.type == "static":
+                    output_node["attributes"][attr_settings.name] = attr_settings.value
+                elif attr_settings.type == "id-ref":
+                    if "attributes" in node and attr_settings.name in node["attributes"]:
+                        output_node["attributes"][attr_settings.name] = f"#{node['attributes'][attr_settings.name]}"
+            if "content" in node:
+                output_node["children"] = []
+                for child in node["content"]:
+                    output_child = serialise_tei_text_block(child, settings)
+                    if output_child is not None:
+                        output_node["children"].append(output_child)
+            return output_node
 
 
 def serialise_tei_text(root: dict, data: dict, settings: TEITextSection, tei_settings: TEISettings) -> None:
@@ -307,6 +373,13 @@ def xml_dict_to_etree(data: dict) -> etree.Element:
     for prefix, uri in namespaces.items():
         name = name.replace(f"{prefix}:", f"{{{uri}}}")
     node = etree.Element(name)
+    if "text" in data and data["text"] is not None:
+        node.text = data["text"]
+    if "attributes" in data:
+        attrs = list(data["attributes"].items())
+        attrs.sort(key=lambda attr: attr[0])
+        for key, value in attrs:
+            node.set(key, value)
     if "children" in data:
         for child in data["children"]:
             node.append(xml_dict_to_etree(child))
