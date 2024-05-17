@@ -54,4 +54,13 @@ type LoadTextFileAction = {
   status?: string;
 };
 
-type Action = LoadTextFileAction;
+type SaveCurrentFileAction = {
+  action: "SaveCurrentFile";
+  branch: string;
+  filename: string;
+  data: string;
+  callback: () => void;
+  status?: string;
+};
+
+type Action = LoadTextFileAction | SaveCurrentFileAction;

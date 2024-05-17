@@ -16,7 +16,9 @@
     });
     let promise: Promise<void> | null = null;
     if (action.action === "LoadTextFile") {
-      promise = fetchTextFile(action);
+      promise = loadTextFile(action);
+    } else if (action.action === "SaveCurrentFile") {
+      promise = saveCurrentFile(action);
     }
     if (promise !== null) {
       promise.then(() => {
@@ -37,11 +39,21 @@
    *
    * @param action The action with the details of the text file to load
    */
-  async function fetchTextFile(action: Action) {
+  async function loadTextFile(action: LoadTextFileAction) {
     const response = await window.fetch(
-      "/api/branches/" + action.branch + "/files/" + action.filename
+      "/api/branches/" + action.branch + "/files/" + action.filename,
     );
     action.callback(await response.text());
+  }
+
+  async function saveCurrentFile(action: SaveCurrentFileAction) {
+    const formData = new FormData();
+    formData.append("content", new Blob([action.data]));
+    const response = await window.fetch(
+      "/api/branches/" + action.branch + "/files/" + action.filename,
+      { method: "PUT", body: formData },
+    );
+    action.callback();
   }
 </script>
 
