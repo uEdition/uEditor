@@ -7,6 +7,7 @@ import mimetypes
 import os
 import re
 import shutil
+from copy import deepcopy
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, UploadFile
@@ -223,7 +224,19 @@ def find_nodes(node: dict, path: list[str]) -> list[dict]:
     """Find the set of nodes matching the path."""
     nodes = []
     if len(path) > 0:
-        if path[0] == node["name"]:
+        match = re.match(r'([a-z]+:[a-zA-Z][a-zA-Z0-9]*)(?:\[@([a-zA-Z]*:?[a-zA-Z]+)\="(.*)"])?', path[0])
+        matches = False
+        if match.group(1) == node["name"]:
+            if match.group(2) is not None and match.group(3) is not None:
+                if (
+                    "attributes" in node
+                    and match.group(2) in node["attributes"]
+                    and node["attributes"][match.group(2)] == match.group(3)
+                ):
+                    matches = True
+            else:
+                matches = True
+        if matches:
             if len(path) > 1:
                 if "children" in node and len(node["children"]) > 0:
                     for child in node["children"]:
@@ -367,6 +380,23 @@ def serialise_tei_text(root: dict, data: dict, settings: TEITextSection, tei_set
         parent["children"].append(serialise_tei_text_block(element, tei_settings))
 
 
+def serialise_tei_textlist(root: dict, data: dict, settings: TEITextSection, tei_settings: TEISettings) -> None:
+    """Serialise a textlist section."""
+    path = selector_to_path(settings.selector)
+    ensure_exists(root, path[:-1])
+    parent = find_nodes(root, path[:-1])[0]
+    if "children" not in parent:
+        parent["children"] = []
+    for sub_doc in data["content"]:
+        child_node = create_path_node(path[-1])
+        if "attributes" in sub_doc:
+            child_node["attributes"] = deepcopy(sub_doc["attributes"])
+        child_node["children"] = []
+        parent["children"].append(child_node)
+        for element in sub_doc["content"]["content"]:
+            child_node["children"].append(serialise_tei_text_block(element, tei_settings))
+
+
 def xml_dict_to_etree(data: dict) -> etree.Element:
     """Convert an XML tree into an Element tree."""
     name = data["name"]
@@ -403,7 +433,7 @@ def serialise_tei_file(path: str, json_doc: list, settings: UEditorSettings) -> 
             elif section.type == "text":
                 serialise_tei_text(root, doc_section, section, settings.tei)
             elif section.type == "textlist":
-                pass
+                serialise_tei_textlist(root, doc_section, section, settings.tei)
     return xml_dict_to_etree(root)
 
 
