@@ -10,6 +10,7 @@
     "text/markdown",
     "application/gitignore",
   ];
+  const TEI_MIMETYPES = ["application/tei+xml"];
 
   const currentEditorType = derived(currentFile, (currentFile) => {
     if (currentFile) {
@@ -17,6 +18,8 @@
         return "Folder";
       } else if (CODEMIRROR_MIMETYPES.indexOf(currentFile.mimetype) >= 0) {
         return "CodeMirror";
+      } else if (TEI_MIMETYPES.indexOf(currentFile.mimetype) >= 0) {
+        return "Tei";
       }
     }
     return null;
@@ -30,6 +33,8 @@
         promise = import("./FolderEditor.svelte");
       } else if (currentEditorType === "CodeMirror") {
         promise = import("./CodeMirrorEditor.svelte");
+      } else if (currentEditorType === "Tei") {
+        promise = import("./TeiEditor.svelte");
       }
       if (promise) {
         loading = true;
