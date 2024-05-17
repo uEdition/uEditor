@@ -5,6 +5,7 @@
 
   let loading = false;
   const CODEMIRROR_MIMETYPES = [
+    "application/toml",
     "application/yaml",
     "text/markdown",
     "application/gitignore",
