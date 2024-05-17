@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Dialog } from "bits-ui";
+  import { setContext } from "svelte";
   import { derived } from "svelte/store";
   import { fade } from "svelte/transition";
   import { createQuery } from "@tanstack/svelte-query";
@@ -17,6 +18,12 @@
     queryKey: ["configs", "uedition"],
     queryFn: apiQueryHandler<UEditionSettings>,
   });
+  setContext("uEditionConfig", uEditionConfig);
+  const uEditorConfig = createQuery({
+    queryKey: ["configs", "ueditor"],
+    queryFn: apiQueryHandler<UEditorSettings>,
+  });
+  setContext("uEditorConfig", uEditorConfig);
 
   const appTitle = derived(uEditionConfig, (config) => {
     if (

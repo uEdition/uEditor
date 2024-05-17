@@ -38,6 +38,8 @@ type UEditionSettings = {
   jb_config: any;
 };
 
+type UEditorSettings = any;
+
 type FileTreeEntry = {
   name: string;
   fullpath: string;
