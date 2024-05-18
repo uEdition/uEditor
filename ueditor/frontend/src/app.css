@@ -117,6 +117,22 @@
     @apply block px-3 py-2 border transition-colors border-slate-300 focus:border-fuchsia-700 rounded;
   }
 
+  [data-combobox-input][aria-expanded="true"]+div svg.combobox-expand {
+    @apply hidden;
+  }
+
+  [data-combobox-input][aria-expanded="true"]+div svg.combobox-collapse {
+    @apply block;
+  }
+
+  [data-combobox-input][aria-expanded="false"]+div svg.combobox-expand {
+    @apply block;
+  }
+
+  [data-combobox-input][aria-expanded="false"]+div svg.combobox-collapse {
+    @apply hidden;
+  }
+
   [data-combobox-content] {
     @apply z-50 bg-white shadow-lg;
   }

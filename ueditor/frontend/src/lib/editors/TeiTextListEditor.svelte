@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Combobox, Toolbar } from "bits-ui";
-  import { mdiPlus, mdiTrashCan } from "@mdi/js";
+  import { mdiChevronDown, mdiChevronUp, mdiPlus, mdiTrashCan } from "@mdi/js";
 
   import Icon from "../Icon.svelte";
   import TeiTextEditor from "./TeiTextEditor.svelte";
@@ -16,10 +16,17 @@
       items={[{ value: "1" }, { value: "2" }, { value: "3" }, { value: "4" }]}
       bind:selected
     >
-      <Combobox.Input
-        placeholder="Select the text to edit"
-        aria-label="Select the text to edit"
-      />
+      <div class="relative">
+        <Combobox.Input
+          placeholder="Select the text to edit"
+          aria-label="Select the text to edit"
+          class="pr-6"
+        />
+        <div class="absolute top-1/2 right-0 -translate-y-1/2">
+          <Icon path={mdiChevronDown} class="w-6 h-6 combobox-expand" />
+          <Icon path={mdiChevronUp} class="w-6 h-6 combobox-collapse" />
+        </div>
+      </div>
       <Combobox.Content>
         <Combobox.Item value="1" label="Text 1">Text 1</Combobox.Item>
         <Combobox.Item value="2" label="Text 2">Text 2</Combobox.Item>
