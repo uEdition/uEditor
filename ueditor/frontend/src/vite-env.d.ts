@@ -66,3 +66,52 @@ type SaveCurrentFileAction = {
 };
 
 type Action = LoadTextFileAction | SaveCurrentFileAction;
+
+type TipTapAttribtes = { [key: string]: string };
+
+type TipTapMark = {
+  type: string;
+  attributes: TipTapAttribtes;
+};
+type TipTapBlock = {
+  type: string;
+  attributes: TipTapAttributes;
+  content: TipTapNode[];
+};
+
+type TipTapText = {
+  type: "text";
+  marks: TipTapMark[];
+  text: string;
+};
+
+type TipTapNode = TipTapText | TipTapBlock;
+
+type TipTapDocument = {
+  type: "doc";
+  content: TipTapNode[];
+};
+
+type TEIMetadataSection = { name: string; title: string; type: "metadata" };
+
+type TEITextSection = {
+  name: string;
+  title: string;
+  type: "text";
+  content: TipTapDocument;
+};
+
+type TEITextlistDocument = {
+  attributes: { [key: string]: value };
+  content: TipTapDocument;
+};
+
+type TEITextlistSection = {
+  name: string;
+  title: string;
+  type: "textlist";
+  content: TEITextlistDocument[];
+};
+type TEIDocument = {
+  [key: string]: TEIMetadataSection | TEITextSection | TEITextlistSection;
+};

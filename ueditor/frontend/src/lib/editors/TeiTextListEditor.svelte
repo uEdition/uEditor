@@ -6,12 +6,35 @@
   import TeiTextEditor from "./TeiTextEditor.svelte";
 
   let selected: { value: unknown; label?: string } = { value: null };
-  export let section: any = null;
-  let texts = [] as any[];
+  export let section: TEITextlistSection | null = null;
+  let texts = [] as TEITextlistDocument[];
 
   $: {
-    texts = section.content;
-    console.log(texts);
+    if (section !== null) {
+      texts = section.content;
+    } else {
+      texts = [];
+    }
+  }
+
+  function textForTipTapNode(node: TipTapNode): string {
+    if (node.type === "text") {
+      return (node as TipTapText).text;
+    } else {
+      let result: string[] = [];
+      for (let child of (node as TipTapBlock).content) {
+        result.push(textForTipTapNode(child));
+      }
+      return result.join("");
+    }
+  }
+
+  function firstParagraphForDocument(doc: TipTapDocument): string {
+    if (doc.content.length > 0) {
+      return textForTipTapNode(doc.content[0]);
+    } else {
+      return "<Empty Document>";
+    }
   }
 </script>
 
@@ -23,6 +46,7 @@
       items={texts.map((text) => {
         return {
           value: text.attributes["{http://www.w3.org/XML/1998/namespace}id"],
+          label: firstParagraphForDocument(text.content),
         };
       })}
       bind:selected
@@ -42,9 +66,8 @@
         {#each texts as text}
           <Combobox.Item
             value={text.attributes["{http://www.w3.org/XML/1998/namespace}id"]}
-            >{text.attributes[
-              "{http://www.w3.org/XML/1998/namespace}id"
-            ]}</Combobox.Item
+            label={firstParagraphForDocument(text.content)}
+            >{firstParagraphForDocument(text.content)}</Combobox.Item
           >
         {/each}
       </Combobox.Content>

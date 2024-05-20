@@ -16,10 +16,10 @@
   import TeiTextListEditor from "./TeiTextListEditor.svelte";
 
   let value = [];
-  let sections = {} as { [key: string]: any };
+  let sections: TEIDocument = {};
 
   const uEditorConfig = getContext(
-    "uEditorConfig",
+    "uEditorConfig"
   ) as CreateQueryResult<UEditorSettings>;
 
   const currentFileUnsubscribe = currentFile.subscribe((currentFile) => {
