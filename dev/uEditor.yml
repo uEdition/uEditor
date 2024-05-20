@@ -69,7 +69,7 @@ tei:
             mark: italc
             title: Italic
             icon: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>format-italic</title><path d="M10,4V7H12.21L8.79,15H6V18H14V15H11.79L15.21,7H18V4H10Z" /></svg>
-    - name: annotations
-      title: Annotations
+    - name: footnotes
+      title: Footnotes
       type: textlist
-      selector: /tei:TEI/tei:text/tei:interpGrp
+      selector: /tei:TEI/tei:text/tei:noteGrp[@type="footnotes"]/tei:note

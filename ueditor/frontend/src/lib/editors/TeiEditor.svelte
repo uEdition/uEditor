@@ -1,18 +1,46 @@
 <script lang="ts">
   import type { CreateQueryResult } from "@tanstack/svelte-query";
   import { Tabs } from "bits-ui";
-  import { getContext } from "svelte";
+  import { getContext, onDestroy } from "svelte";
 
   import { runAction } from "../actions/Index.svelte";
-  import { currentFile } from "../../stores";
+  import {
+    currentBranch,
+    currentFile,
+    currentFileContent,
+    currentFileModified,
+  } from "../../stores";
   import LoadingIndicator from "../LoadingIndicator.svelte";
   import TeiMetadataEditor from "./TeiMetadataEditor.svelte";
   import TeiTextEditor from "./TeiTextEditor.svelte";
   import TeiTextListEditor from "./TeiTextListEditor.svelte";
 
+  let value = [];
+  let sections = {} as { [key: string]: any };
+
   const uEditorConfig = getContext(
     "uEditorConfig",
   ) as CreateQueryResult<UEditorSettings>;
+
+  const currentFileUnsubscribe = currentFile.subscribe((currentFile) => {
+    if (currentFile && currentFile.name.endsWith(".tei")) {
+      runAction({
+        action: "LoadTextFile",
+        branch: $currentBranch,
+        filename: currentFile.fullpath,
+        callback: (data: string) => {
+          value = JSON.parse(data);
+          for (let part of value) {
+            sections[part.name] = part;
+          }
+          currentFileContent.set(data);
+          currentFileModified.set(false);
+        },
+      });
+    }
+  });
+
+  onDestroy(currentFileUnsubscribe);
 </script>
 
 {#if $uEditorConfig.isSuccess}
@@ -29,7 +57,7 @@
         {:else if section.type === "text"}
           <TeiTextEditor />
         {:else if section.type === "textlist"}
-          <TeiTextListEditor />
+          <TeiTextListEditor section={sections[section.name]} />
         {/if}
       </Tabs.Content>
     {/each}

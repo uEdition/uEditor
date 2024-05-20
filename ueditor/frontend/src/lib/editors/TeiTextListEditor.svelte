@@ -6,6 +6,13 @@
   import TeiTextEditor from "./TeiTextEditor.svelte";
 
   let selected: { value: unknown; label?: string } = { value: null };
+  export let section: any = null;
+  let texts = [] as any[];
+
+  $: {
+    texts = section.content;
+    console.log(texts);
+  }
 </script>
 
 <div class="flex flex-col w-full h-full overflow-hidden">
@@ -13,14 +20,18 @@
     class="flex flex-row items-center space-x-4 border-b border-gray-300 px-2 py-1"
   >
     <Combobox.Root
-      items={[{ value: "1" }, { value: "2" }, { value: "3" }, { value: "4" }]}
+      items={texts.map((text) => {
+        return {
+          value: text.attributes["{http://www.w3.org/XML/1998/namespace}id"],
+        };
+      })}
       bind:selected
     >
       <div class="relative">
         <Combobox.Input
           placeholder="Select the text to edit"
           aria-label="Select the text to edit"
-          class="pr-6"
+          class="relative pr-6 z-10 bg-transparent"
         />
         <div class="absolute top-1/2 right-0 -translate-y-1/2">
           <Icon path={mdiChevronDown} class="w-6 h-6 combobox-expand" />
@@ -28,10 +39,14 @@
         </div>
       </div>
       <Combobox.Content>
-        <Combobox.Item value="1" label="Text 1">Text 1</Combobox.Item>
-        <Combobox.Item value="2" label="Text 2">Text 2</Combobox.Item>
-        <Combobox.Item value="3" label="Text 3">Text 3</Combobox.Item>
-        <Combobox.Item value="4" label="Text 4">Text 4</Combobox.Item>
+        {#each texts as text}
+          <Combobox.Item
+            value={text.attributes["{http://www.w3.org/XML/1998/namespace}id"]}
+            >{text.attributes[
+              "{http://www.w3.org/XML/1998/namespace}id"
+            ]}</Combobox.Item
+          >
+        {/each}
       </Combobox.Content>
     </Combobox.Root>
     <Toolbar.Root>
