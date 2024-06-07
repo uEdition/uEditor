@@ -21,6 +21,8 @@
         return "CodeMirror";
       } else if (TEI_MIMETYPES.indexOf(currentFile.mimetype) >= 0) {
         return "Tei";
+      } else if (currentFile.mimetype.startsWith("image/")) {
+        return "Image";
       }
     }
     return null;
@@ -36,6 +38,8 @@
         promise = import("./CodeMirrorEditor.svelte");
       } else if (currentEditorType === "Tei") {
         promise = import("./TeiEditor.svelte");
+      } else if (currentEditorType === "Image") {
+        promise = import("./ImageEditor.svelte");
       }
       if (promise) {
         loading = true;
