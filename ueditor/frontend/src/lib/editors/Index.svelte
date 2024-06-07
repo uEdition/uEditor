@@ -5,10 +5,11 @@
 
   let loading = false;
   const CODEMIRROR_MIMETYPES = [
+    "application/gitignore",
+    "application/json",
     "application/toml",
     "application/yaml",
     "text/markdown",
-    "application/gitignore",
   ];
   const TEI_MIMETYPES = ["application/tei+xml"];
 
@@ -62,7 +63,7 @@
     <div class="flex-1 px-2 py-1">Loading the editor. Please wait...</div>
   {:else}
     <div class="flex-1 px-2 py-1 text-rose-700">
-      Unfortunately the μEditor does not know how to edit this file.
+      Unfortunately the μEditor does not know how to edit this file ({$currentFile.mimetype}).
     </div>
   {/if}
 {:else}

@@ -2,6 +2,7 @@
   import { LanguageSupport } from "@codemirror/language";
   import { markdown } from "@codemirror/lang-markdown";
   import { yaml } from "@codemirror/lang-yaml";
+  import { json } from "@codemirror/lang-json";
   import { onDestroy } from "svelte";
   import CodeMirror from "svelte-codemirror-editor";
   import { useQueryClient } from "@tanstack/svelte-query";
@@ -22,7 +23,9 @@
 
   const currentFileUnsubscribe = currentFile.subscribe((currentFile) => {
     if (currentFile) {
-      if (currentFile.mimetype === "application/yaml") {
+      if (currentFile.mimetype === "application/json") {
+        lang = json();
+      } else if (currentFile.mimetype === "application/yaml") {
         lang = yaml();
       } else if (currentFile.mimetype === "text/markdown") {
         lang = markdown();
