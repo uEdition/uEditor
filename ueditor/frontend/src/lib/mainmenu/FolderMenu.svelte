@@ -3,8 +3,6 @@
   import {
     mdiFileDocumentPlusOutline,
     mdiFolderEditOutline,
-    mdiFolderMoveOutline,
-    mdiFolderMultipleOutline,
     mdiFolderPlusOutline,
     mdiFolderRemoveOutline,
   } from "@mdi/js";
@@ -51,22 +49,6 @@
     >
       <Icon path={mdiFolderEditOutline} class="w-4 h-4"></Icon>
       <span>Rename</span>
-    </Menubar.Item>
-    <Menubar.Item
-      on:click={() => {
-        action = Action.Move;
-      }}
-    >
-      <Icon path={mdiFolderMoveOutline} class="w-4 h-4"></Icon>
-      <span>Move</span>
-    </Menubar.Item>
-    <Menubar.Item
-      on:click={() => {
-        action = Action.Copy;
-      }}
-    >
-      <Icon path={mdiFolderMultipleOutline} class="w-4 h-4"></Icon>
-      <span>Copy</span>
     </Menubar.Item>
     <Menubar.Item
       on:click={() => {
