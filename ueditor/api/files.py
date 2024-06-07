@@ -197,18 +197,43 @@ def create_file(
     branch_id: int,  # noqa: ARG001
     path: str,
     new_type: Annotated[str, Header(alias="X-uEditor-New-Type")],
+    rename_from: Annotated[str | None, Header(alias="X-uEditor-Rename-From")] = None,
 ) -> None:
     """Create a new file in the repo."""
     if new_type in ("file", "folder"):
         full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
         if full_path.startswith(os.path.abspath(init_settings.base_path)) and not os.path.exists(full_path):
-            if new_type == "file":
-                with open(full_path, "w") as out_f:  # noqa: F841
-                    pass
-                return
-            elif new_type == "folder":
-                os.makedirs(full_path)
-                return
+            if rename_from is not None:
+                rename_source_path = os.path.abspath(os.path.join(init_settings.base_path, *rename_from.split("/")))
+                if rename_source_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.exists(
+                    rename_source_path
+                ):
+                    try:
+                        os.rename(rename_source_path, full_path)
+                        return
+                    except OSError as err:
+                        raise HTTPException(
+                            422,
+                            detail=[{"loc": ["path", "path"], "msg": str(err)}],
+                        ) from err
+                else:
+                    raise HTTPException(
+                        422,
+                        detail=[
+                            {
+                                "loc": ["headers", "X-uEditor-Rename-From"],
+                                "msg": "the source file or folder do not exist",
+                            }
+                        ],
+                    )
+            else:  # noqa: PLR5501
+                if new_type == "file":
+                    with open(full_path, "w") as out_f:  # noqa: F841
+                        pass
+                    return
+                elif new_type == "folder":
+                    os.makedirs(full_path)
+                    return
         else:
             raise HTTPException(
                 422,

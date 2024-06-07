@@ -9,7 +9,11 @@
 <Menubar.Menu>
   <Menubar.Trigger>File</Menubar.Trigger>
   <Menubar.Content>
-    <Menubar.Item>
+    <Menubar.Item
+      on:click={() => {
+        activeDialog.set(Dialogs.FILE_RENAME);
+      }}
+    >
       <Icon path={mdiPencil} class="w-4 h-4"></Icon>
       <span>Rename</span>
     </Menubar.Item>

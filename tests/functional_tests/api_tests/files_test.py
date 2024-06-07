@@ -422,3 +422,50 @@ def test_delete_folder(simple_app: TestClient) -> None:
     response = simple_app.delete("/api/branches/-1/files/en")
     assert response.status_code == 204
     assert not os.path.exists(os.path.join(init_settings.base_path, "en"))
+
+
+def test_rename_file(simple_app: TestClient) -> None:
+    """Test that renaming a file works."""
+    response = simple_app.post(
+        "/api/branches/-1/files/toc-old.yml", headers={"X-uEditor-New-Type": "file", "X-uEditor-Rename-From": "toc.yml"}
+    )
+    assert response.status_code == 204
+    assert os.path.isfile(os.path.join(init_settings.base_path, "toc-old.yml"))
+    assert not os.path.isfile(os.path.join(init_settings.base_path, "toc.yml"))
+
+
+def test_rename_directory(simple_app: TestClient) -> None:
+    """Test that renaming a directory works."""
+    response = simple_app.post(
+        "/api/branches/-1/files/de", headers={"X-uEditor-New-Type": "folder", "X-uEditor-Rename-From": "en"}
+    )
+    assert response.status_code == 204
+    assert os.path.isdir(os.path.join(init_settings.base_path, "de"))
+    assert not os.path.isdir(os.path.join(init_settings.base_path, "en"))
+
+
+def test_rename_file_fail_existing_target(simple_app: TestClient) -> None:
+    """Test that renaming a file to an existing file fails."""
+    response = simple_app.post(
+        "/api/branches/-1/files/uEdition.yml",
+        headers={"X-uEditor-New-Type": "file", "X-uEditor-Rename-From": "toc.yml"},
+    )
+    assert response.status_code == 422
+
+
+def test_rename_file_fail_source_does_not_exist(simple_app: TestClient) -> None:
+    """Test that renaming a file from a non-existing file fails."""
+    response = simple_app.post(
+        "/api/branches/-1/files/test.yml",
+        headers={"X-uEditor-New-Type": "file", "X-uEditor-Rename-From": "does-not-exist.yml"},
+    )
+    assert response.status_code == 422
+
+
+def test_rename_file_rename_folder_into_itself(simple_app: TestClient) -> None:
+    """Test that renaming a file from a non-existing file fails."""
+    response = simple_app.post(
+        "/api/branches/-1/files/en/test",
+        headers={"X-uEditor-New-Type": "folder", "X-uEditor-Rename-From": "en"},
+    )
+    assert response.status_code == 422

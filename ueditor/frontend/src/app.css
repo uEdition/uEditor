@@ -8,7 +8,7 @@
    * Button components
    */
   [data-button] {
-    @apply px-3 py-1 border-2 transition-colors border-fuchsia-700 bg-white hover:bg-fuchsia-700 hover:text-white focus:bg-fuchsia-700 focus:text-white rounded;
+    @apply inline-flex flex-row items-center space-x-2 justify-center px-3 py-1 border-2 transition-colors border-fuchsia-700 bg-white hover:bg-fuchsia-700 hover:text-white focus:bg-fuchsia-700 focus:text-white rounded;
   }
 
   /**

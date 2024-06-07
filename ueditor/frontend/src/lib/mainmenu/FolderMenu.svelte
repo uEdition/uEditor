@@ -46,7 +46,7 @@
     <Menubar.Separator />
     <Menubar.Item
       on:click={() => {
-        action = Action.Rename;
+        activeDialog.set(Dialogs.FOLDER_RENAME);
       }}
     >
       <Icon path={mdiFolderEditOutline} class="w-4 h-4"></Icon>
@@ -70,7 +70,7 @@
     </Menubar.Item>
     <Menubar.Item
       on:click={() => {
-        action = Action.Delete;
+        activeDialog.set(Dialogs.FOLDER_DELETE);
       }}
     >
       <Icon path={mdiFolderRemoveOutline} class="w-4 h-4"></Icon>
