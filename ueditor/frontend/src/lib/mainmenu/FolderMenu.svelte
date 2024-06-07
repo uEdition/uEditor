@@ -2,6 +2,7 @@
   import { Dialog, Menubar, Separator } from "bits-ui";
   import {
     mdiFileDocumentPlusOutline,
+    mdiFileUploadOutline,
     mdiFolderEditOutline,
     mdiFolderPlusOutline,
     mdiFolderRemoveOutline,
@@ -40,6 +41,14 @@
     >
       <Icon path={mdiFileDocumentPlusOutline} class="w4 h-4" />
       <span>New File</span>
+    </Menubar.Item>
+    <Menubar.Item
+      on:click={() => {
+        activeDialog.set(Dialogs.FILE_UPLOAD);
+      }}
+    >
+      <Icon path={mdiFileUploadOutline} class="w4 h-4" />
+      <span>Upload Files</span>
     </Menubar.Item>
     <Menubar.Separator />
     <Menubar.Item

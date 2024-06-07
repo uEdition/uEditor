@@ -11,6 +11,7 @@
     FILE_CREATE,
     FILE_DELETE,
     FILE_RENAME,
+    FILE_UPLOAD,
   }
 
   export const activeDialog = writable(Dialogs.NONE);
@@ -23,6 +24,7 @@
   import FileCreate from "./file/Create.svelte";
   import FileDelete from "./file/Delete.svelte";
   import FileRename from "./file/Rename.svelte";
+  import FileUpload from "./file/Upload.svelte";
 </script>
 
 {#if $activeDialog === Dialogs.FOLDER_CREATE}
@@ -37,4 +39,6 @@
   <FileDelete />
 {:else if $activeDialog === Dialogs.FILE_RENAME}
   <FileRename />
+{:else if $activeDialog === Dialogs.FILE_UPLOAD}
+  <FileUpload />
 {/if}

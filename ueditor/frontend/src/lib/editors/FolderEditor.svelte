@@ -1,6 +1,7 @@
 <script lang="ts">
   import {
     mdiFileDocumentPlusOutline,
+    mdiFileUploadOutline,
     mdiFolderEditOutline,
     mdiFolderPlusOutline,
     mdiFolderRemoveOutline,
@@ -54,9 +55,14 @@
       <span>Create a new File</span>
     </button>
     <button
-      class="px-3 py-1 border-2 transition-colors border-fuchsia-700 bg-white hover:bg-fuchsia-700 hover:text-white focus:bg-fuchsia-700 focus:text-white rounded"
-      >Upload a File</button
+      data-button
+      on:click={() => {
+        activeDialog.set(Dialogs.FILE_UPLOAD);
+      }}
     >
+      <Icon path={mdiFileUploadOutline} class="w4 h-4" />
+      <span>Upload Files</span>
+    </button>
     {#if $currentFile?.fullpath}
       <button
         data-button
