@@ -4,6 +4,7 @@
 
   import Base from "../Base.svelte";
   import { currentBranch, currentFile } from "../../../stores";
+  import { Dialogs, activeDialog } from "../Index.svelte";
 
   const queryClient = useQueryClient();
   let open = false;
@@ -40,6 +41,7 @@
           queryKey: ["branches", $currentBranch, "files/"],
         });
         currentFile.set(null);
+        activeDialog.set(Dialogs.NONE);
       } else {
         errorMessage = (await response.json()).detail[0].msg;
         errorMessage =
@@ -54,6 +56,8 @@
     if (open) {
       newFileName = "";
       errorMessage = "";
+    } else {
+      activeDialog.set(Dialogs.NONE);
     }
   }
 </script>

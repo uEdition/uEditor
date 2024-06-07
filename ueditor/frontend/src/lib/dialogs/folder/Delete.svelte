@@ -4,6 +4,7 @@
 
   import Base from "../Base.svelte";
   import { currentBranch, currentFile } from "../../../stores";
+  import { Dialogs, activeDialog } from "../Index.svelte";
 
   const queryClient = useQueryClient();
   let open = false;
@@ -29,6 +30,7 @@
         });
         currentFile.set(null);
         open = false;
+        activeDialog.set(Dialogs.NONE);
       }
     } else {
       error = "Please check that you have typed in the correct name.";
@@ -39,6 +41,8 @@
     if (open) {
       confirmationText = "";
       error = "";
+    } else {
+      activeDialog.set(Dialogs.NONE);
     }
   }
 </script>
