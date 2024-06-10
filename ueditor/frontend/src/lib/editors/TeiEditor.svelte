@@ -55,7 +55,7 @@
         {#if section.type === "metadata"}
           <TeiMetadataEditor />
         {:else if section.type === "text"}
-          <TeiTextEditor />
+          <TeiTextEditor section={sections[section.name]} />
         {:else if section.type === "textlist"}
           <TeiTextListEditor section={sections[section.name]} />
         {/if}

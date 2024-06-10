@@ -12,7 +12,7 @@
   import MainMenu from "./lib/mainmenu/Index.svelte";
   import Toolbar from "./lib/Toolbar.svelte";
   import { apiQueryHandler } from "./util";
-  import { currentFile, currentFileModified } from "./stores";
+  import { currentFile } from "./stores";
 
   const uEditionConfig = createQuery({
     queryKey: ["configs", "uedition"],
