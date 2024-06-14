@@ -46,7 +46,7 @@ extra-dependencies = ["coverage[toml]>=6.5", "httpx", "pytest"]
 
 [tool.hatch.envs.default.scripts]
 server = "uvicorn --reload --port 8000 ueditor:app {args}"
-frontend-build = "cd ueditor/frontend && npm install && vite build --watch"
+build-frontend = "cd ueditor/frontend && npm install && vite build --watch"
 e2e-tests = "cd tests/e2e_tests && UEDITOR_BASE_PATH=./tmp_fixtures UEDITOR_TEST=true npx playwright test"
 test = "UEDITOR_BASE_PATH=./tmp_fixtures UEDITOR_TEST=true pytest {args:tests}"
 test-cov = "UEDITOR_BASE_PATH=./tmp_fixtures UEDITOR_TEST=true coverage run -m pytest {args:tests}"
