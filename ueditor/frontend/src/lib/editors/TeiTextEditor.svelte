@@ -20,16 +20,20 @@
         extensions.push(
           Node.create({
             name: blockConfig.name,
-            type: "block",
-            content: "block* | text+",
+            group: "block",
+            content: "inline*",
+            renderHTML({ HTMLAttributes }) {
+              return ["div", HTMLAttributes, 0];
+            },
           })
         );
         console.log(blockConfig);
       }
-      console.log(extensions);
+      console.log(section);
       editor = new Editor({
         element: editorElement,
         extensions: extensions,
+        content: section?.content,
       });
     }
   });
