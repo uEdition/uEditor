@@ -19,7 +19,7 @@
   let sections: TEIDocument = {};
 
   const uEditorConfig = getContext(
-    "uEditorConfig"
+    "uEditorConfig",
   ) as CreateQueryResult<UEditorSettings>;
 
   const currentFileUnsubscribe = currentFile.subscribe((currentFile) => {
@@ -33,6 +33,7 @@
           for (let part of value) {
             sections[part.name] = part;
           }
+          sections = sections;
           currentFileContent.set(data);
           currentFileModified.set(false);
         },
@@ -43,6 +44,7 @@
   onDestroy(currentFileUnsubscribe);
 </script>
 
+<h1 class="sr-only">{$currentFile?.name}</h1>
 {#if $uEditorConfig.isSuccess}
   <Tabs.Root class="flex-1 flex flex-col ">
     <Tabs.List>
@@ -55,7 +57,7 @@
         {#if section.type === "metadata"}
           <TeiMetadataEditor />
         {:else if section.type === "text"}
-          <TeiTextEditor section={sections[section.name]} />
+          <TeiTextEditor section={sections[section.name]} config={section} />
         {:else if section.type === "textlist"}
           <TeiTextListEditor section={sections[section.name]} />
         {/if}

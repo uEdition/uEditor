@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 """Settings for the uEditor."""
 import os
-from typing import Any, Dict, Literal, Tuple, Type
+from typing import Any, Dict, Literal, Optional, Tuple, Type
 
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
@@ -71,6 +71,15 @@ class YAMLConfigSettingsSource(PydanticBaseSettingsSource):
         return d
 
 
+class ValueTitlePair(BaseModel):
+    """A simple pair of value and title."""
+
+    value: str
+    """The value for the pair."""
+    title: str
+    """The title to show for the pair."""
+
+
 class TEINodeAttribute(BaseModel):
     """Single attribute for a TEINode."""
 
@@ -93,6 +102,8 @@ class TEINode(BaseModel):
     """The selector to identify this node."""
     attributes: list[TEINodeAttribute] = []
     """A list of attributes that are used on this node."""
+    tag: Optional[str] = None
+    """The HTML tag to use to render the node."""
 
 
 class TEIMetadataSection(BaseModel):
@@ -108,6 +119,63 @@ class TEIMetadataSection(BaseModel):
     """The XPath selector to retrieve this section."""
 
 
+class TEIMenuCondition(BaseModel):
+    """A UI condition check."""
+
+    block: str
+    """The name of the block to be current."""
+
+
+class TEIMenuItemSetBlock(BaseModel):
+    """A TEI menu item to set the current block."""
+
+    type: Literal["set-block"]
+    """The menu item type."""
+    block: str
+    """The block to set the current node to."""
+    title: str
+    """The title for the button."""
+    icon: Optional[str] = None
+    """The optional icon to show."""
+
+
+class TEIMenuItemToggleMark(BaseModel):
+    """A TEI menu item to toggle a mark."""
+
+    type: Literal["toggle-mark"]
+    """The menu item type."""
+    mark: str
+    """The mark to toggle."""
+    title: str
+    """The title for the button."""
+    icon: Optional[str] = None
+    """The optional icon to show."""
+
+
+class TEIMenuItemSelectAttribute(BaseModel):
+    """A TEI menu item to select an attribute."""
+
+    type: Literal["select-attribute"]
+    """The menu item type."""
+    block: str
+    """The block to apply the attribute to."""
+    name: str
+    """The name of the attribute."""
+    values: list[ValueTitlePair]
+    """The available values to select from."""
+
+
+class TEITextSidebarBlock(BaseModel):
+    """A TEI editor sidebar block."""
+
+    title: str
+    """The title for the block."""
+    items: list[TEIMenuItemSetBlock | TEIMenuItemToggleMark | TEIMenuItemSelectAttribute]
+    """The list of menu items to show."""
+    condition: Optional[TEIMenuCondition] = None
+    """An optional condition for showing the block."""
+
+
 class TEITextSection(BaseModel):
     """A section in the TEI document containing a single text."""
 
@@ -119,6 +187,7 @@ class TEITextSection(BaseModel):
     """The type must be set to text."""
     selector: str
     """The XPath selector to retrieve this section."""
+    sidebar: Optional[list[TEITextSidebarBlock]] = None
 
 
 class TEITextListSection(BaseModel):
