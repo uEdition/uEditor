@@ -4,9 +4,11 @@
 
   import Icon from "../Icon.svelte";
   import TeiTextEditor from "./TeiTextEditor.svelte";
+  import { textForFirstNodeOfTipTapDocument } from "../../util";
 
-  let selected: { value: unknown; label?: string } = { value: null };
   export let section: TEITextlistSection | null = null;
+  export let sections: TEIDocument;
+  let selected: { value: unknown; label?: string } = { value: null };
   let texts = [] as TEITextlistDocument[];
 
   $: {
@@ -14,26 +16,6 @@
       texts = section.content;
     } else {
       texts = [];
-    }
-  }
-
-  function textForTipTapNode(node: TipTapNode): string {
-    if (node.type === "text") {
-      return (node as TipTapText).text;
-    } else {
-      let result: string[] = [];
-      for (let child of (node as TipTapBlock).content) {
-        result.push(textForTipTapNode(child));
-      }
-      return result.join("");
-    }
-  }
-
-  function firstParagraphForDocument(doc: TipTapDocument): string {
-    if (doc.content.length > 0) {
-      return textForTipTapNode(doc.content[0]);
-    } else {
-      return "<Empty Document>";
     }
   }
 </script>
@@ -45,8 +27,8 @@
     <Combobox.Root
       items={texts.map((text) => {
         return {
-          value: text.attributes["{http://www.w3.org/XML/1998/namespace}id"],
-          label: firstParagraphForDocument(text.content),
+          value: text.attrs["id"],
+          label: textForFirstNodeOfTipTapDocument(text.content),
         };
       })}
       bind:selected
@@ -65,9 +47,9 @@
       <Combobox.Content>
         {#each texts as text}
           <Combobox.Item
-            value={text.attributes["{http://www.w3.org/XML/1998/namespace}id"]}
-            label={firstParagraphForDocument(text.content)}
-            >{firstParagraphForDocument(text.content)}</Combobox.Item
+            value={text.attrs["id"]}
+            label={textForFirstNodeOfTipTapDocument(text.content)}
+            >{textForFirstNodeOfTipTapDocument(text.content)}</Combobox.Item
           >
         {/each}
       </Combobox.Content>
@@ -86,6 +68,6 @@
     </Toolbar.Root>
   </div>
   <div class="flex-1 overflow-hidden">
-    <TeiTextEditor />
+    <TeiTextEditor section={null} config="" {sections} />
   </div>
 </div>

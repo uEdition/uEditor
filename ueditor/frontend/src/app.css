@@ -45,6 +45,10 @@
     @apply hover:border-transparent focus:border-transparent text-gray-400 cursor-not-allowed;
   }
 
+  [data-toolbar-button][aria-pressed="true"] {
+    @apply bg-fuchsia-300;
+  }
+
   /**
    * Dialog components
    */

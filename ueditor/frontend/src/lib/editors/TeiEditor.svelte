@@ -57,9 +57,13 @@
         {#if section.type === "metadata"}
           <TeiMetadataEditor />
         {:else if section.type === "text"}
-          <TeiTextEditor section={sections[section.name]} config={section} />
+          <TeiTextEditor
+            section={sections[section.name]}
+            config={section}
+            {sections}
+          />
         {:else if section.type === "textlist"}
-          <TeiTextListEditor section={sections[section.name]} />
+          <TeiTextListEditor section={sections[section.name]} {sections} />
         {/if}
       </Tabs.Content>
     {/each}

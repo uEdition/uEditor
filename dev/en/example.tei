@@ -15,7 +15,7 @@
         <tei:span> </tei:span>
         <tei:hi style="font-style-italic">important</tei:hi>
         <tei:span> message.</tei:span>
-        <tei:ref target="#footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c">[1]</tei:ref>
+        <tei:ref target="#footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c" type="footnote">[1]</tei:ref>
       </tei:p>
       <tei:head type="">
         <tei:span>Heading with the default type</tei:span>
@@ -25,6 +25,11 @@
       <tei:note xml:id="footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c">
         <tei:p>
           <tei:span>This is just a footnote.</tei:span>
+        </tei:p>
+      </tei:note>
+      <tei:note xml:id="footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836d">
+        <tei:p>
+          <tei:span>A second footnote.</tei:span>
         </tei:p>
       </tei:note>
     </tei:noteGrp>

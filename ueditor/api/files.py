@@ -7,7 +7,6 @@ import mimetypes
 import os
 import re
 import shutil
-from copy import deepcopy
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, UploadFile
@@ -115,7 +114,7 @@ def parse_tei_subtree(node: etree.Element, settings: TEISettings) -> dict:
         if len(node.xpath(f"self::{conf.selector}", namespaces=namespaces)) > 0:
             return {
                 "type": conf.name,
-                "attributes": parse_tei_attributes(node.attrib, conf.attributes),
+                "attrs": parse_tei_attributes(node.attrib, conf.attributes),
                 "content": [parse_tei_subtree(child, settings) for child in node],
             }
     for conf in settings.marks:
@@ -125,13 +124,13 @@ def parse_tei_subtree(node: etree.Element, settings: TEISettings) -> dict:
                 return {
                     "type": "text",
                     "marks": child["marks"]
-                    + [{"type": conf.name, "attributes": parse_tei_attributes(node.attrib, conf.attributes)}],
+                    + [{"type": conf.name, "attrs": parse_tei_attributes(node.attrib, conf.attributes)}],
                     "text": child["text"],
                 }
             else:
                 return {
                     "type": "text",
-                    "marks": [{"type": conf.name, "attributes": parse_tei_attributes(node.attrib, conf.attributes)}],
+                    "marks": [{"type": conf.name, "attrs": parse_tei_attributes(node.attrib, conf.attributes)}],
                     "text": node.text,
                 }
     if len(node) == 0:
@@ -173,7 +172,12 @@ def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
             elif section.type == "textlist":
                 content = []
                 for node in section_root:
-                    content.append({"attributes": dict(node.attrib), "content": parse_tei_subdoc(node, settings.tei)})
+                    content.append(
+                        {
+                            "attrs": {"id": node.attrib["{http://www.w3.org/XML/1998/namespace}id"]},
+                            "content": parse_tei_subdoc(node, settings.tei),
+                        }
+                    )
                 result.append({"name": section.name, "title": section.title, "type": section.type, "content": content})
     return result
 
@@ -254,9 +258,9 @@ def find_nodes(node: dict, path: list[str]) -> list[dict]:
         if match.group(1) == node["name"]:
             if match.group(2) is not None and match.group(3) is not None:
                 if (
-                    "attributes" in node
-                    and match.group(2) in node["attributes"]
-                    and node["attributes"][match.group(2)] == match.group(3)
+                    "attrs" in node
+                    and match.group(2) in node["attrs"]
+                    and node["attrs"][match.group(2)] == match.group(3)
                 ):
                     matches = True
             else:
@@ -276,7 +280,7 @@ def create_path_node(path_part: str) -> dict:
     match = re.match(r'([a-z]+:[a-zA-Z][a-zA-Z0-9]*)(?:\[@([a-zA-Z]*:?[a-zA-Z]+)\="(.*)"])?', path_part)
     new_node = {"name": match.group(1)}
     if match.group(2) is not None and match.group(3) is not None:
-        new_node["attributes"] = {match.group(2): match.group(3)}
+        new_node["attrs"] = {match.group(2): match.group(3)}
     return new_node
 
 
@@ -336,21 +340,19 @@ def serialise_tei_text_block(node: dict, settings: TEISettings) -> dict:
                     create_path(tmp, selector_to_path(mark_settings.selector))
                     mark_node = tmp["children"][0]
                     mark_node["text"] = node["text"]
-                    if "attributes" not in output_node:
-                        mark_node["attributes"] = {}
+                    if "attrs" not in output_node:
+                        mark_node["attrs"] = {}
                     for attr_settings in mark_settings.attributes:
                         if attr_settings.type == "string":
-                            if "attributes" in mark and attr_settings.name in mark["attributes"]:
-                                mark_node["attributes"][attr_settings.name] = mark["attributes"][attr_settings.name]
+                            if "attrs" in mark and attr_settings.name in mark["attrs"]:
+                                mark_node["attrs"][attr_settings.name] = mark["attrs"][attr_settings.name]
                             elif attr_settings.default:
-                                mark_node["attributes"][attr_settings.name] = attr_settings.default
+                                mark_node["attrs"][attr_settings.name] = attr_settings.default
                         elif attr_settings.type == "static":
-                            mark_node["attributes"][attr_settings.name] = attr_settings.value
+                            mark_node["attrs"][attr_settings.name] = attr_settings.value
                         elif attr_settings.type == "id-ref":
-                            if "attributes" in mark and attr_settings.name in mark["attributes"]:
-                                mark_node["attributes"][
-                                    attr_settings.name
-                                ] = f"#{mark['attributes'][attr_settings.name]}"
+                            if "attrs" in mark and attr_settings.name in mark["attrs"]:
+                                mark_node["attrs"][attr_settings.name] = f"#{mark['attrs'][attr_settings.name]}"
                     if "name" in inner_node:
                         del inner_node["text"]
                         inner_node["children"] = [mark_node]
@@ -370,19 +372,19 @@ def serialise_tei_text_block(node: dict, settings: TEISettings) -> dict:
             tmp = {}
             create_path(tmp, selector_to_path(block_settings.selector))
             output_node = tmp["children"][0]
-            if "attributes" not in output_node:
-                output_node["attributes"] = {}
+            if "attrs" not in output_node:
+                output_node["attrs"] = {}
             for attr_settings in block_settings.attributes:
                 if attr_settings.type == "string":
-                    if "attributes" in node and attr_settings.name in node["attributes"]:
-                        output_node["attributes"][attr_settings.name] = node["attributes"][attr_settings.name]
+                    if "attrs" in node and attr_settings.name in node["attrs"]:
+                        output_node["attrs"][attr_settings.name] = node["attrs"][attr_settings.name]
                     elif attr_settings.default:
-                        output_node["attributes"][attr_settings.name] = attr_settings.default
+                        output_node["attrs"][attr_settings.name] = attr_settings.default
                 elif attr_settings.type == "static":
-                    output_node["attributes"][attr_settings.name] = attr_settings.value
+                    output_node["attrs"][attr_settings.name] = attr_settings.value
                 elif attr_settings.type == "id-ref":
-                    if "attributes" in node and attr_settings.name in node["attributes"]:
-                        output_node["attributes"][attr_settings.name] = f"#{node['attributes'][attr_settings.name]}"
+                    if "attrs" in node and attr_settings.name in node["attrs"]:
+                        output_node["attrs"][attr_settings.name] = f"#{node['attrs'][attr_settings.name]}"
             if "content" in node:
                 output_node["children"] = []
                 for child in node["content"]:
@@ -414,8 +416,8 @@ def serialise_tei_textlist(root: dict, data: dict, settings: TEITextSection, tei
         parent["children"] = []
     for sub_doc in data["content"]:
         child_node = create_path_node(path[-1])
-        if "attributes" in sub_doc:
-            child_node["attributes"] = deepcopy(sub_doc["attributes"])
+        if "attrs" in sub_doc:
+            child_node["attrs"] = {"{http://www.w3.org/XML/1998/namespace}id": sub_doc["attrs"]["id"]}
         child_node["children"] = []
         parent["children"].append(child_node)
         for element in sub_doc["content"]["content"]:
@@ -430,8 +432,8 @@ def xml_dict_to_etree(data: dict) -> etree.Element:
     node = etree.Element(name)
     if "text" in data and data["text"] is not None:
         node.text = data["text"]
-    if "attributes" in data:
-        attrs = list(data["attributes"].items())
+    if "attrs" in data:
+        attrs = list(data["attrs"].items())
         attrs.sort(key=lambda attr: attr[0])
         for key, value in attrs:
             node.set(key, value)

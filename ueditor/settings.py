@@ -122,7 +122,7 @@ class TEIMetadataSection(BaseModel):
 class TEIMenuCondition(BaseModel):
     """A UI condition check."""
 
-    block: str
+    node: str
     """The name of the block to be current."""
 
 
@@ -152,25 +152,57 @@ class TEIMenuItemToggleMark(BaseModel):
     """The optional icon to show."""
 
 
-class TEIMenuItemSelectAttribute(BaseModel):
-    """A TEI menu item to select an attribute."""
+class TEITextToolbarBlock(BaseModel):
+    """A TEI editor toolbar block."""
 
-    type: Literal["select-attribute"]
-    """The menu item type."""
+    title: str
+    """The title for the block."""
+    type: Literal["toolbar"]
+    """The type is set to toolbar."""
+    items: list[TEIMenuItemSetBlock | TEIMenuItemToggleMark]
+    """The list of menu items to show."""
+    condition: Optional[TEIMenuCondition] = None
+    """An optional condition for showing the block."""
+
+
+class TEISelectBlockAttribute(BaseModel):
+    """A TEI form element to select an attribute."""
+
+    type: Literal["select-block-attribute"]
+    """The form element type."""
     block: str
     """The block to apply the attribute to."""
     name: str
     """The name of the attribute."""
+    title: str
+    """The label for the entry."""
     values: list[ValueTitlePair]
     """The available values to select from."""
 
 
-class TEITextSidebarBlock(BaseModel):
-    """A TEI editor sidebar block."""
+class TEISelectCrossReferenceMarkAttribute(BaseModel):
+    """A TEI form element to select an attribute for a cross-reference."""
+
+    type: Literal["select-cross-reference-attribute"]
+    """The form element type."""
+    mark: str
+    """The mark to apply the attribute to."""
+    name: str
+    """The name of the attribute."""
+    title: str
+    """The label for the entry."""
+    section: str
+    """The section containing the texts to cross-reference to."""
+
+
+class TEITextFormBlock(BaseModel):
+    """A TEI editor toolbar block."""
 
     title: str
     """The title for the block."""
-    items: list[TEIMenuItemSetBlock | TEIMenuItemToggleMark | TEIMenuItemSelectAttribute]
+    type: Literal["form"]
+    """The type is set to form."""
+    items: list[TEISelectBlockAttribute | TEISelectCrossReferenceMarkAttribute]
     """The list of menu items to show."""
     condition: Optional[TEIMenuCondition] = None
     """An optional condition for showing the block."""
@@ -187,7 +219,8 @@ class TEITextSection(BaseModel):
     """The type must be set to text."""
     selector: str
     """The XPath selector to retrieve this section."""
-    sidebar: Optional[list[TEITextSidebarBlock]] = None
+    sidebar: list[TEITextToolbarBlock | TEITextFormBlock] | None = None
+    """Sidebar configuration for this section."""
 
 
 class TEITextListSection(BaseModel):
@@ -200,7 +233,9 @@ class TEITextListSection(BaseModel):
     type: Literal["textlist"]
     """The type must be set to textlist."""
     selector: str
-    """The XPath selector to retrieve this section."""
+    """The XPath selector to retrieve the texts in this section."""
+    sidebar: list[TEITextToolbarBlock | TEITextFormBlock] | None = None
+    """Sidebar configuration for this section."""
 
 
 class TEISettings(BaseModel):
