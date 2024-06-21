@@ -76,31 +76,31 @@ def test_fetching_a_tei_file(tei_app: TestClient) -> None:
                 "content": [
                     {
                         "type": "heading",
-                        "attributes": {"type": "level-1"},
+                        "attrs": {"type": "level-1"},
                         "content": [{"type": "text", "marks": [], "text": "Welcome"}],
                     },
                     {
                         "type": "paragraph",
-                        "attributes": {},
+                        "attrs": {},
                         "content": [
                             {"type": "text", "marks": [], "text": "This is a "},
                             {
                                 "type": "text",
-                                "marks": [{"type": "bold", "attributes": {"style": "font-weight-bold"}}],
+                                "marks": [{"type": "bold", "attrs": {"style": "font-weight-bold"}}],
                                 "text": "very, ",
                             },
                             {
                                 "type": "text",
                                 "marks": [
-                                    {"type": "italic", "attributes": {"style": "font-style-italic"}},
-                                    {"type": "bold", "attributes": {"style": "font-weight-bold"}},
+                                    {"type": "italic", "attrs": {"style": "font-style-italic"}},
+                                    {"type": "bold", "attrs": {"style": "font-weight-bold"}},
                                 ],
                                 "text": "very",
                             },
                             {"type": "text", "marks": [], "text": " "},
                             {
                                 "type": "text",
-                                "marks": [{"type": "italic", "attributes": {"style": "font-style-italic"}}],
+                                "marks": [{"type": "italic", "attrs": {"style": "font-style-italic"}}],
                                 "text": "important",
                             },
                             {"type": "text", "marks": [], "text": " message."},
@@ -108,10 +108,10 @@ def test_fetching_a_tei_file(tei_app: TestClient) -> None:
                                 "type": "text",
                                 "marks": [
                                     {
-                                        "type": "footnote-ref",
-                                        "attributes": {
-                                            "type": "footnote",
+                                        "type": "footnoteRef",
+                                        "attrs": {
                                             "target": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c",
+                                            "type": "footnote",
                                         },
                                     }
                                 ],
@@ -121,7 +121,7 @@ def test_fetching_a_tei_file(tei_app: TestClient) -> None:
                     },
                     {
                         "type": "heading",
-                        "attributes": {"type": "level-1"},
+                        "attrs": {"type": ""},
                         "content": [{"type": "text", "marks": [], "text": "Heading with the default type"}],
                     },
                 ],
@@ -133,20 +133,31 @@ def test_fetching_a_tei_file(tei_app: TestClient) -> None:
             "type": "textlist",
             "content": [
                 {
-                    "attributes": {
-                        "{http://www.w3.org/XML/1998/namespace}id": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c",
-                    },
+                    "attrs": {"id": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c"},
                     "content": {
                         "type": "doc",
                         "content": [
                             {
                                 "type": "paragraph",
-                                "attributes": {},
+                                "attrs": {},
                                 "content": [{"type": "text", "marks": [], "text": "This is just a footnote."}],
                             }
                         ],
                     },
-                }
+                },
+                {
+                    "attrs": {"id": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836d"},
+                    "content": {
+                        "type": "doc",
+                        "content": [
+                            {
+                                "type": "paragraph",
+                                "attrs": {},
+                                "content": [{"type": "text", "marks": [], "text": "A second footnote."}],
+                            }
+                        ],
+                    },
+                },
             ],
         },
     ]
@@ -285,31 +296,31 @@ def test_update_tei_file(tei_app: TestClient) -> None:
                             "content": [
                                 {
                                     "type": "heading",
-                                    "attributes": {"type": "level-1"},
+                                    "attrs": {"type": "level-1"},
                                     "content": [{"type": "text", "marks": [], "text": "Welcome"}],
                                 },
                                 {
                                     "type": "paragraph",
-                                    "attributes": {},
+                                    "attrs": {},
                                     "content": [
                                         {"type": "text", "marks": [], "text": "This is a "},
                                         {
                                             "type": "text",
-                                            "marks": [{"type": "bold", "attributes": {"style": "font-weight-bold"}}],
+                                            "marks": [{"type": "bold", "attrs": {"style": "font-weight-bold"}}],
                                             "text": "very, ",
                                         },
                                         {
                                             "type": "text",
                                             "marks": [
-                                                {"type": "italic", "attributes": {"style": "font-style-italic"}},
-                                                {"type": "bold", "attributes": {"style": "font-weight-bold"}},
+                                                {"type": "italic", "attrs": {"style": "font-style-italic"}},
+                                                {"type": "bold", "attrs": {"style": "font-weight-bold"}},
                                             ],
                                             "text": "very",
                                         },
                                         {"type": "text", "marks": [], "text": " "},
                                         {
                                             "type": "text",
-                                            "marks": [{"type": "italic", "attributes": {"style": "font-style-italic"}}],
+                                            "marks": [{"type": "italic", "attrs": {"style": "font-style-italic"}}],
                                             "text": "important",
                                         },
                                         {"type": "text", "marks": [], "text": " message."},
@@ -317,10 +328,10 @@ def test_update_tei_file(tei_app: TestClient) -> None:
                                             "type": "text",
                                             "marks": [
                                                 {
-                                                    "type": "footnote-ref",
-                                                    "attributes": {
-                                                        "type": "footnote",
+                                                    "type": "footnoteRef",
+                                                    "attrs": {
                                                         "target": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c",
+                                                        "type": "footnote",
                                                     },
                                                 }
                                             ],
@@ -330,7 +341,7 @@ def test_update_tei_file(tei_app: TestClient) -> None:
                                 },
                                 {
                                     "type": "heading",
-                                    "attributes": {"type": "level-1"},
+                                    "attrs": {"type": ""},
                                     "content": [{"type": "text", "marks": [], "text": "Heading with the default type"}],
                                 },
                             ],
@@ -342,22 +353,33 @@ def test_update_tei_file(tei_app: TestClient) -> None:
                         "type": "textlist",
                         "content": [
                             {
-                                "attributes": {
-                                    "{http://www.w3.org/XML/1998/namespace}id": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c",  # noqa:E501
-                                },
+                                "attrs": {"id": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c"},
                                 "content": {
                                     "type": "doc",
                                     "content": [
                                         {
                                             "type": "paragraph",
-                                            "attributes": {},
+                                            "attrs": {},
                                             "content": [
                                                 {"type": "text", "marks": [], "text": "This is just a footnote."}
                                             ],
                                         }
                                     ],
                                 },
-                            }
+                            },
+                            {
+                                "attrs": {"id": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836d"},
+                                "content": {
+                                    "type": "doc",
+                                    "content": [
+                                        {
+                                            "type": "paragraph",
+                                            "attrs": {},
+                                            "content": [{"type": "text", "marks": [], "text": "A second footnote."}],
+                                        }
+                                    ],
+                                },
+                            },
                         ],
                     },
                 ]
@@ -387,7 +409,7 @@ def test_update_tei_file(tei_app: TestClient) -> None:
         <tei:span> message.</tei:span>
         <tei:ref target="#footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c" type="footnote">[1]</tei:ref>
       </tei:p>
-      <tei:head type="level-1">
+      <tei:head type="">
         <tei:span>Heading with the default type</tei:span>
       </tei:head>
     </tei:body>
@@ -395,6 +417,11 @@ def test_update_tei_file(tei_app: TestClient) -> None:
       <tei:note xml:id="footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c">
         <tei:p>
           <tei:span>This is just a footnote.</tei:span>
+        </tei:p>
+      </tei:note>
+      <tei:note xml:id="footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836d">
+        <tei:p>
+          <tei:span>A second footnote.</tei:span>
         </tei:p>
       </tei:note>
     </tei:noteGrp>
