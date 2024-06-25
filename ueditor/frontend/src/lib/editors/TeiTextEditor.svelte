@@ -192,7 +192,7 @@
 </script>
 
 <div class="flex flex-row w-full h-full overflow-hidden">
-  <div class="flex-1 overflow-auto" bind:this={editorElement}></div>
+  <div class="flex-1 overflow-auto px-3 py-2" bind:this={editorElement}></div>
   <div class="w-3/12 px-3 py-2 border-l border-gray-300 overflow-auto">
     {#if section && section.type.sidebar && editor}
       {#each section.type.sidebar as sidebarBlock}
