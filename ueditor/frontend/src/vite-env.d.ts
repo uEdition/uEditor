@@ -38,6 +38,11 @@ type UEditionSettings = {
   jb_config: any;
 };
 
+type UEditorValueTitlePair = {
+  value: string;
+  title: string;
+};
+
 type UEditorTEIAttribute = {
   name: string;
   value: string | null;
@@ -75,7 +80,7 @@ type UEditorTEIMenuItemToggleMark = {
 
 type UEditorTEIMenuCondition = {
   node: string;
-}
+};
 
 type TEITextToolbarBlock = {
   title: string;
@@ -89,7 +94,7 @@ type UEditorTEISelectBlockAttribute = {
   block: string;
   name: string;
   title: string;
-  values: { [key: string]: string };
+  values: UEditorValueTitlePair[];
 };
 
 type UEditorTEISelectCrossReferenceMarkAttribute = {
@@ -102,34 +107,45 @@ type UEditorTEISelectCrossReferenceMarkAttribute = {
 
 type UEditorTEITextFormBlock = {
   title: string;
-  type: "form"
-  items: (UEditorTEISelectBlockAttribute | UEditorTEISelectCrossReferenceMarkAttribute)[]
+  type: "form";
+  items: (
+    | UEditorTEISelectBlockAttribute
+    | UEditorTEISelectCrossReferenceMarkAttribute
+  )[];
   condition: UEditorTEIMenuCondition | null;
-}
+};
 
 type UEditorTEITextSection = {
   name: string;
   title: string;
   type: "text";
   selector: string;
-  sidebar: (UEditorTEITextFormBlock | TEITextToolbarBlock)[]
-}
+  sidebar: (UEditorTEITextFormBlock | TEITextToolbarBlock)[];
+};
 
 type UEditorTEITextListSection = {
   name: string;
   title: string;
-  type: "text";
+  type: "textlist";
   selector: string;
-  sidebar: (UEditorTEITextFormBlock | TEITextToolbarBlock)[]
-}
+  sidebar: (UEditorTEITextFormBlock | TEITextToolbarBlock)[];
+};
 
 type UEditorTEISettings = {
   blocks: UEditorTEINode[];
   marks: UEditorTEINode[];
-  sections: (UEditorTEIMetadataSection | UEditorTEITextSection | UEditorTEITextListSection)[];
+  sections: (
+    | UEditorTEIMetadataSection
+    | UEditorTEITextSection
+    | UEditorTEITextListSection
+  )[];
 };
 
-type UEditorTEIActions = UEditorTEIMenuItemSetBlock | UEditorTEIMenuItemToggleMark | UEditorTEISelectBlockAttribute | UEditorTEISelectCrossReferenceMarkAttribute;
+type UEditorTEIActions =
+  | UEditorTEIMenuItemSetBlock
+  | UEditorTEIMenuItemToggleMark
+  | UEditorTEISelectBlockAttribute
+  | UEditorTEISelectCrossReferenceMarkAttribute;
 
 type UEditorSettings = { tei: UEditorTEISettings };
 
@@ -186,12 +202,16 @@ type TipTapDocument = {
   content: TipTapNode[];
 };
 
-type TEIMetadataSection = { name: string; title: string; type: "metadata" };
+type TEIMetadataSection = {
+  name: string;
+  title: string;
+  type: UEditorTEIMetadataSection;
+};
 
 type TEITextSection = {
   name: string;
   title: string;
-  type: "text";
+  type: UEditorTEITextSection;
   content: TipTapDocument;
 };
 
@@ -203,9 +223,8 @@ type TEITextlistDocument = {
 type TEITextlistSection = {
   name: string;
   title: string;
-  type: "textlist";
+  type: UEditorTEITextListSection;
   content: TEITextlistDocument[];
 };
-type TEIDocument = {
-  [key: string]: TEIMetadataSection | TEITextSection | TEITextlistSection;
-};
+
+type TEIDocument = (TEIMetadataSection | TEITextSection | TEITextlistSection)[];

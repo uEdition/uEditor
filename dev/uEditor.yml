@@ -60,6 +60,10 @@ tei:
               mark: italic
               title: Italic
               icon: M10,4V7H12.21L8.79,15H6V18H14V15H11.79L15.21,7H18V4H10Z
+            - type: toggle-mark
+              mark: footnoteRef
+              title: Footnote
+              icon: M20,2A2,2 0 0,1 22,4V16A2,2 0 0,1 20,18H6L2,22V4C2,2.89 2.9,2 4,2H20M4,4V17.17L5.17,16H20V4H4M6,7H18V9H6V7M6,11H15V13H6V11Z
         - title: Heading
           type: form
           condition:
@@ -100,3 +104,29 @@ tei:
       title: Footnotes
       type: textlist
       selector: /tei:TEI/tei:text/tei:noteGrp[@type="footnotes"]/tei:note
+      sidebar:
+        - title: Markup
+          type: toolbar
+          items:
+            - type: toggle-mark
+              mark: bold
+              title: Bold
+              icon: M13.5,15.5H10V12.5H13.5A1.5,1.5 0 0,1 15,14A1.5,1.5 0 0,1 13.5,15.5M10,6.5H13A1.5,1.5 0 0,1 14.5,8A1.5,1.5 0 0,1 13,9.5H10M15.6,10.79C16.57,10.11 17.25,9 17.25,8C17.25,5.74 15.5,4 13.25,4H7V18H14.04C16.14,18 17.75,16.3 17.75,14.21C17.75,12.69 16.89,11.39 15.6,10.79Z
+            - type: toggle-mark
+              mark: italic
+              title: Italic
+              icon: M10,4V7H12.21L8.79,15H6V18H14V15H11.79L15.21,7H18V4H10Z
+            - type: toggle-mark
+              mark: footnoteRef
+              title: Footnote
+              icon: M20,2A2,2 0 0,1 22,4V16A2,2 0 0,1 20,18H6L2,22V4C2,2.89 2.9,2 4,2H20M4,4V17.17L5.17,16H20V4H4M6,7H18V9H6V7M6,11H15V13H6V11Z
+        - title: Footnote
+          type: form
+          condition:
+            node: footnoteRef
+          items:
+            - type: select-cross-reference-attribute
+              mark: footnoteRef
+              name: target
+              title: Link footnotes
+              section: footnotes

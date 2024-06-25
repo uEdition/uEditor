@@ -11,11 +11,13 @@
   import { textForFirstNodeOfTipTapDocument } from "../../util";
 
   export let section: TEITextSection | null = null;
-  export let config: any | null;
   export let sections: TEIDocument;
+  export let sectionsDict: {
+    [name: string]: TEIMetadataSection | TEITextSection | TEITextlistSection;
+  } = {};
 
   const uEditorConfig = getContext(
-    "uEditorConfig",
+    "uEditorConfig"
   ) as CreateQueryResult<UEditorSettings>;
   let editorElement: HTMLElement | null = null;
   let editor: Editor | null = null;
@@ -44,14 +46,14 @@
                       },
                     },
                   ];
-                }),
+                })
               );
             },
             renderHTML({ node, HTMLAttributes }) {
               HTMLAttributes["data-tei-block-" + node.type.name] = "";
               return [blockConfig.tag || "div", HTMLAttributes, 0];
             },
-          }),
+          })
         );
       }
       for (let markConfig of $uEditorConfig.data.tei.marks) {
@@ -73,14 +75,14 @@
                       },
                     },
                   ];
-                }),
+                })
               );
             },
             renderHTML({ mark, HTMLAttributes }) {
               HTMLAttributes["data-tei-mark-" + mark.type.name] = "";
               return [markConfig.tag || "span", HTMLAttributes, 0];
             },
-          }),
+          })
         );
       }
       editor = new Editor({
@@ -103,10 +105,18 @@
     reloadContent();
   }
 
+  $: if (sections) {
+    sectionsDict = Object.fromEntries(
+      sections.map((section) => {
+        return [section.name, section];
+      })
+    );
+  }
+
   function runAction(
     editor: Editor | null,
     action: UEditorTEIActions,
-    evOrSelected: Event | Selected<any>,
+    evOrSelected: Event | Selected<any> | undefined
   ) {
     if (editor) {
       if (action.type === "set-block") {
@@ -134,13 +144,48 @@
       }
     }
   }
+
+  function crossReferenceItems(
+    item: UEditorTEISelectCrossReferenceMarkAttribute
+  ) {
+    if (sectionsDict[item.section].type.type === "textlist") {
+      return (sectionsDict[item.section] as TEITextlistSection).content.map(
+        (text) => {
+          return {
+            value: text.attrs["id"],
+            label: textForFirstNodeOfTipTapDocument(text.content),
+          };
+        }
+      );
+    }
+    return [];
+  }
+
+  function crossReferenceSelectedItem(
+    item: UEditorTEISelectCrossReferenceMarkAttribute
+  ) {
+    if (sectionsDict[item.section].type.type === "textlist" && editor) {
+      const tmp = (
+        sectionsDict[item.section] as TEITextlistSection
+      ).content.filter((text) => {
+        return text.attrs["id"] === editor?.getAttributes(item.mark)[item.name];
+      });
+      if (tmp.length === 1) {
+        return {
+          value: editor.getAttributes(item.mark)[item.name],
+          label: textForFirstNodeOfTipTapDocument(tmp[0].content),
+        };
+      }
+    }
+    return undefined;
+  }
 </script>
 
 <div class="flex flex-row w-full h-full overflow-hidden">
   <div class="flex-1" bind:this={editorElement}></div>
   <div class="w-3/12 px-3 py-2 border-l border-gray-300 overflow-auto">
-    {#if config && editor}
-      {#each config.sidebar as sidebarBlock}
+    {#if section && section.type.sidebar && editor}
+      {#each section.type.sidebar as sidebarBlock}
         {#if !sidebarBlock.condition || editor.isActive(sidebarBlock.condition.node)}
           <section class="mb-4">
             <h2 class="font-bold mb-2">{sidebarBlock.title}</h2>
@@ -190,23 +235,8 @@
                     {/key}
                   {:else if item.type === "select-cross-reference-attribute"}
                     <Combobox.Root
-                      selected={{
-                        value: editor.getAttributes(item.mark)[item.name],
-                        label: textForFirstNodeOfTipTapDocument(
-                          sections[item.section].content.filter((text) => {
-                            return (
-                              text.attrs["id"] ===
-                              editor?.getAttributes(item.mark)[item.name]
-                            );
-                          })[0].content,
-                        ),
-                      }}
-                      items={sections[item.section].content.map((text) => {
-                        return {
-                          value: text.attrs["id"],
-                          label: textForFirstNodeOfTipTapDocument(text.content),
-                        };
-                      })}
+                      selected={crossReferenceSelectedItem(item)}
+                      items={crossReferenceItems(item)}
                       onSelectedChange={(value) => {
                         runAction(editor, item, value);
                       }}
@@ -229,17 +259,14 @@
                         </div>
                       </div>
                       <Combobox.Content>
-                        {#each sections[item.section].content as text}
-                          <Combobox.Item
-                            value={text.attrs["id"]}
-                            label={textForFirstNodeOfTipTapDocument(
-                              text.content,
-                            )}
-                            >{textForFirstNodeOfTipTapDocument(
-                              text.content,
-                            )}</Combobox.Item
-                          >
-                        {/each}
+                        {#if sectionsDict[item.section].type.type === "textlist"}
+                          {#each crossReferenceItems(item) as entry}
+                            <Combobox.Item
+                              value={entry.value}
+                              label={entry.label}>{entry.label}</Combobox.Item
+                            >
+                          {/each}
+                        {/if}
                       </Combobox.Content>
                     </Combobox.Root>
                   {/if}

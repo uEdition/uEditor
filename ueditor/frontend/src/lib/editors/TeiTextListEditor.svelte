@@ -10,13 +10,36 @@
   export let sections: TEIDocument;
   let selected: { value: unknown; label?: string } = { value: null };
   let texts = [] as TEITextlistDocument[];
+  let selectedDocument: TEITextSection | null = null;
 
-  $: {
-    if (section !== null) {
-      texts = section.content;
+  $: if (section !== null) {
+    texts = section.content;
+  } else {
+    texts = [];
+  }
+
+  $: if (selected.value !== null && section) {
+    const tmp = texts.filter((text) => {
+      return text.attrs.id === selected.value;
+    });
+    if (tmp.length === 1) {
+      selectedDocument = {
+        name: "",
+        title: "",
+        type: {
+          name: "",
+          title: "",
+          type: "text",
+          selector: "",
+          sidebar: section.type.sidebar,
+        },
+        content: tmp[0].content,
+      };
     } else {
-      texts = [];
+      selectedDocument = null;
     }
+  } else {
+    selectedDocument = null;
   }
 </script>
 
@@ -68,6 +91,6 @@
     </Toolbar.Root>
   </div>
   <div class="flex-1 overflow-hidden">
-    <TeiTextEditor section={null} config="" {sections} />
+    <TeiTextEditor section={selectedDocument} {sections} />
   </div>
 </div>
