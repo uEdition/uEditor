@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Combobox, Toolbar, type Selected } from "bits-ui";
   import { mdiChevronDown, mdiChevronUp } from "@mdi/js";
-  import { onMount, getContext } from "svelte";
+  import { onMount, getContext, createEventDispatcher } from "svelte";
   import { Editor, Node, Mark } from "@tiptap/core";
   import { Document } from "@tiptap/extension-document";
   import { Text } from "@tiptap/extension-text";
@@ -16,11 +16,13 @@
     [name: string]: TEIMetadataSection | TEITextSection | TEITextlistSection;
   } = {};
 
+  const dispatch = createEventDispatcher();
   const uEditorConfig = getContext(
     "uEditorConfig"
   ) as CreateQueryResult<UEditorSettings>;
   let editorElement: HTMLElement | null = null;
   let editor: Editor | null = null;
+  let updateDebounce = -1;
 
   onMount(() => {
     if (editorElement !== null && $uEditorConfig.isSuccess) {
@@ -89,8 +91,16 @@
         element: editorElement,
         extensions: extensions,
         content: section?.content,
-        onTransaction: () => {
+        onTransaction: ({ transaction }) => {
           editor = editor;
+          if (transaction.docChanged) {
+            window.clearTimeout(updateDebounce);
+            updateDebounce = window.setTimeout(() => {
+              if (editor) {
+                dispatch("update", editor.getJSON());
+              }
+            }, 100);
+          }
         },
       });
     }
@@ -182,7 +192,7 @@
 </script>
 
 <div class="flex flex-row w-full h-full overflow-hidden">
-  <div class="flex-1" bind:this={editorElement}></div>
+  <div class="flex-1 overflow-auto" bind:this={editorElement}></div>
   <div class="w-3/12 px-3 py-2 border-l border-gray-300 overflow-auto">
     {#if section && section.type.sidebar && editor}
       {#each section.type.sidebar as sidebarBlock}

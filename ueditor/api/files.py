@@ -144,6 +144,23 @@ def parse_tei_subdoc(node: etree.Element, settings: TEISettings) -> dict:
     return {"type": "doc", "content": [parse_tei_subtree(child, settings) for child in node]}
 
 
+def clean_tei_subdoc(node: dict) -> dict:
+    """Remove empty attributes and marks."""
+    if "attrs" in node and len(node["attrs"]) == 0:
+        del node["attrs"]
+    if "marks" in node and len(node["marks"]) == 0:
+        del node["marks"]
+    if "content" in node and len(node["content"]) == 0:
+        del node["content"]
+    if "marks" in node:
+        for mark in node["marks"]:
+            clean_tei_subdoc(mark)
+    if "content" in node:
+        for child in node["content"]:
+            clean_tei_subdoc(child)
+    return node
+
+
 def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
     """Parse a TEI file into its constituent parts."""
     doc = etree.parse(path)  # noqa: S320
@@ -166,7 +183,7 @@ def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
                         "name": section.name,
                         "title": section.title,
                         "type": section.type,
-                        "content": parse_tei_subdoc(section_root[0], settings.tei),
+                        "content": clean_tei_subdoc(parse_tei_subdoc(section_root[0], settings.tei)),
                     }
                 )
             elif section.type == "textlist":
@@ -175,7 +192,7 @@ def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
                     content.append(
                         {
                             "attrs": {"id": node.attrib["{http://www.w3.org/XML/1998/namespace}id"]},
-                            "content": parse_tei_subdoc(node, settings.tei),
+                            "content": clean_tei_subdoc(parse_tei_subdoc(node, settings.tei)),
                         }
                     )
                 result.append({"name": section.name, "title": section.title, "type": section.type, "content": content})

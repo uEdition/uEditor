@@ -77,13 +77,12 @@ def test_fetching_a_tei_file(tei_app: TestClient) -> None:
                     {
                         "type": "heading",
                         "attrs": {"type": "level-1"},
-                        "content": [{"type": "text", "marks": [], "text": "Welcome"}],
+                        "content": [{"type": "text", "text": "Welcome"}],
                     },
                     {
                         "type": "paragraph",
-                        "attrs": {},
                         "content": [
-                            {"type": "text", "marks": [], "text": "This is a "},
+                            {"type": "text", "text": "This is a "},
                             {
                                 "type": "text",
                                 "marks": [{"type": "bold", "attrs": {"style": "font-weight-bold"}}],
@@ -97,13 +96,13 @@ def test_fetching_a_tei_file(tei_app: TestClient) -> None:
                                 ],
                                 "text": "very",
                             },
-                            {"type": "text", "marks": [], "text": " "},
+                            {"type": "text", "text": " "},
                             {
                                 "type": "text",
                                 "marks": [{"type": "italic", "attrs": {"style": "font-style-italic"}}],
                                 "text": "important",
                             },
-                            {"type": "text", "marks": [], "text": " message."},
+                            {"type": "text", "text": " message."},
                             {
                                 "type": "text",
                                 "marks": [
@@ -122,7 +121,7 @@ def test_fetching_a_tei_file(tei_app: TestClient) -> None:
                     {
                         "type": "heading",
                         "attrs": {"type": ""},
-                        "content": [{"type": "text", "marks": [], "text": "Heading with the default type"}],
+                        "content": [{"type": "text", "text": "Heading with the default type"}],
                     },
                 ],
             },
@@ -139,8 +138,7 @@ def test_fetching_a_tei_file(tei_app: TestClient) -> None:
                         "content": [
                             {
                                 "type": "paragraph",
-                                "attrs": {},
-                                "content": [{"type": "text", "marks": [], "text": "This is just a footnote."}],
+                                "content": [{"type": "text", "text": "This is just a footnote."}],
                             }
                         ],
                     },
@@ -152,8 +150,7 @@ def test_fetching_a_tei_file(tei_app: TestClient) -> None:
                         "content": [
                             {
                                 "type": "paragraph",
-                                "attrs": {},
-                                "content": [{"type": "text", "marks": [], "text": "A second footnote."}],
+                                "content": [{"type": "text", "text": "A second footnote."}],
                             }
                         ],
                     },
@@ -297,13 +294,12 @@ def test_update_tei_file(tei_app: TestClient) -> None:
                                 {
                                     "type": "heading",
                                     "attrs": {"type": "level-1"},
-                                    "content": [{"type": "text", "marks": [], "text": "Welcome"}],
+                                    "content": [{"type": "text", "text": "Welcome"}],
                                 },
                                 {
                                     "type": "paragraph",
-                                    "attrs": {},
                                     "content": [
-                                        {"type": "text", "marks": [], "text": "This is a "},
+                                        {"type": "text", "text": "This is a "},
                                         {
                                             "type": "text",
                                             "marks": [{"type": "bold", "attrs": {"style": "font-weight-bold"}}],
@@ -317,13 +313,13 @@ def test_update_tei_file(tei_app: TestClient) -> None:
                                             ],
                                             "text": "very",
                                         },
-                                        {"type": "text", "marks": [], "text": " "},
+                                        {"type": "text", "text": " "},
                                         {
                                             "type": "text",
                                             "marks": [{"type": "italic", "attrs": {"style": "font-style-italic"}}],
                                             "text": "important",
                                         },
-                                        {"type": "text", "marks": [], "text": " message."},
+                                        {"type": "text", "text": " message."},
                                         {
                                             "type": "text",
                                             "marks": [
@@ -342,7 +338,7 @@ def test_update_tei_file(tei_app: TestClient) -> None:
                                 {
                                     "type": "heading",
                                     "attrs": {"type": ""},
-                                    "content": [{"type": "text", "marks": [], "text": "Heading with the default type"}],
+                                    "content": [{"type": "text", "text": "Heading with the default type"}],
                                 },
                             ],
                         },
@@ -359,10 +355,7 @@ def test_update_tei_file(tei_app: TestClient) -> None:
                                     "content": [
                                         {
                                             "type": "paragraph",
-                                            "attrs": {},
-                                            "content": [
-                                                {"type": "text", "marks": [], "text": "This is just a footnote."}
-                                            ],
+                                            "content": [{"type": "text", "text": "This is just a footnote."}],
                                         }
                                     ],
                                 },
@@ -374,8 +367,7 @@ def test_update_tei_file(tei_app: TestClient) -> None:
                                     "content": [
                                         {
                                             "type": "paragraph",
-                                            "attrs": {},
-                                            "content": [{"type": "text", "marks": [], "text": "A second footnote."}],
+                                            "content": [{"type": "text", "text": "A second footnote."}],
                                         }
                                     ],
                                 },

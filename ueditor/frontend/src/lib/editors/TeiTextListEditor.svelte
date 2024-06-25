@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Combobox, Toolbar } from "bits-ui";
   import { mdiChevronDown, mdiChevronUp, mdiPlus, mdiTrashCan } from "@mdi/js";
+  import { createEventDispatcher } from "svelte";
 
   import Icon from "../Icon.svelte";
   import TeiTextEditor from "./TeiTextEditor.svelte";
@@ -8,6 +9,8 @@
 
   export let section: TEITextlistSection | null = null;
   export let sections: TEIDocument;
+
+  const dispatch = createEventDispatcher();
   let selected: { value: unknown; label?: string } = { value: null };
   let texts = [] as TEITextlistDocument[];
   let selectedDocument: TEITextSection | null = null;
@@ -40,6 +43,18 @@
     }
   } else {
     selectedDocument = null;
+  }
+
+  function updateSelected(ev: CustomEvent) {
+    if (selected.value !== null && section) {
+      const tmp = texts.filter((text) => {
+        return text.attrs.id === selected.value;
+      });
+      if (tmp.length === 1) {
+        tmp[0].content = ev.detail;
+      }
+      dispatch("update", texts);
+    }
   }
 </script>
 
@@ -91,6 +106,10 @@
     </Toolbar.Root>
   </div>
   <div class="flex-1 overflow-hidden">
-    <TeiTextEditor section={selectedDocument} {sections} />
+    <TeiTextEditor
+      section={selectedDocument}
+      {sections}
+      on:update={updateSelected}
+    />
   </div>
 </div>
