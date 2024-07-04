@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { Combobox, Toolbar } from "bits-ui";
+  import { Combobox, Toolbar, Dialog } from "bits-ui";
   import { mdiChevronDown, mdiChevronUp, mdiPlus, mdiTrashCan } from "@mdi/js";
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, getContext } from "svelte";
+  import type { CreateQueryResult } from "@tanstack/svelte-query";
+  import { v1 as uuidv1 } from "uuid";
 
   import Icon from "../Icon.svelte";
   import TeiTextEditor from "./TeiTextEditor.svelte";
@@ -11,9 +13,13 @@
   export let sections: TEIDocument;
 
   const dispatch = createEventDispatcher();
+  const uEditorConfig = getContext(
+    "uEditorConfig",
+  ) as CreateQueryResult<UEditorSettings>;
   let selected: { value: unknown; label?: string } = { value: null };
   let texts = [] as TEITextlistDocument[];
   let selectedDocument: TEITextSection | null = null;
+  let showDeleteText = false;
 
   $: if (section !== null) {
     texts = section.content;
@@ -45,6 +51,11 @@
     selectedDocument = null;
   }
 
+  /**
+   * Update the selected document.
+   *
+   * @param ev The combobox event triggering the update.
+   */
   function updateSelected(ev: CustomEvent) {
     if (selected.value !== null && section) {
       const tmp = texts.filter((text) => {
@@ -53,6 +64,56 @@
       if (tmp.length === 1) {
         tmp[0].content = ev.detail;
       }
+      dispatch("update", texts);
+    }
+  }
+
+  /**
+   * Add a new text to the list of texts.
+   *
+   * The text's structure is taken from the first block configured.
+   */
+  function addText() {
+    if (
+      $uEditorConfig.isSuccess &&
+      $uEditorConfig.data?.tei.blocks.length > 0
+    ) {
+      texts.push({
+        attrs: { id: section?.name + "-" + uuidv1() },
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: $uEditorConfig.data.tei.blocks[0].name as string,
+              attrs: {},
+              content: [{ type: "text", marks: [], text: "New" }],
+            },
+          ],
+        },
+      });
+      dispatch("update", texts);
+    }
+  }
+
+  /**
+   * Delete a text from the list of texts.
+   *
+   * @param ev The form submission event that triggers this.
+   */
+  function deleteText(ev: Event) {
+    ev.preventDefault();
+    showDeleteText = false;
+    let selectedIdx = -1;
+    for (let idx = 0; idx < texts.length; idx++) {
+      if (selected.value == texts[idx].attrs.id) {
+        selectedIdx = idx;
+        break;
+      }
+    }
+    if (selectedIdx >= 0) {
+      texts.splice(selectedIdx, 1);
+      selected = { value: null };
+      selectedDocument = null;
       dispatch("update", texts);
     }
   }
@@ -93,10 +154,17 @@
       </Combobox.Content>
     </Combobox.Root>
     <Toolbar.Root>
-      <Toolbar.Button aria-label="Add a text" title="Add a text">
+      <Toolbar.Button
+        on:click={addText}
+        aria-label="Add a text"
+        title="Add a text"
+      >
         <Icon path={mdiPlus} />
       </Toolbar.Button>
       <Toolbar.Button
+        on:click={() => {
+          showDeleteText = true;
+        }}
         aria-label="Delete the current text"
         title="Delete the current text"
         aria-disabled={selected.value === null ? "true" : null}
@@ -106,10 +174,31 @@
     </Toolbar.Root>
   </div>
   <div class="flex-1 overflow-hidden">
-    <TeiTextEditor
-      section={selectedDocument}
-      {sections}
-      on:update={updateSelected}
-    />
+    {#if selectedDocument !== null}
+      <TeiTextEditor
+        section={selectedDocument}
+        {sections}
+        on:update={updateSelected}
+      />
+    {/if}
   </div>
 </div>
+
+<Dialog.Root bind:open={showDeleteText}>
+  <Dialog.Trigger class="hidden" />
+  <Dialog.Portal>
+    <Dialog.Overlay />
+    <Dialog.Content>
+      <Dialog.Title>Delete Text</Dialog.Title>
+      <form data-dialog-content-area on:submit={deleteText}>
+        <p>
+          Please confirm that you wish to delete the text {selected.label}.
+        </p>
+        <div data-dialog-buttons>
+          <Dialog.Close data-button>Don't delete</Dialog.Close>
+          <button type="submit" data-button>Delete</button>
+        </div>
+      </form>
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>
