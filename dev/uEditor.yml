@@ -14,11 +14,15 @@ tei:
       selector: tei:hi[@style="font-weight-bold"]
       attributes:
         - name: style
+          type: static
+          value: font-weight-bold
       tag: strong
     - name: italic
       selector: tei:hi[@style="font-style-italic"]
       attributes:
         - name: style
+          type: static
+          value: font-style-italic
       tag: em
     - name: footnoteRef
       selector: tei:ref[@type="footnote"]

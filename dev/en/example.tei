@@ -24,7 +24,9 @@
     <tei:noteGrp type="footnotes">
       <tei:note xml:id="footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c">
         <tei:p>
-          <tei:span>This is just a footnote.</tei:span>
+          <tei:span>This is just a </tei:span>
+          <tei:hi style="font-weight-bold">footnote</tei:hi>
+          <tei:span>.</tei:span>
         </tei:p>
       </tei:note>
       <tei:note xml:id="footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836d">

@@ -22,7 +22,7 @@
   let initialDocument: TEIDocument = [];
 
   const uEditorConfig = getContext(
-    "uEditorConfig"
+    "uEditorConfig",
   ) as CreateQueryResult<UEditorSettings>;
 
   const teiDocument = derived(
@@ -58,15 +58,17 @@
         });
       }
     },
-    null as null | TEIDocument
+    null as null | TEIDocument,
   );
 
   const currentFileModifiedUnsubscribe = currentFileModified.subscribe(
     (currentFileModified) => {
       if (!currentFileModified && $currentFileContent) {
-        initialDocument = JSON.parse($currentFileContent);
+        try {
+          initialDocument = JSON.parse($currentFileContent);
+        } catch (e) {}
       }
-    }
+    },
   );
 
   function updateDocumentSection(idx: number, ev: CustomEvent) {
