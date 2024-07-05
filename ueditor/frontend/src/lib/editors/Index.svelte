@@ -9,7 +9,6 @@
     "application/json",
     "application/toml",
     "application/yaml",
-    "text/markdown",
   ];
   const TEI_MIMETYPES = ["application/tei+xml"];
 
@@ -17,7 +16,10 @@
     if (currentFile) {
       if (currentFile.type === "folder") {
         return "Folder";
-      } else if (CODEMIRROR_MIMETYPES.indexOf(currentFile.mimetype) >= 0) {
+      } else if (
+        CODEMIRROR_MIMETYPES.indexOf(currentFile.mimetype) >= 0 ||
+        currentFile.mimetype.startsWith("text/")
+      ) {
         return "CodeMirror";
       } else if (TEI_MIMETYPES.indexOf(currentFile.mimetype) >= 0) {
         return "Tei";

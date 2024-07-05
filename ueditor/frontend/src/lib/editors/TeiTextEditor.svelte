@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Combobox, Toolbar, type Selected } from "bits-ui";
+  import { Combobox, Toolbar, Separator, type Selected } from "bits-ui";
   import { mdiChevronDown, mdiChevronUp } from "@mdi/js";
   import { onMount, getContext, createEventDispatcher } from "svelte";
   import { Editor, Node, Mark } from "@tiptap/core";
@@ -18,7 +18,7 @@
 
   const dispatch = createEventDispatcher();
   const uEditorConfig = getContext(
-    "uEditorConfig"
+    "uEditorConfig",
   ) as CreateQueryResult<UEditorSettings>;
   let editorElement: HTMLElement | null = null;
   let editor: Editor | null = null;
@@ -48,14 +48,14 @@
                       },
                     },
                   ];
-                })
+                }),
               );
             },
             renderHTML({ node, HTMLAttributes }) {
               HTMLAttributes["data-tei-block-" + node.type.name] = "";
               return [blockConfig.tag || "div", HTMLAttributes, 0];
             },
-          })
+          }),
         );
       }
       for (let markConfig of $uEditorConfig.data.tei.marks) {
@@ -77,14 +77,14 @@
                       },
                     },
                   ];
-                })
+                }),
               );
             },
             renderHTML({ mark, HTMLAttributes }) {
               HTMLAttributes["data-tei-mark-" + mark.type.name] = "";
               return [markConfig.tag || "span", HTMLAttributes, 0];
             },
-          })
+          }),
         );
       }
       editor = new Editor({
@@ -119,14 +119,14 @@
     sectionsDict = Object.fromEntries(
       sections.map((section) => {
         return [section.name, section];
-      })
+      }),
     );
   }
 
   function runAction(
     editor: Editor | null,
     action: UEditorTEIActions,
-    evOrSelected: Event | Selected<any> | undefined
+    evOrSelected: Event | Selected<any> | undefined,
   ) {
     if (editor) {
       if (action.type === "set-block") {
@@ -151,12 +151,22 @@
             [action.name]: (evOrSelected as Selected<string>).value,
           })
           .run();
+      } else if (action.type === "input-mark-attribute") {
+        editor
+          .chain()
+          .focus()
+          .extendMarkRange(action.mark)
+          .updateAttributes(action.mark, {
+            [action.name]: ((evOrSelected as Event).target as HTMLInputElement)
+              .value,
+          })
+          .run();
       }
     }
   }
 
   function crossReferenceItems(
-    item: UEditorTEISelectCrossReferenceMarkAttribute
+    item: UEditorTEISelectCrossReferenceMarkAttribute,
   ) {
     if (sectionsDict[item.section].type.type === "textlist") {
       return (sectionsDict[item.section] as TEITextlistSection).content.map(
@@ -165,14 +175,14 @@
             value: text.attrs["id"],
             label: textForFirstNodeOfTipTapDocument(text.content),
           };
-        }
+        },
       );
     }
     return [];
   }
 
   function crossReferenceSelectedItem(
-    item: UEditorTEISelectCrossReferenceMarkAttribute
+    item: UEditorTEISelectCrossReferenceMarkAttribute,
   ) {
     if (sectionsDict[item.section].type.type === "textlist" && editor) {
       const tmp = (
@@ -219,6 +229,8 @@
                         {item.title}
                       {/if}
                     </Toolbar.Button>
+                  {:else if item.type === "separator"}
+                    <Separator.Root class="mx-2 border-r border-gray-300" />
                   {/if}
                 {/each}
               </Toolbar.Root>
@@ -279,6 +291,18 @@
                         {/if}
                       </Combobox.Content>
                     </Combobox.Root>
+                  {:else if item.type === "input-mark-attribute"}
+                    <label>
+                      <span data-form-field-label>{item.title}</span>
+                      <input
+                        type="text"
+                        value={editor.getAttributes(item.mark)[item.name]}
+                        data-form-field-text
+                        on:change={(ev) => {
+                          runAction(editor, item, ev);
+                        }}
+                      />
+                    </label>
                   {/if}
                 {/each}
               </div>

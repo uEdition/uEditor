@@ -152,6 +152,12 @@ class TEIMenuItemToggleMark(BaseModel):
     """The optional icon to show."""
 
 
+class TEIMenuItemSeparator(BaseModel):
+    """A separator in a toolbar."""
+
+    type: Literal["separator"]
+
+
 class TEITextToolbarBlock(BaseModel):
     """A TEI editor toolbar block."""
 
@@ -159,7 +165,7 @@ class TEITextToolbarBlock(BaseModel):
     """The title for the block."""
     type: Literal["toolbar"]
     """The type is set to toolbar."""
-    items: list[TEIMenuItemSetBlock | TEIMenuItemToggleMark]
+    items: list[TEIMenuItemSetBlock | TEIMenuItemToggleMark | TEIMenuItemSeparator]
     """The list of menu items to show."""
     condition: Optional[TEIMenuCondition] = None
     """An optional condition for showing the block."""
@@ -195,6 +201,19 @@ class TEISelectCrossReferenceMarkAttribute(BaseModel):
     """The section containing the texts to cross-reference to."""
 
 
+class TEIInputMarkAttribute(BaseModel):
+    """A TEI form element to input an attribute value."""
+
+    type: Literal["input-mark-attribute"]
+    """The form element type."""
+    mark: str
+    """The mark to apply the attribute to."""
+    name: str
+    """The name of the attribute."""
+    title: str
+    """The label for the entry."""
+
+
 class TEITextFormBlock(BaseModel):
     """A TEI editor toolbar block."""
 
@@ -202,7 +221,7 @@ class TEITextFormBlock(BaseModel):
     """The title for the block."""
     type: Literal["form"]
     """The type is set to form."""
-    items: list[TEISelectBlockAttribute | TEISelectCrossReferenceMarkAttribute]
+    items: list[TEISelectBlockAttribute | TEISelectCrossReferenceMarkAttribute | TEIInputMarkAttribute]
     """The list of menu items to show."""
     condition: Optional[TEIMenuCondition] = None
     """An optional condition for showing the block."""

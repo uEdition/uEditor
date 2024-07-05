@@ -78,6 +78,10 @@ type UEditorTEIMenuItemToggleMark = {
   icon: string | null;
 };
 
+type UEditorTEIMenuItemSeparator = {
+  type: "separator";
+};
+
 type UEditorTEIMenuCondition = {
   node: string;
 };
@@ -85,7 +89,7 @@ type UEditorTEIMenuCondition = {
 type TEITextToolbarBlock = {
   title: string;
   type: "toolbar";
-  items: (UEditorTEIMenuItemSetBlock | UEditorTEIMenuItemToggleMark)[];
+  items: (UEditorTEIMenuItemSetBlock | UEditorTEIMenuItemToggleMark | UEditorTEIMenuItemSeparator)[];
   condition: UEditorTEIMenuCondition | null;
 };
 
@@ -105,12 +109,20 @@ type UEditorTEISelectCrossReferenceMarkAttribute = {
   section: string;
 };
 
+type UEditorTEIInputMarkAttribute = {
+  type: "input-mark-attribute";
+  mark: string;
+  name: string;
+  title: string;
+}
+
 type UEditorTEITextFormBlock = {
   title: string;
   type: "form";
   items: (
     | UEditorTEISelectBlockAttribute
     | UEditorTEISelectCrossReferenceMarkAttribute
+    | UEditorTEIInputMarkAttribute
   )[];
   condition: UEditorTEIMenuCondition | null;
 };
@@ -145,7 +157,8 @@ type UEditorTEIActions =
   | UEditorTEIMenuItemSetBlock
   | UEditorTEIMenuItemToggleMark
   | UEditorTEISelectBlockAttribute
-  | UEditorTEISelectCrossReferenceMarkAttribute;
+  | UEditorTEISelectCrossReferenceMarkAttribute
+  | UEditorTEIInputMarkAttribute;
 
 type UEditorSettings = { tei: UEditorTEISettings };
 

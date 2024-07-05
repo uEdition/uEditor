@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { mdiSync } from "@mdi/js";
   import { createTreeView } from "@melt-ui/svelte";
   import { onDestroy, setContext } from "svelte";
   import { createQuery } from "@tanstack/svelte-query";
@@ -7,6 +8,7 @@
   import { currentBranch, currentFile } from "../stores";
 
   import Tree from "./FileTree.svelte";
+  import Icon from "./Icon.svelte";
 
   const fileList = createQuery({
     queryKey: ["branches", $currentBranch, "files/"],
@@ -59,11 +61,18 @@
 
 <nav
   aria-label="Files"
-  class="px-2 py-1 w-3/12 overflow-auto border-r border-gray-300"
+  class="relative px-2 py-1 w-3/12 overflow-auto border-r border-gray-300"
 >
   {#if $fileList.isSuccess}
     <ol {...$tree}>
       <Tree treeItems={$fileList.data} />
     </ol>
+  {:else if $fileList.isLoading}
+    <div
+      class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
+    >
+      <p class="sr-only">Loading the file list. Please wait...</p>
+      <Icon path={mdiSync} class="w-12 h-12 animate-spin"></Icon>
+    </div>
   {/if}
 </nav>
