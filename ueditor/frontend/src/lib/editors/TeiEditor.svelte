@@ -78,6 +78,9 @@
     ) {
       (updatedDocument[idx] as TEITextSection | TEITextlistSection).content =
         ev.detail;
+    } else if ((updatedDocument[idx].type as any as string) === "metadata") {
+      (updatedDocument[idx] as TEITextSection | TEITextlistSection).content =
+        ev.detail.content;
     }
     window.clearTimeout(updateDebounce);
     updateDebounce = window.setTimeout(() => {
@@ -124,7 +127,12 @@
       {#each $teiDocument as section, idx}
         <Tabs.Content value={section.type.name} class="flex-1 overflow-hidden">
           {#if section.type.type === "metadata"}
-            <TeiMetadataEditor />
+            <TeiMetadataEditor
+              {section}
+              on:update={(ev) => {
+                updateDocumentSection(idx, ev);
+              }}
+            />
           {:else if section.type.type === "text"}
             <TeiTextEditor
               {section}

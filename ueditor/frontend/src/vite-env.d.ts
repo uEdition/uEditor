@@ -202,10 +202,23 @@ type TipTapDocument = {
   content: TipTapNode[];
 };
 
+type TeiMetadataNodeAttr = {
+  type: string;
+  value: string;
+};
+
+type TeiMetadataNode = {
+  type: string;
+  attrs: TeiMetadataNodeAttr[];
+  text: string;
+  content: TeiMetadataNode[];
+};
+
 type TEIMetadataSection = {
   name: string;
   title: string;
   type: UEditorTEIMetadataSection;
+  content: TeiMetadataNode[];
 };
 
 type TEITextSection = {

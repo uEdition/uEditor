@@ -66,96 +66,183 @@ def test_fetching_a_tei_file(tei_app: TestClient) -> None:
     response = tei_app.get("/api/branches/-1/files/en/example.tei")
     assert response.status_code == 200
     assert response.json() == [
-        {"name": "metadata", "title": "Metadata", "type": "metadata", "content": []},
         {
-            "name": "text",
-            "title": "Text",
-            "type": "text",
+            "content": [
+                {
+                    "attrs": [],
+                    "content": [
+                        {
+                            "attrs": [],
+                            "content": [
+                                {
+                                    "attrs": [],
+                                    "content": [],
+                                    "text": "An Example Document",
+                                    "type": "tei:title",
+                                },
+                                {
+                                    "attrs": [
+                                        {
+                                            "type": "xml:id",
+                                            "value": "a-n-editor",
+                                        }
+                                    ],
+                                    "content": [
+                                        {
+                                            "attrs": [],
+                                            "content": [],
+                                            "text": "edited by",
+                                            "type": "tei:resp",
+                                        },
+                                        {
+                                            "attrs": [],
+                                            "content": [],
+                                            "text": "A.N. Editor",
+                                            "type": "tei:name",
+                                        },
+                                    ],
+                                    "text": "",
+                                    "type": "tei:respStmt",
+                                },
+                                {
+                                    "attrs": [
+                                        {
+                                            "type": "xml:id",
+                                            "value": "t-h-e-old-editor",
+                                        }
+                                    ],
+                                    "content": [
+                                        {
+                                            "attrs": [],
+                                            "content": [],
+                                            "text": "edited by",
+                                            "type": "tei:resp",
+                                        },
+                                        {
+                                            "attrs": [],
+                                            "content": [],
+                                            "text": "T.H.E. Old Editor",
+                                            "type": "tei:name",
+                                        },
+                                    ],
+                                    "text": "",
+                                    "type": "tei:respStmt",
+                                },
+                            ],
+                            "text": "",
+                            "type": "tei:titleStmt",
+                        }
+                    ],
+                    "text": "",
+                    "type": "tei:fileDesc",
+                },
+                {
+                    "attrs": [{"type": "status", "value": "ready-for-testing"}],
+                    "content": [
+                        {
+                            "attrs": [
+                                {"type": "when", "value": "2024-07-04"},
+                                {"type": "who", "value": "#a-n-editor"},
+                            ],
+                            "content": [],
+                            "text": "V2: Added header metadata",
+                            "type": "tei:change",
+                        },
+                        {
+                            "attrs": [
+                                {"type": "when", "value": "2024-04-23"},
+                                {"type": "who", "value": "#t-h-e-old-editor"},
+                            ],
+                            "content": [],
+                            "text": "V1: Initial version",
+                            "type": "tei:change",
+                        },
+                    ],
+                    "text": "",
+                    "type": "tei:revisionDesc",
+                },
+            ],
+            "name": "metadata",
+            "title": "Metadata",
+            "type": "metadata",
+        },
+        {
             "content": {
-                "type": "doc",
                 "content": [
+                    {"attrs": {"type": "level-1"}, "content": [{"text": "Welcome", "type": "text"}], "type": "heading"},
                     {
-                        "type": "heading",
-                        "attrs": {"type": "level-1"},
-                        "content": [{"type": "text", "text": "Welcome"}],
-                    },
-                    {
-                        "type": "paragraph",
                         "content": [
-                            {"type": "text", "text": "This is a "},
+                            {"text": "This is a ", "type": "text"},
                             {
-                                "type": "text",
-                                "marks": [{"type": "bold", "attrs": {"style": "font-weight-bold"}}],
+                                "marks": [{"attrs": {"style": "font-weight-bold"}, "type": "bold"}],
                                 "text": "very, ",
+                                "type": "text",
                             },
                             {
-                                "type": "text",
                                 "marks": [
-                                    {"type": "italic", "attrs": {"style": "font-style-italic"}},
-                                    {"type": "bold", "attrs": {"style": "font-weight-bold"}},
+                                    {"attrs": {"style": "font-style-italic"}, "type": "italic"},
+                                    {"attrs": {"style": "font-weight-bold"}, "type": "bold"},
                                 ],
                                 "text": "very",
-                            },
-                            {"type": "text", "text": " "},
-                            {
                                 "type": "text",
-                                "marks": [{"type": "italic", "attrs": {"style": "font-style-italic"}}],
+                            },
+                            {"text": " ", "type": "text"},
+                            {
+                                "marks": [{"attrs": {"style": "font-style-italic"}, "type": "italic"}],
                                 "text": "important",
-                            },
-                            {"type": "text", "text": " message."},
-                            {
                                 "type": "text",
+                            },
+                            {"text": " message.", "type": "text"},
+                            {
                                 "marks": [
                                     {
-                                        "type": "footnoteRef",
                                         "attrs": {
                                             "target": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c",
                                             "type": "footnote",
                                         },
+                                        "type": "footnoteRef",
                                     }
                                 ],
                                 "text": "[1]",
+                                "type": "text",
                             },
                         ],
+                        "type": "paragraph",
                     },
                     {
-                        "type": "heading",
                         "attrs": {"type": ""},
-                        "content": [{"type": "text", "text": "Heading with the default type"}],
+                        "content": [{"text": "Heading with the default type", "type": "text"}],
+                        "type": "heading",
                     },
                 ],
+                "type": "doc",
             },
+            "name": "text",
+            "title": "Text",
+            "type": "text",
         },
         {
-            "name": "footnotes",
-            "title": "Footnotes",
-            "type": "textlist",
             "content": [
                 {
                     "attrs": {"id": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c"},
                     "content": {
-                        "type": "doc",
                         "content": [
-                            {
-                                "type": "paragraph",
-                                "content": [{"type": "text", "text": "This is just a footnote."}],
-                            }
+                            {"content": [{"text": "This is just a footnote.", "type": "text"}], "type": "paragraph"}
                         ],
+                        "type": "doc",
                     },
                 },
                 {
                     "attrs": {"id": "footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836d"},
                     "content": {
+                        "content": [{"content": [{"text": "A second footnote.", "type": "text"}], "type": "paragraph"}],
                         "type": "doc",
-                        "content": [
-                            {
-                                "type": "paragraph",
-                                "content": [{"type": "text", "text": "A second footnote."}],
-                            }
-                        ],
                     },
                 },
             ],
+            "name": "footnotes",
+            "title": "Footnotes",
+            "type": "textlist",
         },
     ]
 
@@ -283,7 +370,106 @@ def test_update_tei_file(tei_app: TestClient) -> None:
         files={
             "content": json.dumps(
                 [
-                    {"name": "metadata", "title": "Metadata", "type": "metadata", "content": []},
+                    {
+                        "name": "metadata",
+                        "title": "Metadata",
+                        "type": "metadata",
+                        "content": [
+                            {
+                                "attrs": [],
+                                "content": [
+                                    {
+                                        "attrs": [],
+                                        "content": [
+                                            {
+                                                "attrs": [],
+                                                "content": [],
+                                                "text": "An Example Document",
+                                                "type": "tei:title",
+                                            },
+                                            {
+                                                "attrs": [
+                                                    {
+                                                        "type": "xml:id",
+                                                        "value": "a-n-editor",
+                                                    }
+                                                ],
+                                                "content": [
+                                                    {
+                                                        "attrs": [],
+                                                        "content": [],
+                                                        "text": "edited by",
+                                                        "type": "tei:resp",
+                                                    },
+                                                    {
+                                                        "attrs": [],
+                                                        "content": [],
+                                                        "text": "A.N. Editor",
+                                                        "type": "tei:name",
+                                                    },
+                                                ],
+                                                "text": "",
+                                                "type": "tei:respStmt",
+                                            },
+                                            {
+                                                "attrs": [
+                                                    {
+                                                        "type": "xml:id",
+                                                        "value": "t-h-e-old-editor",
+                                                    }
+                                                ],
+                                                "content": [
+                                                    {
+                                                        "attrs": [],
+                                                        "content": [],
+                                                        "text": "edited by",
+                                                        "type": "tei:resp",
+                                                    },
+                                                    {
+                                                        "attrs": [],
+                                                        "content": [],
+                                                        "text": "T.H.E. Old Editor",
+                                                        "type": "tei:name",
+                                                    },
+                                                ],
+                                                "text": "",
+                                                "type": "tei:respStmt",
+                                            },
+                                        ],
+                                        "text": "",
+                                        "type": "tei:titleStmt",
+                                    }
+                                ],
+                                "text": "",
+                                "type": "tei:fileDesc",
+                            },
+                            {
+                                "attrs": [{"type": "status", "value": "ready-for-testing"}],
+                                "content": [
+                                    {
+                                        "attrs": [
+                                            {"type": "when", "value": "2024-07-04"},
+                                            {"type": "who", "value": "#a-n-editor"},
+                                        ],
+                                        "content": [],
+                                        "text": "V2: Added header metadata",
+                                        "type": "tei:change",
+                                    },
+                                    {
+                                        "attrs": [
+                                            {"type": "when", "value": "2024-04-23"},
+                                            {"type": "who", "value": "#t-h-e-old-editor"},
+                                        ],
+                                        "content": [],
+                                        "text": "V1: Initial version",
+                                        "type": "tei:change",
+                                    },
+                                ],
+                                "text": "",
+                                "type": "tei:revisionDesc",
+                            },
+                        ],
+                    },
                     {
                         "name": "text",
                         "title": "Text",
@@ -384,7 +570,25 @@ def test_update_tei_file(tei_app: TestClient) -> None:
             in_f.read()
             == """<?xml version="1.0" encoding="UTF-8"?>
 <tei:TEI xmlns:tei="http://www.tei-c.org/ns/1.0">
-  <tei:teiHeader/>
+  <tei:teiHeader>
+    <tei:fileDesc>
+      <tei:titleStmt>
+        <tei:title>An Example Document</tei:title>
+        <tei:respStmt xml:id="a-n-editor">
+          <tei:resp>edited by</tei:resp>
+          <tei:name>A.N. Editor</tei:name>
+        </tei:respStmt>
+        <tei:respStmt xml:id="t-h-e-old-editor">
+          <tei:resp>edited by</tei:resp>
+          <tei:name>T.H.E. Old Editor</tei:name>
+        </tei:respStmt>
+      </tei:titleStmt>
+    </tei:fileDesc>
+    <tei:revisionDesc status="ready-for-testing">
+      <tei:change when="2024-07-04" who="#a-n-editor">V2: Added header metadata</tei:change>
+      <tei:change when="2024-04-23" who="#t-h-e-old-editor">V1: Initial version</tei:change>
+    </tei:revisionDesc>
+  </tei:teiHeader>
   <tei:text>
     <tei:body>
       <tei:head type="level-1">

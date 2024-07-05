@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tei:TEI xmlns:tei="http://www.tei-c.org/ns/1.0">
-  <tei:teiHeader/>
+  <tei:teiHeader>
+    <tei:fileDesc>
+      <tei:titleStmt>
+        <tei:title>An Example Document</tei:title>
+        <tei:respStmt xml:id="a-n-editor">
+          <tei:resp>edited by</tei:resp>
+          <tei:name>A.N. Editor</tei:name>
+        </tei:respStmt>
+        <tei:respStmt xml:id="t-h-e-old-editor">
+          <tei:resp>edited by</tei:resp>
+          <tei:name>T.H.E. Old Editor</tei:name>
+        </tei:respStmt>
+      </tei:titleStmt>
+    </tei:fileDesc>
+    <tei:revisionDesc status="ready-for-testing">
+      <tei:change when="2024-07-04" who="#a-n-editor">V2: Added header metadata</tei:change>
+      <tei:change when="2024-04-23" who="#t-h-e-old-editor">V1: Initial version</tei:change>
+    </tei:revisionDesc>
+  </tei:teiHeader>
   <tei:text>
     <tei:body>
       <tei:head type="level-1">

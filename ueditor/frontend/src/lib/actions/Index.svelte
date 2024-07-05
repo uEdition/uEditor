@@ -1,8 +1,8 @@
 <script context="module" lang="ts">
-  import { Popover } from "bits-ui";
   import { writable } from "svelte/store";
 
   const activeActions = writable([] as Action[]);
+  let showSaveError = writable(false);
 
   /**
    * Start running a new action.
@@ -46,6 +46,11 @@
     action.callback(await response.text());
   }
 
+  /**
+   * Save the current file to the remote.
+   *
+   * @param action The action with the details of the file to save
+   */
   async function saveCurrentFile(action: SaveCurrentFileAction) {
     const formData = new FormData();
     formData.append("content", new Blob([action.data]));
@@ -53,12 +58,17 @@
       "/api/branches/" + action.branch + "/files/" + action.filename,
       { method: "PUT", body: formData },
     );
-    action.callback();
+    if (response.ok) {
+      action.callback();
+    } else {
+      showSaveError.set(true);
+    }
   }
 </script>
 
 <script lang="ts">
-  import { mdiRefresh, mdiSync } from "@mdi/js";
+  import { Dialog, Popover } from "bits-ui";
+  import { mdiSync } from "@mdi/js";
   import Icon from "../Icon.svelte";
 </script>
 
@@ -87,3 +97,28 @@
     </Popover.Content>
   </Popover.Trigger>
 </Popover.Root>
+
+{#if $showSaveError}
+  <Dialog.Root
+    open={true}
+    onOpenChange={(open) => {
+      if (!open) {
+        showSaveError.set(false);
+      }
+    }}
+  >
+    <Dialog.Trigger class="hidden" />
+    <Dialog.Portal>
+      <Dialog.Overlay />
+      <Dialog.Content>
+        <Dialog.Title>Saving failed</Dialog.Title>
+        <div data-dialog-content-area>
+          <p>Unfortunately saving the file failed.</p>
+          <div data-dialog-buttons>
+            <Dialog.Close data-button>Close</Dialog.Close>
+          </div>
+        </div>
+      </Dialog.Content>
+    </Dialog.Portal>
+  </Dialog.Root>
+{/if}

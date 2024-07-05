@@ -33,7 +33,7 @@
   /**
    * Toolbar components
    */
-  [data-toolbar] {
+  [data-toolbar-root] {
     @apply flex flex-row px-2 py-1;
   }
 

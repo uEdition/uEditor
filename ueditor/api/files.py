@@ -25,7 +25,11 @@ from ueditor.settings import (
 )
 
 router = APIRouter(prefix="/branches/{branch_id}/files")
-namespaces = {"tei": "http://www.tei-c.org/ns/1.0", "uedition": "https://uedition.readthedocs.org"}
+namespaces = {
+    "xml": "http://www.w3.org/XML/1998/namespace",
+    "tei": "http://www.tei-c.org/ns/1.0",
+    "uedition": "https://uedition.readthedocs.org",
+}
 
 MIMETYPE_EXTENSIONS = {
     ".gitignore": "application/gitignore",
@@ -92,6 +96,25 @@ def get_files(branch_id: int) -> list[dict]:  # noqa: ARG001
             "content": build_file_tree(full_path, len(full_path) + 1),
         }
     ]
+
+
+def parse_metadata_node(node: etree.Element) -> dict:
+    """Parse a single metadata node."""
+    name = node.tag
+    for prefix, uri in namespaces.items():
+        name = name.replace(f"{{{uri}}}", f"{prefix}:")
+    result = {"type": name, "text": "", "attrs": [], "content": []}
+    if node.text and len(node.text.strip()) > 0:
+        result["text"] = node.text
+    for key, value in node.attrib.items():
+        for prefix, uri in namespaces.items():
+            key = key.replace(f"{{{uri}}}", f"{prefix}:")  # noqa: PLW2901
+        attr_result = {"type": key, "value": value}
+        result["attrs"].append(attr_result)
+
+    for child in node:
+        result["content"].append(parse_metadata_node(child))
+    return result
 
 
 def parse_tei_attributes(attributes: etree._Attrib, settings: list[TEINodeAttribute]) -> list[dict]:
@@ -176,7 +199,14 @@ def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
                 result.append({"name": section.name, "title": section.title, "type": section.type, "content": []})
         else:  # noqa: PLR5501
             if section.type == "metadata":
-                result.append({"name": section.name, "title": section.title, "type": section.type, "content": []})
+                result.append(
+                    {
+                        "name": section.name,
+                        "title": section.title,
+                        "type": section.type,
+                        "content": [parse_metadata_node(node) for node in section_root[0]],
+                    }
+                )
             elif section.type == "text":
                 result.append(
                     {
@@ -333,10 +363,30 @@ def selector_to_path(selector: str) -> list[str]:
     return selector.split("/")
 
 
-def serialise_tei_metadata(root: dict, data: dict, settings: TEIMetadataSection) -> None:  # noqa: ARG001
+def serialise_tei_metadata_node(node: dict) -> dict:
+    """Serialise a TEI metadata node for XML serialisation."""
+    result = {"name": node["type"]}
+    if "attrs" in node:
+        result["attrs"] = {}
+        for attr in node["attrs"]:
+            result["attrs"][attr["type"]] = attr["value"]
+    if "content" in node:
+        result["children"] = []
+        for child in node["content"]:
+            result["children"].append(serialise_tei_metadata_node(child))
+    if "text" in node and node["text"].strip():
+        result["text"] = node["text"]
+    return result
+
+
+def serialise_tei_metadata(root: dict, data: dict, settings: TEIMetadataSection) -> None:
     """Serialise a metadata section."""
     path = selector_to_path(settings.selector)
     ensure_exists(root, path)
+    parent = find_nodes(root, path)[0]
+    parent["children"] = []
+    for node in data["content"]:
+        parent["children"].append(serialise_tei_metadata_node(node))
 
 
 def serialise_tei_text_block(node: dict, settings: TEISettings) -> dict:
@@ -453,6 +503,8 @@ def xml_dict_to_etree(data: dict) -> etree.Element:
         attrs = list(data["attrs"].items())
         attrs.sort(key=lambda attr: attr[0])
         for key, value in attrs:
+            for prefix, uri in namespaces.items():
+                key = key.replace(f"{prefix}:", f"{{{uri}}}")  # noqa:PLW2901
             node.set(key, value)
     if "children" in data:
         for child in data["children"]:
@@ -492,8 +544,8 @@ async def update_file(
     full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
     if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
         if full_path.endswith(".tei"):
+            root = serialise_tei_file(full_path, json.load(content.file), settings)
             with open(full_path, "wb") as out_f:
-                root = serialise_tei_file(full_path, json.load(content.file), settings)
                 out_f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
                 out_f.write(etree.tostring(root, encoding="utf-8", xml_declaration=False, pretty_print=True))
         else:

@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tei:TEI xmlns:tei="http://www.tei-c.org/ns/1.0">
-  <tei:teiHeader/>
+  <tei:teiHeader>
+    <tei:fileDesc>
+      <tei:titleStmt>
+        <tei:title>An Example Document</tei:title>
+        <tei:respStmt xml:id="a-n-editor">
+          <tei:resp>edited by</tei:resp>
+          <tei:name>A.N. Editor</tei:name>
+        </tei:respStmt>
+        <tei:respStmt xml:id="t-h-e-old-editor">
+          <tei:resp>edited by</tei:resp>
+          <tei:name>T.H.E. Old Editor</tei:name>
+        </tei:respStmt>
+      </tei:titleStmt>
+    </tei:fileDesc>
+    <tei:revisionDesc status="ready-for-testing">
+      <tei:change when="2024-07-04" who="#a-n-editor">V2: Added header metadata</tei:change>
+      <tei:change when="2024-04-23" who="#t-h-e-old-editor">V1: Initial version</tei:change>
+      <tei:Change when="2023-01-01" who="#a-n-editor">V0: Empty template</tei:Change>
+    </tei:revisionDesc>
+  </tei:teiHeader>
   <tei:text>
     <tei:body>
       <tei:head type="level-1">
@@ -24,14 +43,14 @@
     <tei:noteGrp type="footnotes">
       <tei:note xml:id="footnotes-5b24d8dd-c031-49e0-bcfd-5ab400ee836c">
         <tei:p>
-          <tei:span>This is just a </tei:span>
-          <tei:hi style="font-weight-bold">footnote</tei:hi>
-          <tei:span>.</tei:span>
+          <tei:span>This is just a footnote.</tei:span>
         </tei:p>
       </tei:note>
       <tei:note xml:id="footnotes-5b24d8dd-c031-49e0-bcfd-5ab400ee836d">
         <tei:p>
-          <tei:span>A second footnote.</tei:span>
+          <tei:span>A second </tei:span>
+          <tei:hi style="font-style-italic">footnote</tei:hi>
+          <tei:span>.</tei:span>
         </tei:p>
       </tei:note>
     </tei:noteGrp>
