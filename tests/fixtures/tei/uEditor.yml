@@ -1,3 +1,6 @@
+ui:
+  css_files:
+    - static/style.css
 tei:
   blocks:
     - name: paragraph

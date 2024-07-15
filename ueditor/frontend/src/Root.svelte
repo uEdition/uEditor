@@ -38,10 +38,18 @@
     }
     return "μEditor";
   });
+
+  const uEditorConfigTimestamp = derived(uEditionConfig, (uEditorConfig) => {
+    return new Date().getTime();
+  });
 </script>
 
 <svelte:head>
   <title>{$appTitle}</title>
+  <link
+    rel="stylesheet"
+    href="/api/configs/ui-stylesheet?timestamp={$uEditorConfigTimestamp}"
+  />
 </svelte:head>
 
 <main class="flex flex-col w-screen h-screen overflow-hidden">

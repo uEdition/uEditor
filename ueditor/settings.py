@@ -268,10 +268,17 @@ class TEISettings(BaseModel):
     """List of sections within the TEI document."""
 
 
+class UISettings(BaseSettings):
+    """Settings for the UI."""
+
+    css_files: list[str] = []
+
+
 class UEditorSettings(BaseSettings):
     """The uEditor settings."""
 
     tei: TEISettings = TEISettings()
+    ui: UISettings = UISettings()
 
     @classmethod
     def settings_customise_sources(
