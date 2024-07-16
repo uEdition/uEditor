@@ -101,6 +101,13 @@ type UEditorTEISelectBlockAttribute = {
   values: UEditorValueTitlePair[];
 };
 
+type UEditorTEIInputBlockAttribute = {
+  type: "input-block-attribute";
+  block: string;
+  name: string;
+  title: string;
+}
+
 type UEditorTEISelectCrossReferenceMarkAttribute = {
   type: "select-cross-reference-attribute";
   mark: string;
@@ -114,13 +121,14 @@ type UEditorTEIInputMarkAttribute = {
   mark: string;
   name: string;
   title: string;
-}
+};
 
 type UEditorTEITextFormBlock = {
   title: string;
   type: "form";
   items: (
     | UEditorTEISelectBlockAttribute
+    | UEditorTEIInputBlockAttribute
     | UEditorTEISelectCrossReferenceMarkAttribute
     | UEditorTEIInputMarkAttribute
   )[];

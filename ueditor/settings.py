@@ -204,12 +204,25 @@ class TEISelectCrossReferenceMarkAttribute(BaseModel):
 
 
 class TEIInputMarkAttribute(BaseModel):
-    """A TEI form element to input an attribute value."""
+    """A TEI form element to input a mark attribute value."""
 
     type: Literal["input-mark-attribute"]
     """The form element type."""
     mark: str
     """The mark to apply the attribute to."""
+    name: str
+    """The name of the attribute."""
+    title: str
+    """The label for the entry."""
+
+
+class TEIInputBlockAttribute(BaseModel):
+    """A TEI form element to input a block attribute value."""
+
+    type: Literal["input-block-attribute"]
+    """The form element type."""
+    block: str
+    """The block to apply the attribute to."""
     name: str
     """The name of the attribute."""
     title: str
@@ -223,7 +236,9 @@ class TEITextFormBlock(BaseModel):
     """The title for the block."""
     type: Literal["form"]
     """The type is set to form."""
-    items: list[TEISelectBlockAttribute | TEISelectCrossReferenceMarkAttribute | TEIInputMarkAttribute]
+    items: list[
+        TEISelectBlockAttribute | TEISelectCrossReferenceMarkAttribute | TEIInputMarkAttribute | TEIInputBlockAttribute
+    ]
     """The list of menu items to show."""
     condition: Optional[TEIMenuCondition] = None
     """An optional condition for showing the block."""

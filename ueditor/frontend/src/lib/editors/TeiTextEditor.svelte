@@ -210,7 +210,7 @@
           <section class="mb-4">
             <h2 class="font-bold mb-2">{sidebarBlock.title}</h2>
             {#if sidebarBlock.type === "toolbar"}
-              <Toolbar.Root>
+              <Toolbar.Root class="flex-wrap">
                 {#each sidebarBlock.items as item}
                   {#if item.type === "set-block" || item.type === "toggle-mark"}
                     <Toolbar.Button
@@ -221,6 +221,7 @@
                       on:click={(ev) => {
                         runAction(editor, item, ev);
                       }}
+                      title={item.title}
                     >
                       {#if item.icon}
                         <Icon path={item.icon} />
@@ -235,7 +236,7 @@
                 {/each}
               </Toolbar.Root>
             {:else if sidebarBlock.type === "form"}
-              <div class="flex flex-row">
+              <div class="flex flex-row flex-wrap">
                 {#each sidebarBlock.items as item}
                   {#if item.type === "select-block-attribute"}
                     {#key editor}
@@ -255,6 +256,18 @@
                         </select>
                       </label>
                     {/key}
+                  {:else if item.type === "input-block-attribute"}
+                    <label>
+                      <span data-form-field-label>{item.title}</span>
+                      <input
+                        type="text"
+                        value="0"
+                        data-form-field-text
+                        on:change={(ev) => {
+                          runAction(editor, item, ev);
+                        }}
+                      />
+                    </label>
                   {:else if item.type === "select-cross-reference-attribute"}
                     <Combobox.Root
                       selected={crossReferenceSelectedItem(item)}
