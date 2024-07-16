@@ -131,9 +131,18 @@
     if (editor) {
       if (action.type === "set-block") {
         editor.chain().focus().setNode(action.block).run();
-      } else if (action.type == "toggle-mark") {
+      } else if (action.type === "set-block-attribute") {
+        editor
+          .chain()
+          .focus()
+          .updateAttributes(action.block, { [action.name]: action.value })
+          .run();
+      } else if (action.type === "toggle-mark") {
         editor.chain().focus().toggleMark(action.mark).run();
-      } else if (action.type === "select-block-attribute") {
+      } else if (
+        action.type === "select-block-attribute" ||
+        action.type === "input-block-attribute"
+      ) {
         editor
           .chain()
           .focus()
@@ -212,10 +221,14 @@
             {#if sidebarBlock.type === "toolbar"}
               <Toolbar.Root class="flex-wrap">
                 {#each sidebarBlock.items as item}
-                  {#if item.type === "set-block" || item.type === "toggle-mark"}
+                  {#if item.type === "set-block" || item.type === "set-block-attribute" || item.type === "toggle-mark"}
                     <Toolbar.Button
                       aria-pressed={(item.type === "set-block" &&
                         editor.isActive(item.block)) ||
+                        (item.type === "set-block-attribute" &&
+                          editor.isActive(item.block, {
+                            [item.name]: item.value,
+                          })) ||
                         (item.type === "toggle-mark" &&
                           editor.isActive(item.mark))}
                       on:click={(ev) => {
@@ -261,7 +274,7 @@
                       <span data-form-field-label>{item.title}</span>
                       <input
                         type="text"
-                        value="0"
+                        value={editor.getAttributes(item.block)[item.name]}
                         data-form-field-text
                         on:change={(ev) => {
                           runAction(editor, item, ev);

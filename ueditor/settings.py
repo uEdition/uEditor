@@ -141,6 +141,23 @@ class TEIMenuItemSetBlock(BaseModel):
     """The optional icon to show."""
 
 
+class TEIMenuItemSetBlockAttribute(BaseModel):
+    """A TEI menu item to set the current block."""
+
+    type: Literal["set-block-attribute"]
+    """The menu item type."""
+    block: str
+    """The block to set the attribute on."""
+    name: str
+    """The name of the attribute to set."""
+    value: str
+    """The value of the attribute to set."""
+    title: str
+    """The title for the button."""
+    icon: Optional[str] = None
+    """The optional icon to show."""
+
+
 class TEIMenuItemToggleMark(BaseModel):
     """A TEI menu item to toggle a mark."""
 
@@ -167,7 +184,7 @@ class TEITextToolbarBlock(BaseModel):
     """The title for the block."""
     type: Literal["toolbar"]
     """The type is set to toolbar."""
-    items: list[TEIMenuItemSetBlock | TEIMenuItemToggleMark | TEIMenuItemSeparator]
+    items: list[TEIMenuItemSetBlock | TEIMenuItemSetBlockAttribute | TEIMenuItemToggleMark | TEIMenuItemSeparator]
     """The list of menu items to show."""
     condition: Optional[TEIMenuCondition] = None
     """An optional condition for showing the block."""
