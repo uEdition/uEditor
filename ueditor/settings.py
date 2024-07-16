@@ -87,7 +87,7 @@ class TEINodeAttribute(BaseModel):
     """The name of the attribute."""
     value: str | None = None
     """A fixed value to use for the attribute."""
-    type: Literal["string"] | Literal["static"] | Literal["id-ref"] = "string"
+    type: Literal["string"] | Literal["static"] | Literal["id-ref"] | Literal["text"] = "string"
     """The type of attribute this is."""
     default: str = ""
     """The default value to use if none is set."""
@@ -104,6 +104,8 @@ class TEINode(BaseModel):
     """A list of attributes that are used on this node."""
     tag: Optional[str] = None
     """The HTML tag to use to render the node."""
+    text: Optional[str] = None
+    """Where to get the text from."""
 
 
 class TEIMetadataSection(BaseModel):
