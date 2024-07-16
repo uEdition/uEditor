@@ -106,6 +106,8 @@ class TEINode(BaseModel):
     """The HTML tag to use to render the node."""
     text: Optional[str] = None
     """Where to get the text from."""
+    content: Optional[str] = None
+    """Allowed child nodes. Only relevant for block nodes."""
 
 
 class TEIMetadataSection(BaseModel):
@@ -135,6 +137,19 @@ class TEIMenuItemSetBlock(BaseModel):
     """The menu item type."""
     block: str
     """The block to set the current node to."""
+    title: str
+    """The title for the button."""
+    icon: Optional[str] = None
+    """The optional icon to show."""
+
+
+class TEIMenuItemToggleWrapBlock(BaseModel):
+    """A TEI menu item to set the current block."""
+
+    type: Literal["toggle-wrap-block"]
+    """The menu item type."""
+    block: str
+    """The block to toggle wrapping."""
     title: str
     """The title for the button."""
     icon: Optional[str] = None
@@ -184,7 +199,13 @@ class TEITextToolbarBlock(BaseModel):
     """The title for the block."""
     type: Literal["toolbar"]
     """The type is set to toolbar."""
-    items: list[TEIMenuItemSetBlock | TEIMenuItemSetBlockAttribute | TEIMenuItemToggleMark | TEIMenuItemSeparator]
+    items: list[
+        TEIMenuItemSetBlock
+        | TEIMenuItemToggleWrapBlock
+        | TEIMenuItemSetBlockAttribute
+        | TEIMenuItemToggleMark
+        | TEIMenuItemSeparator
+    ]
     """The list of menu items to show."""
     condition: Optional[TEIMenuCondition] = None
     """An optional condition for showing the block."""

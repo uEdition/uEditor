@@ -32,7 +32,7 @@
           Node.create({
             name: blockConfig.name,
             group: "block",
-            content: "inline*",
+            content: blockConfig.content ? blockConfig.content : "inline*",
             addAttributes() {
               return Object.fromEntries(
                 blockConfig.attributes.map((attr) => {
@@ -131,6 +131,8 @@
     if (editor) {
       if (action.type === "set-block") {
         editor.chain().focus().setNode(action.block).run();
+      } else if (action.type === "toggle-wrap-block") {
+        editor.chain().focus().toggleWrap(action.block).run();
       } else if (action.type === "set-block-attribute") {
         editor
           .chain()
@@ -221,9 +223,10 @@
             {#if sidebarBlock.type === "toolbar"}
               <Toolbar.Root class="flex-wrap">
                 {#each sidebarBlock.items as item}
-                  {#if item.type === "set-block" || item.type === "set-block-attribute" || item.type === "toggle-mark"}
+                  {#if item.type === "set-block" || item.type === "toggle-wrap-block" || item.type === "set-block-attribute" || item.type === "toggle-mark"}
                     <Toolbar.Button
-                      aria-pressed={(item.type === "set-block" &&
+                      aria-pressed={((item.type === "set-block" ||
+                        item.type === "toggle-wrap-block") &&
                         editor.isActive(item.block)) ||
                         (item.type === "set-block-attribute" &&
                           editor.isActive(item.block, {

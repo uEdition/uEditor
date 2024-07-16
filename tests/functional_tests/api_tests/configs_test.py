@@ -24,6 +24,7 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
                     "attributes": [],
                     "tag": "p",
                     "text": None,
+                    "content": None,
                 },
                 {
                     "name": "heading",
@@ -31,6 +32,7 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
                     "attributes": [{"name": "type", "value": None, "type": "string", "default": "level-1"}],
                     "tag": "div",
                     "text": None,
+                    "content": None,
                 },
             ],
             "marks": [
@@ -40,6 +42,7 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
                     "attributes": [{"name": "style", "value": None, "type": "string", "default": ""}],
                     "tag": "strong",
                     "text": None,
+                    "content": None,
                 },
                 {
                     "name": "italic",
@@ -47,6 +50,7 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
                     "attributes": [{"name": "style", "value": None, "type": "string", "default": ""}],
                     "tag": "em",
                     "text": None,
+                    "content": None,
                 },
                 {
                     "name": "footnoteRef",
@@ -57,6 +61,7 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
                     ],
                     "tag": None,
                     "text": None,
+                    "content": None,
                 },
             ],
             "sections": [

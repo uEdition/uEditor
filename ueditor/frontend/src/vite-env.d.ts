@@ -55,6 +55,8 @@ type UEditorTEINode = {
   selector: string;
   attributes: UEditorTEIAttribute[];
   tag: string | null;
+  text: string | null;
+  content: string | null;
 };
 
 type UEditorTEIMetadataSection = {
@@ -66,6 +68,13 @@ type UEditorTEIMetadataSection = {
 
 type UEditorTEIMenuItemSetBlock = {
   type: "set-block";
+  block: string;
+  title: string;
+  icon: string | null;
+};
+
+type UEditorTEIMenuItemToggleWrapBlock = {
+  type: "toggle-wrap-block";
   block: string;
   title: string;
   icon: string | null;
@@ -98,7 +107,7 @@ type UEditorTEIMenuCondition = {
 type TEITextToolbarBlock = {
   title: string;
   type: "toolbar";
-  items: (UEditorTEIMenuItemSetBlock | UEditorTEIMenuItemSetBlockAttribute | UEditorTEIMenuItemToggleMark | UEditorTEIMenuItemSeparator)[];
+  items: (UEditorTEIMenuItemSetBlock | UEditorTEIMenuItemToggleWrapBlock | UEditorTEIMenuItemSetBlockAttribute | UEditorTEIMenuItemToggleMark | UEditorTEIMenuItemSeparator)[];
   condition: UEditorTEIMenuCondition | null;
 };
 
@@ -172,6 +181,7 @@ type UEditorTEISettings = {
 
 type UEditorTEIActions =
   | UEditorTEIMenuItemSetBlock
+  | UEditorTEIMenuItemToggleWrapBlock
   | UEditorTEIMenuItemSetBlockAttribute
   | UEditorTEIMenuItemToggleMark
   | UEditorTEISelectBlockAttribute
