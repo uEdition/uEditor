@@ -144,17 +144,25 @@ def parse_tei_subtree(node: etree.Element, settings: TEISettings) -> dict:
         if len(node.xpath(f"self::{conf.selector}", namespaces=namespaces)) > 0:
             if len(node) > 0:
                 child = parse_tei_subtree(node[0], settings)
+                text = child["text"]
+                if conf.text is not None:
+                    if conf.text.startswith("@") and conf.text[1:] in node.attrib:
+                        text = node.attrib[conf.text[1:]]
                 return {
                     "type": "text",
                     "marks": child["marks"]
                     + [{"type": conf.name, "attrs": parse_tei_attributes(node.attrib, conf.attributes)}],
-                    "text": child["text"],
+                    "text": text,
                 }
             else:
+                text = node.text
+                if conf.text is not None:
+                    if conf.text.startswith("@") and conf.text[1:] in node.attrib:
+                        text = node.attrib[conf.text[1:]]
                 return {
                     "type": "text",
                     "marks": [{"type": conf.name, "attrs": parse_tei_attributes(node.attrib, conf.attributes)}],
-                    "text": node.text,
+                    "text": text,
                 }
     if len(node) == 0:
         return {"type": "text", "marks": [], "text": node.text}

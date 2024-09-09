@@ -18,12 +18,21 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
         "ui": {"css_files": ["static/style.css"]},
         "tei": {
             "blocks": [
-                {"name": "paragraph", "selector": "tei:p", "attributes": [], "tag": "p"},
+                {
+                    "name": "paragraph",
+                    "selector": "tei:p",
+                    "attributes": [],
+                    "tag": "p",
+                    "text": None,
+                    "content": None,
+                },
                 {
                     "name": "heading",
                     "selector": "tei:head",
                     "attributes": [{"name": "type", "value": None, "type": "string", "default": "level-1"}],
                     "tag": "div",
+                    "text": None,
+                    "content": None,
                 },
             ],
             "marks": [
@@ -32,12 +41,16 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
                     "selector": 'tei:hi[@style="font-weight-bold"]',
                     "attributes": [{"name": "style", "value": None, "type": "string", "default": ""}],
                     "tag": "strong",
+                    "text": None,
+                    "content": None,
                 },
                 {
                     "name": "italic",
                     "selector": 'tei:hi[@style="font-style-italic"]',
                     "attributes": [{"name": "style", "value": None, "type": "string", "default": ""}],
                     "tag": "em",
+                    "text": None,
+                    "content": None,
                 },
                 {
                     "name": "footnoteRef",
@@ -47,6 +60,8 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
                         {"name": "type", "value": "footnote", "type": "static", "default": ""},
                     ],
                     "tag": None,
+                    "text": None,
+                    "content": None,
                 },
             ],
             "sections": [

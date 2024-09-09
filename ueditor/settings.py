@@ -87,7 +87,7 @@ class TEINodeAttribute(BaseModel):
     """The name of the attribute."""
     value: str | None = None
     """A fixed value to use for the attribute."""
-    type: Literal["string"] | Literal["static"] | Literal["id-ref"] = "string"
+    type: Literal["string"] | Literal["static"] | Literal["id-ref"] | Literal["text"] = "string"
     """The type of attribute this is."""
     default: str = ""
     """The default value to use if none is set."""
@@ -104,6 +104,10 @@ class TEINode(BaseModel):
     """A list of attributes that are used on this node."""
     tag: Optional[str] = None
     """The HTML tag to use to render the node."""
+    text: Optional[str] = None
+    """Where to get the text from."""
+    content: Optional[str] = None
+    """Allowed child nodes. Only relevant for block nodes."""
 
 
 class TEIMetadataSection(BaseModel):
@@ -139,6 +143,36 @@ class TEIMenuItemSetBlock(BaseModel):
     """The optional icon to show."""
 
 
+class TEIMenuItemToggleWrapBlock(BaseModel):
+    """A TEI menu item to set the current block."""
+
+    type: Literal["toggle-wrap-block"]
+    """The menu item type."""
+    block: str
+    """The block to toggle wrapping."""
+    title: str
+    """The title for the button."""
+    icon: Optional[str] = None
+    """The optional icon to show."""
+
+
+class TEIMenuItemSetBlockAttribute(BaseModel):
+    """A TEI menu item to set the current block."""
+
+    type: Literal["set-block-attribute"]
+    """The menu item type."""
+    block: str
+    """The block to set the attribute on."""
+    name: str
+    """The name of the attribute to set."""
+    value: str
+    """The value of the attribute to set."""
+    title: str
+    """The title for the button."""
+    icon: Optional[str] = None
+    """The optional icon to show."""
+
+
 class TEIMenuItemToggleMark(BaseModel):
     """A TEI menu item to toggle a mark."""
 
@@ -165,7 +199,13 @@ class TEITextToolbarBlock(BaseModel):
     """The title for the block."""
     type: Literal["toolbar"]
     """The type is set to toolbar."""
-    items: list[TEIMenuItemSetBlock | TEIMenuItemToggleMark | TEIMenuItemSeparator]
+    items: list[
+        TEIMenuItemSetBlock
+        | TEIMenuItemToggleWrapBlock
+        | TEIMenuItemSetBlockAttribute
+        | TEIMenuItemToggleMark
+        | TEIMenuItemSeparator
+    ]
     """The list of menu items to show."""
     condition: Optional[TEIMenuCondition] = None
     """An optional condition for showing the block."""
@@ -202,12 +242,25 @@ class TEISelectCrossReferenceMarkAttribute(BaseModel):
 
 
 class TEIInputMarkAttribute(BaseModel):
-    """A TEI form element to input an attribute value."""
+    """A TEI form element to input a mark attribute value."""
 
     type: Literal["input-mark-attribute"]
     """The form element type."""
     mark: str
     """The mark to apply the attribute to."""
+    name: str
+    """The name of the attribute."""
+    title: str
+    """The label for the entry."""
+
+
+class TEIInputBlockAttribute(BaseModel):
+    """A TEI form element to input a block attribute value."""
+
+    type: Literal["input-block-attribute"]
+    """The form element type."""
+    block: str
+    """The block to apply the attribute to."""
     name: str
     """The name of the attribute."""
     title: str
@@ -221,7 +274,9 @@ class TEITextFormBlock(BaseModel):
     """The title for the block."""
     type: Literal["form"]
     """The type is set to form."""
-    items: list[TEISelectBlockAttribute | TEISelectCrossReferenceMarkAttribute | TEIInputMarkAttribute]
+    items: list[
+        TEISelectBlockAttribute | TEISelectCrossReferenceMarkAttribute | TEIInputMarkAttribute | TEIInputBlockAttribute
+    ]
     """The list of menu items to show."""
     condition: Optional[TEIMenuCondition] = None
     """An optional condition for showing the block."""

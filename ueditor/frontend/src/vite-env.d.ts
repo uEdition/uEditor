@@ -55,6 +55,8 @@ type UEditorTEINode = {
   selector: string;
   attributes: UEditorTEIAttribute[];
   tag: string | null;
+  text: string | null;
+  content: string | null;
 };
 
 type UEditorTEIMetadataSection = {
@@ -67,6 +69,22 @@ type UEditorTEIMetadataSection = {
 type UEditorTEIMenuItemSetBlock = {
   type: "set-block";
   block: string;
+  title: string;
+  icon: string | null;
+};
+
+type UEditorTEIMenuItemToggleWrapBlock = {
+  type: "toggle-wrap-block";
+  block: string;
+  title: string;
+  icon: string | null;
+};
+
+type UEditorTEIMenuItemSetBlockAttribute = {
+  type: "set-block-attribute";
+  block: string;
+  name: string;
+  value: string;
   title: string;
   icon: string | null;
 };
@@ -89,7 +107,7 @@ type UEditorTEIMenuCondition = {
 type TEITextToolbarBlock = {
   title: string;
   type: "toolbar";
-  items: (UEditorTEIMenuItemSetBlock | UEditorTEIMenuItemToggleMark | UEditorTEIMenuItemSeparator)[];
+  items: (UEditorTEIMenuItemSetBlock | UEditorTEIMenuItemToggleWrapBlock | UEditorTEIMenuItemSetBlockAttribute | UEditorTEIMenuItemToggleMark | UEditorTEIMenuItemSeparator)[];
   condition: UEditorTEIMenuCondition | null;
 };
 
@@ -100,6 +118,13 @@ type UEditorTEISelectBlockAttribute = {
   title: string;
   values: UEditorValueTitlePair[];
 };
+
+type UEditorTEIInputBlockAttribute = {
+  type: "input-block-attribute";
+  block: string;
+  name: string;
+  title: string;
+}
 
 type UEditorTEISelectCrossReferenceMarkAttribute = {
   type: "select-cross-reference-attribute";
@@ -114,13 +139,14 @@ type UEditorTEIInputMarkAttribute = {
   mark: string;
   name: string;
   title: string;
-}
+};
 
 type UEditorTEITextFormBlock = {
   title: string;
   type: "form";
   items: (
     | UEditorTEISelectBlockAttribute
+    | UEditorTEIInputBlockAttribute
     | UEditorTEISelectCrossReferenceMarkAttribute
     | UEditorTEIInputMarkAttribute
   )[];
@@ -155,8 +181,11 @@ type UEditorTEISettings = {
 
 type UEditorTEIActions =
   | UEditorTEIMenuItemSetBlock
+  | UEditorTEIMenuItemToggleWrapBlock
+  | UEditorTEIMenuItemSetBlockAttribute
   | UEditorTEIMenuItemToggleMark
   | UEditorTEISelectBlockAttribute
+  | UEditorTEIInputBlockAttribute
   | UEditorTEISelectCrossReferenceMarkAttribute
   | UEditorTEIInputMarkAttribute;
 

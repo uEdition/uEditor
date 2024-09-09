@@ -32,7 +32,7 @@
           Node.create({
             name: blockConfig.name,
             group: "block",
-            content: "inline*",
+            content: blockConfig.content ? blockConfig.content : "inline*",
             addAttributes() {
               return Object.fromEntries(
                 blockConfig.attributes.map((attr) => {
@@ -131,9 +131,20 @@
     if (editor) {
       if (action.type === "set-block") {
         editor.chain().focus().setNode(action.block).run();
-      } else if (action.type == "toggle-mark") {
+      } else if (action.type === "toggle-wrap-block") {
+        editor.chain().focus().toggleWrap(action.block).run();
+      } else if (action.type === "set-block-attribute") {
+        editor
+          .chain()
+          .focus()
+          .updateAttributes(action.block, { [action.name]: action.value })
+          .run();
+      } else if (action.type === "toggle-mark") {
         editor.chain().focus().toggleMark(action.mark).run();
-      } else if (action.type === "select-block-attribute") {
+      } else if (
+        action.type === "select-block-attribute" ||
+        action.type === "input-block-attribute"
+      ) {
         editor
           .chain()
           .focus()
@@ -210,17 +221,23 @@
           <section class="mb-4">
             <h2 class="font-bold mb-2">{sidebarBlock.title}</h2>
             {#if sidebarBlock.type === "toolbar"}
-              <Toolbar.Root>
+              <Toolbar.Root class="flex-wrap">
                 {#each sidebarBlock.items as item}
-                  {#if item.type === "set-block" || item.type === "toggle-mark"}
+                  {#if item.type === "set-block" || item.type === "toggle-wrap-block" || item.type === "set-block-attribute" || item.type === "toggle-mark"}
                     <Toolbar.Button
-                      aria-pressed={(item.type === "set-block" &&
+                      aria-pressed={((item.type === "set-block" ||
+                        item.type === "toggle-wrap-block") &&
                         editor.isActive(item.block)) ||
+                        (item.type === "set-block-attribute" &&
+                          editor.isActive(item.block, {
+                            [item.name]: item.value,
+                          })) ||
                         (item.type === "toggle-mark" &&
                           editor.isActive(item.mark))}
                       on:click={(ev) => {
                         runAction(editor, item, ev);
                       }}
+                      title={item.title}
                     >
                       {#if item.icon}
                         <Icon path={item.icon} />
@@ -235,7 +252,7 @@
                 {/each}
               </Toolbar.Root>
             {:else if sidebarBlock.type === "form"}
-              <div class="flex flex-row">
+              <div class="flex flex-row flex-wrap">
                 {#each sidebarBlock.items as item}
                   {#if item.type === "select-block-attribute"}
                     {#key editor}
@@ -255,6 +272,18 @@
                         </select>
                       </label>
                     {/key}
+                  {:else if item.type === "input-block-attribute"}
+                    <label>
+                      <span data-form-field-label>{item.title}</span>
+                      <input
+                        type="text"
+                        value={editor.getAttributes(item.block)[item.name]}
+                        data-form-field-text
+                        on:change={(ev) => {
+                          runAction(editor, item, ev);
+                        }}
+                      />
+                    </label>
                   {:else if item.type === "select-cross-reference-attribute"}
                     <Combobox.Root
                       selected={crossReferenceSelectedItem(item)}
