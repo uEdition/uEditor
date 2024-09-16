@@ -14,6 +14,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from lxml import etree
 
+from ueditor.api.util import uedition_lock
 from ueditor.settings import (
     TEIMetadataSection,
     TEINodeAttribute,
@@ -84,18 +85,19 @@ def build_file_tree(path: str, strip_len) -> list[dict]:
 
 
 @router.get("/")
-def get_files(branch_id: int) -> list[dict]:  # noqa: ARG001
+async def get_files(branch_id: int) -> list[dict]:  # noqa: ARG001
     """Fetch the full tree of files."""
-    full_path = os.path.abspath(init_settings.base_path)
-    return [
-        {
-            "name": "/",
-            "fullpath": "",
-            "type": "folder",
-            "mimetype": "application/folder",
-            "content": build_file_tree(full_path, len(full_path) + 1),
-        }
-    ]
+    async with uedition_lock:
+        full_path = os.path.abspath(init_settings.base_path)
+        return [
+            {
+                "name": "/",
+                "fullpath": "",
+                "type": "folder",
+                "mimetype": "application/folder",
+                "content": build_file_tree(full_path, len(full_path) + 1),
+            }
+        ]
 
 
 def parse_metadata_node(node: etree.Element) -> dict:
@@ -238,70 +240,72 @@ def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
 
 
 @router.get("/{path:path}", response_model=None)
-def get_file(
+async def get_file(
     branch_id: int, path: str, settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)]  # noqa: ARG001
 ) -> dict | FileResponse:
     """Fetch a single file from the repo."""
-    full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
-    if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
-        if full_path.endswith(".tei"):
-            return parse_tei_file(full_path, settings)
-        else:
-            return FileResponse(full_path, media_type=guess_type(full_path)[0])
-    raise HTTPException(404)
+    async with uedition_lock:
+        full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
+        if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
+            if full_path.endswith(".tei"):
+                return parse_tei_file(full_path, settings)
+            else:
+                return FileResponse(full_path, media_type=guess_type(full_path)[0])
+        raise HTTPException(404)
 
 
 @router.post("/{path:path}", status_code=204)
-def create_file(
+async def create_file(
     branch_id: int,  # noqa: ARG001
     path: str,
     new_type: Annotated[str, Header(alias="X-uEditor-New-Type")],
     rename_from: Annotated[str | None, Header(alias="X-uEditor-Rename-From")] = None,
 ) -> None:
     """Create a new file in the repo."""
-    if new_type in ("file", "folder"):
-        full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
-        if full_path.startswith(os.path.abspath(init_settings.base_path)) and not os.path.exists(full_path):
-            if rename_from is not None:
-                rename_source_path = os.path.abspath(os.path.join(init_settings.base_path, *rename_from.split("/")))
-                if rename_source_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.exists(
-                    rename_source_path
-                ):
-                    try:
-                        os.rename(rename_source_path, full_path)
-                        return
-                    except OSError as err:
+    async with uedition_lock:
+        if new_type in ("file", "folder"):
+            full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
+            if full_path.startswith(os.path.abspath(init_settings.base_path)) and not os.path.exists(full_path):
+                if rename_from is not None:
+                    rename_source_path = os.path.abspath(os.path.join(init_settings.base_path, *rename_from.split("/")))
+                    if rename_source_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.exists(
+                        rename_source_path
+                    ):
+                        try:
+                            os.rename(rename_source_path, full_path)
+                            return
+                        except OSError as err:
+                            raise HTTPException(
+                                422,
+                                detail=[{"loc": ["path", "path"], "msg": str(err)}],
+                            ) from err
+                    else:
                         raise HTTPException(
                             422,
-                            detail=[{"loc": ["path", "path"], "msg": str(err)}],
-                        ) from err
-                else:
-                    raise HTTPException(
-                        422,
-                        detail=[
-                            {
-                                "loc": ["headers", "X-uEditor-Rename-From"],
-                                "msg": "the source file or folder do not exist",
-                            }
-                        ],
-                    )
-            else:  # noqa: PLR5501
-                if new_type == "file":
-                    with open(full_path, "w") as out_f:  # noqa: F841
-                        pass
-                    return
-                elif new_type == "folder":
-                    os.makedirs(full_path)
-                    return
-        else:
-            raise HTTPException(
-                422,
-                detail=[{"loc": ["path", "path"], "msg": "this file or folder already exists"}],
-            )
-    raise HTTPException(
-        422,
-        detail=[{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or folder"}],
-    )
+                            detail=[
+                                {
+                                    "loc": ["headers", "X-uEditor-Rename-From"],
+                                    "msg": "the source file or folder do not exist",
+                                }
+                            ],
+                        )
+                else:  # noqa: PLR5501
+                    if new_type == "file":
+                        with open(full_path, "w") as out_f:  # noqa: F841
+                            pass
+                        return
+                    elif new_type == "folder":
+                        os.makedirs(full_path)
+                        return
+            else:
+                raise HTTPException(
+                    422,
+                    detail=[{"loc": ["path", "path"], "msg": "this file or folder already exists"}],
+                )
+        raise HTTPException(
+            422,
+            detail=[{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or folder"}],
+        )
 
 
 def find_nodes(node: dict, path: list[str]) -> list[dict]:
@@ -549,40 +553,42 @@ async def update_file(
     settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)],
 ) -> None:
     """Update the file in the repo."""
-    full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
-    if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
-        if full_path.endswith(".tei"):
-            root = serialise_tei_file(full_path, json.load(content.file), settings)
-            with open(full_path, "wb") as out_f:
-                out_f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
-                out_f.write(etree.tostring(root, encoding="utf-8", xml_declaration=False, pretty_print=True))
+    async with uedition_lock:
+        full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
+        if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
+            if full_path.endswith(".tei"):
+                root = serialise_tei_file(full_path, json.load(content.file), settings)
+                with open(full_path, "wb") as out_f:
+                    out_f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
+                    out_f.write(etree.tostring(root, encoding="utf-8", xml_declaration=False, pretty_print=True))
+            else:
+                with open(full_path, "wb") as out_f:
+                    out_f.write(await content.read())
         else:
-            with open(full_path, "wb") as out_f:
-                out_f.write(await content.read())
-    else:
-        raise HTTPException(
-            422,
-            detail=[{"loc": ["body", "content"], "msg": "this file or folder does not exist"}],
-        )
+            raise HTTPException(
+                422,
+                detail=[{"loc": ["body", "content"], "msg": "this file or folder does not exist"}],
+            )
 
 
 @router.delete("/{path:path}", status_code=204)
-def delete_file(
+async def delete_file(
     branch_id: int,  # noqa: ARG001
     path: str,
 ) -> None:
     """Delete a file in the repo."""
-    full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
-    if full_path.startswith(os.path.abspath(init_settings.base_path)):
-        if os.path.isfile(full_path):
-            os.unlink(full_path)
-            return
-        elif os.path.isdir(full_path):
-            shutil.rmtree(full_path)
-            return
-        else:  # pragma: no cover
-            raise HTTPException(
-                422,
-                detail=[{"loc": ["path", "path"], "msg": "Unknown type of file"}],
-            )
-    raise HTTPException(404)
+    async with uedition_lock:
+        full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
+        if full_path.startswith(os.path.abspath(init_settings.base_path)):
+            if os.path.isfile(full_path):
+                os.unlink(full_path)
+                return
+            elif os.path.isdir(full_path):
+                shutil.rmtree(full_path)
+                return
+            else:  # pragma: no cover
+                raise HTTPException(
+                    422,
+                    detail=[{"loc": ["path", "path"], "msg": "Unknown type of file"}],
+                )
+        raise HTTPException(404)
