@@ -8,7 +8,7 @@
   import { currentBranch, currentFile } from "../stores";
 
   import Tree from "./FileTree.svelte";
-  import Icon from "./Icon.svelte";
+  import LoadingIndicator from "./LoadingIndicator.svelte";
 
   const fileList = createQuery({
     queryKey: ["branches", $currentBranch, "files/"],
@@ -25,7 +25,7 @@
 
   function recursiveFileSeach(
     entries: FileTreeEntry[],
-    fullpath: string,
+    fullpath: string
   ): FileTreeEntry | null {
     for (let entry of entries) {
       if (entry.fullpath === fullpath) {
@@ -49,7 +49,7 @@
     ) {
       const selectedFileTreeEntry = recursiveFileSeach(
         $fileList.data,
-        selectedElement?.getAttribute("data-file-path") as string,
+        selectedElement?.getAttribute("data-file-path") as string
       );
       currentFile.set(selectedFileTreeEntry);
     } else {
@@ -68,11 +68,6 @@
       <Tree treeItems={$fileList.data} />
     </ol>
   {:else if $fileList.isLoading}
-    <div
-      class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
-    >
-      <p class="sr-only">Loading the file list. Please wait...</p>
-      <Icon path={mdiSync} class="w-12 h-12 animate-spin"></Icon>
-    </div>
+    <LoadingIndicator>Loading the file list. Please wait...</LoadingIndicator>
   {/if}
 </nav>
