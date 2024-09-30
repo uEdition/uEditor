@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.responses import Response
 
+from ueditor.api.util import uedition_lock
 from ueditor.settings import (
     UEditonSettings,
     UEditorSettings,
@@ -21,26 +22,29 @@ router = APIRouter(prefix="/configs")
 
 
 @router.get("/uedition", response_model=UEditonSettings)
-def uedition_config(uedition_settings: Annotated[UEditonSettings, Depends(get_uedition_settings)]) -> dict:
+async def uedition_config(uedition_settings: Annotated[UEditonSettings, Depends(get_uedition_settings)]) -> dict:
     """Fetch the uEdition configuration."""
-    return uedition_settings.model_dump()
+    async with uedition_lock:
+        return uedition_settings.model_dump()
 
 
 @router.get("/ueditor", response_model=UEditorSettings)
-def tei_config() -> dict:
+async def tei_config() -> dict:
     """Fetch the TEI configuration."""
-    return get_ueditor_settings().model_dump()
+    async with uedition_lock:
+        return get_ueditor_settings().model_dump()
 
 
 @router.get("/ui-stylesheet")
-def ui_stylesheet() -> str:
+async def ui_stylesheet() -> str:
     """Fetch the configured CSS stylesheets."""
-    tmp = []
-    for filename in get_ueditor_settings().ui.css_files:
-        full_path = os.path.join(init_settings.base_path, filename)
-        if os.path.exists(full_path):
-            with open(full_path) as in_f:
-                tmp.append(in_f.read())
-        else:
-            raise HTTPException(404)
-    return Response("\n\n".join(tmp), media_type="text/css")
+    async with uedition_lock:
+        tmp = []
+        for filename in get_ueditor_settings().ui.css_files:
+            full_path = os.path.join(init_settings.base_path, filename)
+            if os.path.exists(full_path):
+                with open(full_path) as in_f:
+                    tmp.append(in_f.read())
+            else:
+                raise HTTPException(404)
+        return Response("\n\n".join(tmp), media_type="text/css")
