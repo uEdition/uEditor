@@ -55,10 +55,14 @@
 <main class="flex flex-col w-screen h-screen overflow-hidden">
   <MainMenu />
   <Toolbar />
-  <div class="flex flex-row flex-1 overflow-hidden">
-    <FileNavigation />
-    <Editor />
-  </div>
+  {#if $uEditorConfig.isSuccess}
+    <div class="flex flex-row flex-1 overflow-hidden">
+      <FileNavigation />
+      <Editor />
+    </div>
+  {:else}
+    <div class="flex-1"></div>
+  {/if}
   <footer class="flex flex-row px-2 py-1 border-t border-slate-300 text-sm">
     <div class="font-mono font-bold">
       {#if $currentFile}{$currentFile.fullpath}{/if}

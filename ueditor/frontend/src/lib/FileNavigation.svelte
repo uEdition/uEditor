@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { mdiSync } from "@mdi/js";
   import { createTreeView } from "@melt-ui/svelte";
-  import { onDestroy, setContext } from "svelte";
+  import { onDestroy, onMount, setContext, tick } from "svelte";
+  import { type Unsubscriber } from "svelte/store";
   import { createQuery } from "@tanstack/svelte-query";
 
   import { apiQueryHandler } from "../util";
@@ -20,7 +20,7 @@
 
   const {
     elements: { tree },
-    states: { selectedItem },
+    states: { selectedItem, expanded },
   } = ctx;
 
   function recursiveFileSeach(
@@ -41,7 +41,7 @@
     return null;
   }
 
-  const unsubscribe = selectedItem.subscribe((selectedElement) => {
+  const unsubscribeSelectedItem = selectedItem.subscribe((selectedElement) => {
     if (
       selectedItem !== null &&
       selectedElement?.getAttribute("data-file-path") !== null &&
@@ -52,11 +52,48 @@
         selectedElement?.getAttribute("data-file-path") as string
       );
       currentFile.set(selectedFileTreeEntry);
+      if (selectedFileTreeEntry) {
+        window.location.hash = selectedFileTreeEntry.fullpath;
+      }
     } else {
       currentFile.set(null);
     }
   });
-  onDestroy(unsubscribe);
+  onDestroy(unsubscribeSelectedItem);
+
+  function calculateExpanded(button: HTMLElement): string[] {
+    const expansion: string[] = [];
+    while (button && button.getAttribute("role") === "treeitem") {
+      expansion.splice(0, 0, button.getAttribute("data-id") as string);
+      button =
+        button.parentElement?.parentElement?.parentElement?.querySelector(
+          ":scope > [role=treeitem]"
+        ) as HTMLElement;
+    }
+    return expansion;
+  }
+
+  onMount(() => {
+    if (window.location.hash !== "") {
+      let fileListUnsubscribe: Unsubscriber | undefined;
+      fileListUnsubscribe = fileList.subscribe((entries) => {
+        if (entries.isSuccess) {
+          tick().then(() => {
+            const selectedButton = document.querySelector(
+              '[data-file-path="' + window.location.hash.substring(1) + '"]'
+            ) as HTMLElement;
+            if (selectedButton) {
+              expanded.set(calculateExpanded(selectedButton));
+              selectedItem.set(selectedButton);
+            }
+          });
+          if (fileListUnsubscribe) {
+            fileListUnsubscribe();
+          }
+        }
+      });
+    }
+  });
 </script>
 
 <nav
