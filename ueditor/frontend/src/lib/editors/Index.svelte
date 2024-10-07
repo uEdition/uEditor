@@ -52,13 +52,13 @@
           },
           () => {
             loading = false;
-          },
+          }
         );
       } else {
         set(null);
       }
     },
-    null as any,
+    null as any
   );
 </script>
 
