@@ -138,7 +138,7 @@
   }
 
   [data-combobox-content] {
-    @apply z-50 bg-white shadow-lg;
+    @apply z-50 bg-white shadow-lg max-h-[50vh] overflow-y-auto;
   }
 
   [data-combobox-item] {

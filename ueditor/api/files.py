@@ -419,7 +419,7 @@ def serialise_tei_text_block(node: dict, settings: TEISettings) -> dict:
                     create_path(tmp, selector_to_path(mark_settings.selector))
                     mark_node = tmp["children"][0]
                     mark_node["text"] = node["text"]
-                    if "attrs" not in output_node:
+                    if "attrs" not in mark_node:
                         mark_node["attrs"] = {}
                     for attr_settings in mark_settings.attributes:
                         if attr_settings.type == "string":
@@ -432,6 +432,9 @@ def serialise_tei_text_block(node: dict, settings: TEISettings) -> dict:
                         elif attr_settings.type == "id-ref":
                             if "attrs" in mark and attr_settings.name in mark["attrs"]:
                                 mark_node["attrs"][attr_settings.name] = f"#{mark['attrs'][attr_settings.name]}"
+                        elif attr_settings.type == "text":
+                            mark_node["attrs"][attr_settings.name] = mark_node["text"]
+                            del mark_node["text"]
                     if "name" in inner_node:
                         del inner_node["text"]
                         inner_node["children"] = [mark_node]
@@ -439,7 +442,7 @@ def serialise_tei_text_block(node: dict, settings: TEISettings) -> dict:
                     else:
                         inner_node.update(mark_node)
         else:
-            output_node = {"name": "tei:span", "text": node["text"]}
+            output_node = {"name": "tei:seg", "text": node["text"]}
         return output_node
     else:
         block_settings = None
