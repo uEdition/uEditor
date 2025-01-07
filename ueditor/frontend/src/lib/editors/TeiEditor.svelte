@@ -20,6 +20,7 @@
   let updatedDocument: TEIDocument = [];
   let updateDebounce = -1;
   let initialDocument: TEIDocument = [];
+  let loadingError = false;
 
   const uEditorConfig = getContext(
     "uEditorConfig"
@@ -33,27 +34,37 @@
         currentFile &&
         currentFile.name.endsWith(".tei")
       ) {
+        loadingError = false;
+        initialDocument = [];
+        updatedDocument = [];
+        currentFileContent.set(null);
+        currentFileModified.set(false);
         runAction({
           action: "LoadTextFile",
           branch: $currentBranch,
           filename: currentFile.fullpath,
           callback: (data: string) => {
-            currentFileContent.set(data);
-            currentFileModified.set(false);
-            updatedDocument = JSON.parse(data);
-            initialDocument = JSON.parse(data);
-            const tmpDocument = JSON.parse(data);
-            const newSections: TEIDocument = [];
-            for (let section of uEditorConfig.data.tei.sections) {
-              for (let part of tmpDocument) {
-                if (section.name === part.name) {
-                  part.type = section;
-                  newSections.push(part);
-                  break;
+            try {
+              updatedDocument = JSON.parse(data);
+              initialDocument = JSON.parse(data);
+              currentFileContent.set(data);
+              currentFileModified.set(false);
+              const tmpDocument = JSON.parse(data);
+              const newSections: TEIDocument = [];
+              for (let section of uEditorConfig.data.tei.sections) {
+                for (let part of tmpDocument) {
+                  if (section.name === part.name) {
+                    part.type = section;
+                    newSections.push(part);
+                    break;
+                  }
                 }
               }
+              set(newSections);
+            } catch (e) {
+              loadingError = true;
+              set(null);
             }
-            set(newSections);
           },
         });
       }
@@ -154,6 +165,11 @@
       {/each}
     </Tabs.Root>
   </div>
+{:else if loadingError}
+  <p class=" px-4 py-2 text-red-800">
+    There was an error loading this TEI file. The most likely cause is a TEI tag
+    that is not configured. Please check your server logs for details.
+  </p>
 {:else}
   <LoadingIndicator>Loading the TEI file. Please wait...</LoadingIndicator>
 {/if}

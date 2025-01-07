@@ -41,7 +41,7 @@
    */
   async function loadTextFile(action: LoadTextFileAction) {
     const response = await window.fetch(
-      "/api/branches/" + action.branch + "/files/" + action.filename,
+      "/api/branches/" + action.branch + "/files/" + action.filename
     );
     action.callback(await response.text());
   }
@@ -56,7 +56,7 @@
     formData.append("content", new Blob([action.data]));
     const response = await window.fetch(
       "/api/branches/" + action.branch + "/files/" + action.filename,
-      { method: "PUT", body: formData },
+      { method: "PUT", body: formData }
     );
     if (response.ok) {
       action.callback();
