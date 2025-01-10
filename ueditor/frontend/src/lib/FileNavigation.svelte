@@ -25,7 +25,7 @@
 
   function recursiveFileSeach(
     entries: FileTreeEntry[],
-    fullpath: string
+    fullpath: string,
   ): FileTreeEntry | null {
     for (let entry of entries) {
       if (entry.fullpath === fullpath) {
@@ -49,12 +49,12 @@
     ) {
       const selectedFileTreeEntry = recursiveFileSeach(
         $fileList.data,
-        selectedElement?.getAttribute("data-file-path") as string
+        selectedElement?.getAttribute("data-file-path") as string,
       );
       currentFile.set(selectedFileTreeEntry);
-      if (selectedFileTreeEntry) {
-        window.location.hash = selectedFileTreeEntry.fullpath;
-      }
+      // if (selectedFileTreeEntry) {
+      //   window.location.hash = selectedFileTreeEntry.fullpath;
+      // }
     } else {
       currentFile.set(null);
     }
@@ -67,7 +67,7 @@
       expansion.splice(0, 0, button.getAttribute("data-id") as string);
       button =
         button.parentElement?.parentElement?.parentElement?.querySelector(
-          ":scope > [role=treeitem]"
+          ":scope > [role=treeitem]",
         ) as HTMLElement;
     }
     return expansion;
@@ -78,9 +78,10 @@
       let fileListUnsubscribe: Unsubscriber | undefined;
       fileListUnsubscribe = fileList.subscribe((entries) => {
         if (entries.isSuccess) {
+          const params = new URLSearchParams(window.location.hash.substring(1));
           tick().then(() => {
             const selectedButton = document.querySelector(
-              '[data-file-path="' + window.location.hash.substring(1) + '"]'
+              '[data-file-path="' + params.get("path") + '"]',
             ) as HTMLElement;
             if (selectedButton) {
               expanded.set(calculateExpanded(selectedButton));

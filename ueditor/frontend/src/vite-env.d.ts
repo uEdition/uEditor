@@ -1,6 +1,12 @@
 /// <reference types="svelte" />
 /// <reference types="vite/client" />
 
+type Branch = {
+  id: string,
+  title: string,
+  nogit?: boolean,
+};
+
 type Config = {};
 
 type UEditionAuthor = {

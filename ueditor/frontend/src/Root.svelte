@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Dialog } from "bits-ui";
   import { setContext } from "svelte";
-  import { derived } from "svelte/store";
+  import { derived, writable } from "svelte/store";
   import { fade } from "svelte/transition";
   import { createQuery } from "@tanstack/svelte-query";
 
@@ -24,6 +24,13 @@
     queryFn: apiQueryHandler<UEditorSettings>,
   });
   setContext("uEditorConfig", uEditorConfig);
+  const branches = createQuery({
+    queryKey: ["branches"],
+    queryFn: apiQueryHandler<Branch[]>,
+  });
+  setContext("branches", branches);
+  const currentBranch = writable(null as Branch | null);
+  setContext("currentBranch", currentBranch);
 
   const appTitle = derived(uEditionConfig, (config) => {
     if (
