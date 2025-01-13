@@ -1,9 +1,7 @@
 <script lang="ts">
-  import { Dialog } from "bits-ui";
-  import { setContext } from "svelte";
-  import { derived, writable } from "svelte/store";
-  import { fade } from "svelte/transition";
-  import { createQuery } from "@tanstack/svelte-query";
+  import { getContext } from "svelte";
+  import { derived, type Readable } from "svelte/store";
+  import type { CreateQueryResult } from "@tanstack/svelte-query";
 
   import Actions from "./lib/actions/Index.svelte";
   import Dialogs from "./lib/dialogs/Index.svelte";
@@ -11,26 +9,15 @@
   import FileNavigation from "./lib/FileNavigation.svelte";
   import MainMenu from "./lib/mainmenu/Index.svelte";
   import Toolbar from "./lib/Toolbar.svelte";
-  import { apiQueryHandler } from "./util";
   import { currentFile } from "./stores";
 
-  const uEditionConfig = createQuery({
-    queryKey: ["configs", "uedition"],
-    queryFn: apiQueryHandler<UEditionSettings>,
-  });
-  setContext("uEditionConfig", uEditionConfig);
-  const uEditorConfig = createQuery({
-    queryKey: ["configs", "ueditor"],
-    queryFn: apiQueryHandler<UEditorSettings>,
-  });
-  setContext("uEditorConfig", uEditorConfig);
-  const branches = createQuery({
-    queryKey: ["branches"],
-    queryFn: apiQueryHandler<Branch[]>,
-  });
-  setContext("branches", branches);
-  const currentBranch = writable(null as Branch | null);
-  setContext("currentBranch", currentBranch);
+  const uEditionConfig = getContext(
+    "uEditionConfig"
+  ) as CreateQueryResult<UEditionSettings>;
+  const uEditorConfig = getContext(
+    "uEditorConfig"
+  ) as CreateQueryResult<UEditorSettings>;
+  const currentBranch = getContext("currentBranch") as Readable<Branch | null>;
 
   const appTitle = derived(uEditionConfig, (config) => {
     if (
@@ -55,17 +42,25 @@
   <title>{$appTitle}</title>
   <link
     rel="stylesheet"
-    href="/api/configs/ui-stylesheet?timestamp={$uEditorConfigTimestamp}"
+    href="/api/branches/{$currentBranch !== null
+      ? $currentBranch.id
+      : '-'}/configs/ui-stylesheet?timestamp={$uEditorConfigTimestamp}"
   />
 </svelte:head>
 
 <main class="flex flex-col w-screen h-screen overflow-hidden">
   <MainMenu />
   <Toolbar />
-  {#if $uEditorConfig.isSuccess}
+  {#if $currentBranch !== null && $uEditorConfig.isSuccess}
     <div class="flex flex-row flex-1 overflow-hidden">
       <FileNavigation />
       <Editor />
+    </div>
+  {:else if $currentBranch === null}
+    <div class="flex-1">
+      <p class="px-4 py-2">
+        Please select the branch you wish to work on from the File menu.
+      </p>
     </div>
   {:else}
     <div class="flex-1"></div>
@@ -80,7 +75,7 @@
 </main>
 
 <Dialogs />
-
+<!--
 <Dialog.Root
   bind:open={$uEditionConfig.isPending}
   closeOnEscape={false}
@@ -97,25 +92,4 @@
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>
-
-<Dialog.Root
-  bind:open={$uEditionConfig.isError}
-  closeOnEscape={false}
-  closeOnOutsideClick={false}
->
-  <Dialog.Trigger class="hidden" />
-  <Dialog.Portal>
-    <Dialog.Overlay transition={fade} />
-    <Dialog.Content class="flex flex-col overflow-hidden">
-      <Dialog.Title class="bg-rose-700"
-        >Loading the Configuration Failed</Dialog.Title
-      >
-      <div data-dialog-content-area>
-        <p>
-          Unfortunately loading the configuration failed. Please check the error
-          messages on the console to see what the problem is.
-        </p>
-      </div>
-    </Dialog.Content>
-  </Dialog.Portal>
-</Dialog.Root>
+-->

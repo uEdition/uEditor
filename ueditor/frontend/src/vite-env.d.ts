@@ -1,10 +1,15 @@
 /// <reference types="svelte" />
 /// <reference types="vite/client" />
 
+type APIStatus = {
+  ready: boolean;
+  git_enabled: boolean;
+};
+
 type Branch = {
-  id: string,
-  title: string,
-  nogit?: boolean,
+  id: string;
+  title: string;
+  nogit?: boolean;
 };
 
 type Config = {};
@@ -113,7 +118,13 @@ type UEditorTEIMenuCondition = {
 type TEITextToolbarBlock = {
   title: string;
   type: "toolbar";
-  items: (UEditorTEIMenuItemSetBlock | UEditorTEIMenuItemToggleWrapBlock | UEditorTEIMenuItemSetBlockAttribute | UEditorTEIMenuItemToggleMark | UEditorTEIMenuItemSeparator)[];
+  items: (
+    | UEditorTEIMenuItemSetBlock
+    | UEditorTEIMenuItemToggleWrapBlock
+    | UEditorTEIMenuItemSetBlockAttribute
+    | UEditorTEIMenuItemToggleMark
+    | UEditorTEIMenuItemSeparator
+  )[];
   condition: UEditorTEIMenuCondition | null;
 };
 
@@ -130,7 +141,7 @@ type UEditorTEIInputBlockAttribute = {
   block: string;
   name: string;
   title: string;
-}
+};
 
 type UEditorTEISelectCrossReferenceMarkAttribute = {
   type: "select-cross-reference-attribute";
