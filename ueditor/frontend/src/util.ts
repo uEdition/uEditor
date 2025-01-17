@@ -53,7 +53,7 @@ export function textForTipTapNode(node: TipTapNode): string {
 /**
  * Returns the text of the first node of a TipTap document.
  *
- * @param doc  The document to get the text for
+ * @param doc The document to get the text for
  * @returns The text of the first node in the document
  */
 export function textForFirstNodeOfTipTapDocument(doc: TipTapDocument): string {
@@ -61,5 +61,57 @@ export function textForFirstNodeOfTipTapDocument(doc: TipTapDocument): string {
     return textForTipTapNode(doc.content[0]);
   } else {
     return "<Empty Document>";
+  }
+}
+
+/**
+ * Set the application parameters stored in the main URL hash.
+ *
+ * @param name The name of the parameter to set.
+ * @param value The value to use.
+ */
+export function setApplicationParameter(name: string, value:string) {
+  let hash = window.location.hash;
+  if (hash.startsWith("#")) {
+    hash = hash.substring(1);
+  }
+  let params = new URLSearchParams(hash);
+  params.set(name, value);
+  window.location.hash = params.toString();
+}
+
+/**
+ * Get the value of a parameter stored in the main URL hash.
+ *
+ * @param name The name of the parameter to get.
+ * @returns The parameter value or null.
+ */
+export function getApplicationParameter(name: string): string | null {
+  let hash = window.location.hash;
+  if (hash.startsWith("#")) {
+    hash = hash.substring(1);
+  }
+  let params = new URLSearchParams(hash);
+  if (params.has(name)) {
+    return params.get(name);
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Delete a parameter stored in the main URL hash.
+ *
+ * @param name The name of the parameter to delete.
+ */
+export function deleteApplicationParameter(name:string){
+  let hash = window.location.hash;
+  if (hash.startsWith("#")) {
+    hash = hash.substring(1);
+  }
+  let params = new URLSearchParams(hash);
+  if (params.has(name)) {
+    params.delete(name);
+    window.location.hash = params.toString();
   }
 }

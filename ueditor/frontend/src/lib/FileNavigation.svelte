@@ -4,7 +4,7 @@
   import { type Unsubscriber } from "svelte/store";
   import { createQuery } from "@tanstack/svelte-query";
 
-  import { apiQueryHandler } from "../util";
+  import { apiQueryHandler, getApplicationParameter } from "../util";
   import { currentBranch, currentFile } from "../stores";
 
   import Tree from "./FileTree.svelte";
@@ -74,26 +74,26 @@
   }
 
   onMount(() => {
-    if (window.location.hash !== "") {
-      let fileListUnsubscribe: Unsubscriber | undefined;
-      fileListUnsubscribe = fileList.subscribe((entries) => {
-        if (entries.isSuccess) {
-          const params = new URLSearchParams(window.location.hash.substring(1));
+    let fileListUnsubscribe: Unsubscriber | undefined;
+    fileListUnsubscribe = fileList.subscribe((entries) => {
+      if (entries.isSuccess) {
+        const path = getApplicationParameter("path");
+        if (path) {
           tick().then(() => {
             const selectedButton = document.querySelector(
-              '[data-file-path="' + params.get("path") + '"]',
+              '[data-file-path="' + path + '"]',
             ) as HTMLElement;
             if (selectedButton) {
               expanded.set(calculateExpanded(selectedButton));
               selectedItem.set(selectedButton);
             }
           });
-          if (fileListUnsubscribe) {
-            fileListUnsubscribe();
-          }
         }
-      });
-    }
+        if (fileListUnsubscribe) {
+          fileListUnsubscribe();
+        }
+      }
+    });
   });
 </script>
 
