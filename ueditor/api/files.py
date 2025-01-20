@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """The uEditor API for manipulating files."""
+
 import json
 import mimetypes
 import os
@@ -14,7 +15,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from lxml import etree
 
-from ueditor.api.util import uedition_lock
+from ueditor.api.util import BranchContextManager, BranchNotFoundError
 from ueditor.settings import (
     TEIMetadataSection,
     TEINodeAttribute,
@@ -25,7 +26,7 @@ from ueditor.settings import (
     init_settings,
 )
 
-router = APIRouter(prefix="/branches/{branch_id}/files")
+router = APIRouter(prefix="/files")
 namespaces = {
     "xml": "http://www.w3.org/XML/1998/namespace",
     "tei": "http://www.tei-c.org/ns/1.0",
@@ -85,19 +86,22 @@ def build_file_tree(path: str, strip_len) -> list[dict]:
 
 
 @router.get("/")
-async def get_files(branch_id: int) -> list[dict]:  # noqa: ARG001
+async def get_files(branch_id: str) -> list[dict]:
     """Fetch the full tree of files."""
-    async with uedition_lock:
-        full_path = os.path.abspath(init_settings.base_path)
-        return [
-            {
-                "name": "/",
-                "fullpath": "",
-                "type": "folder",
-                "mimetype": "application/folder",
-                "content": build_file_tree(full_path, len(full_path) + 1),
-            }
-        ]
+    try:
+        async with BranchContextManager(branch_id):
+            full_path = os.path.abspath(init_settings.base_path)
+            return [
+                {
+                    "name": "/",
+                    "fullpath": "",
+                    "type": "folder",
+                    "mimetype": "application/folder",
+                    "content": build_file_tree(full_path, len(full_path) + 1),
+                }
+            ]
+    except BranchNotFoundError as bnfe:
+        raise HTTPException(404) from bnfe
 
 
 def parse_metadata_node(node: etree.Element) -> dict:
@@ -241,71 +245,81 @@ def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
 
 @router.get("/{path:path}", response_model=None)
 async def get_file(
-    branch_id: int, path: str, settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)]  # noqa: ARG001
+    branch_id: str,
+    path: str,
+    settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)],
 ) -> dict | FileResponse:
     """Fetch a single file from the repo."""
-    async with uedition_lock:
-        full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
-        if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
-            if full_path.endswith(".tei"):
-                return parse_tei_file(full_path, settings)
-            else:
-                return FileResponse(full_path, media_type=guess_type(full_path)[0])
-        raise HTTPException(404)
+    try:
+        async with BranchContextManager(branch_id):
+            full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
+            if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
+                if full_path.endswith(".tei"):
+                    return parse_tei_file(full_path, settings)
+                else:
+                    return FileResponse(full_path, media_type=guess_type(full_path)[0])
+            raise HTTPException(404)
+    except BranchNotFoundError as bnfe:
+        raise HTTPException(404) from bnfe
 
 
 @router.post("/{path:path}", status_code=204)
 async def create_file(
-    branch_id: int,  # noqa: ARG001
+    branch_id: int,
     path: str,
     new_type: Annotated[str, Header(alias="X-uEditor-New-Type")],
     rename_from: Annotated[str | None, Header(alias="X-uEditor-Rename-From")] = None,
 ) -> None:
     """Create a new file in the repo."""
-    async with uedition_lock:
-        if new_type in ("file", "folder"):
-            full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
-            if full_path.startswith(os.path.abspath(init_settings.base_path)) and not os.path.exists(full_path):
-                if rename_from is not None:
-                    rename_source_path = os.path.abspath(os.path.join(init_settings.base_path, *rename_from.split("/")))
-                    if rename_source_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.exists(
-                        rename_source_path
-                    ):
-                        try:
-                            os.rename(rename_source_path, full_path)
-                            return
-                        except OSError as err:
+    try:
+        async with BranchContextManager(branch_id):
+            if new_type in ("file", "folder"):
+                full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
+                if full_path.startswith(os.path.abspath(init_settings.base_path)) and not os.path.exists(full_path):
+                    if rename_from is not None:
+                        rename_source_path = os.path.abspath(
+                            os.path.join(init_settings.base_path, *rename_from.split("/"))
+                        )
+                        if rename_source_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.exists(
+                            rename_source_path
+                        ):
+                            try:
+                                os.rename(rename_source_path, full_path)
+                                return
+                            except OSError as err:
+                                raise HTTPException(
+                                    422,
+                                    detail=[{"loc": ["path", "path"], "msg": str(err)}],
+                                ) from err
+                        else:
                             raise HTTPException(
                                 422,
-                                detail=[{"loc": ["path", "path"], "msg": str(err)}],
-                            ) from err
-                    else:
-                        raise HTTPException(
-                            422,
-                            detail=[
-                                {
-                                    "loc": ["headers", "X-uEditor-Rename-From"],
-                                    "msg": "the source file or folder do not exist",
-                                }
-                            ],
-                        )
-                else:  # noqa: PLR5501
-                    if new_type == "file":
-                        with open(full_path, "w") as out_f:  # noqa: F841
-                            pass
-                        return
-                    elif new_type == "folder":
-                        os.makedirs(full_path)
-                        return
-            else:
-                raise HTTPException(
-                    422,
-                    detail=[{"loc": ["path", "path"], "msg": "this file or folder already exists"}],
-                )
-        raise HTTPException(
-            422,
-            detail=[{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or folder"}],
-        )
+                                detail=[
+                                    {
+                                        "loc": ["headers", "X-uEditor-Rename-From"],
+                                        "msg": "the source file or folder do not exist",
+                                    }
+                                ],
+                            )
+                    else:  # noqa: PLR5501
+                        if new_type == "file":
+                            with open(full_path, "w") as out_f:  # noqa: F841
+                                pass
+                            return
+                        elif new_type == "folder":
+                            os.makedirs(full_path)
+                            return
+                else:
+                    raise HTTPException(
+                        422,
+                        detail=[{"loc": ["path", "path"], "msg": "this file or folder already exists"}],
+                    )
+            raise HTTPException(
+                422,
+                detail=[{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or folder"}],
+            )
+    except BranchNotFoundError as bnfe:
+        raise HTTPException(404) from bnfe
 
 
 def find_nodes(node: dict, path: list[str]) -> list[dict]:
@@ -550,48 +564,54 @@ def serialise_tei_file(path: str, json_doc: list, settings: UEditorSettings) -> 
 
 @router.put("/{path:path}", status_code=204)
 async def update_file(
-    branch_id: int,  # noqa: ARG001
+    branch_id: int,
     path: str,
     content: UploadFile,
     settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)],
 ) -> None:
     """Update the file in the repo."""
-    async with uedition_lock:
-        full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
-        if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
-            if full_path.endswith(".tei"):
-                root = serialise_tei_file(full_path, json.load(content.file), settings)
-                with open(full_path, "wb") as out_f:
-                    out_f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
-                    out_f.write(etree.tostring(root, encoding="utf-8", xml_declaration=False, pretty_print=True))
+    try:
+        async with BranchContextManager(branch_id):
+            full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
+            if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
+                if full_path.endswith(".tei"):
+                    root = serialise_tei_file(full_path, json.load(content.file), settings)
+                    with open(full_path, "wb") as out_f:
+                        out_f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
+                        out_f.write(etree.tostring(root, encoding="utf-8", xml_declaration=False, pretty_print=True))
+                else:
+                    with open(full_path, "wb") as out_f:
+                        out_f.write(await content.read())
             else:
-                with open(full_path, "wb") as out_f:
-                    out_f.write(await content.read())
-        else:
-            raise HTTPException(
-                422,
-                detail=[{"loc": ["body", "content"], "msg": "this file or folder does not exist"}],
-            )
+                raise HTTPException(
+                    422,
+                    detail=[{"loc": ["body", "content"], "msg": "this file or folder does not exist"}],
+                )
+    except BranchNotFoundError as bnfe:
+        raise HTTPException(404) from bnfe
 
 
 @router.delete("/{path:path}", status_code=204)
 async def delete_file(
-    branch_id: int,  # noqa: ARG001
+    branch_id: int,
     path: str,
 ) -> None:
     """Delete a file in the repo."""
-    async with uedition_lock:
-        full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
-        if full_path.startswith(os.path.abspath(init_settings.base_path)):
-            if os.path.isfile(full_path):
-                os.unlink(full_path)
-                return
-            elif os.path.isdir(full_path):
-                shutil.rmtree(full_path)
-                return
-            else:  # pragma: no cover
-                raise HTTPException(
-                    422,
-                    detail=[{"loc": ["path", "path"], "msg": "Unknown type of file"}],
-                )
-        raise HTTPException(404)
+    try:
+        async with BranchContextManager(branch_id):
+            full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
+            if full_path.startswith(os.path.abspath(init_settings.base_path)):
+                if os.path.isfile(full_path):
+                    os.unlink(full_path)
+                    return
+                elif os.path.isdir(full_path):
+                    shutil.rmtree(full_path)
+                    return
+                else:  # pragma: no cover
+                    raise HTTPException(
+                        422,
+                        detail=[{"loc": ["path", "path"], "msg": "Unknown type of file"}],
+                    )
+            raise HTTPException(404)
+    except BranchNotFoundError as bnfe:
+        raise HTTPException(404) from bnfe

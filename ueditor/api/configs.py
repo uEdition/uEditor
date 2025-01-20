@@ -2,14 +2,14 @@
 #
 # SPDX-License-Identifier: MIT
 """The uEditor API for accessing configurations."""
-import os
-from typing import Annotated
 
-from fastapi import APIRouter, Depends
+import os
+
+from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
 from fastapi.responses import Response
 
-from ueditor.api.util import uedition_lock
+from ueditor.api.util import BranchContextManager, BranchNotFoundError
 from ueditor.settings import (
     UEditonSettings,
     UEditorSettings,
@@ -22,29 +22,38 @@ router = APIRouter(prefix="/configs")
 
 
 @router.get("/uedition", response_model=UEditonSettings)
-async def uedition_config(uedition_settings: Annotated[UEditonSettings, Depends(get_uedition_settings)]) -> dict:
+async def uedition_config(branch_id: str) -> dict:
     """Fetch the uEdition configuration."""
-    async with uedition_lock:
-        return uedition_settings.model_dump()
+    try:
+        async with BranchContextManager(branch_id):
+            return get_uedition_settings().model_dump()
+    except BranchNotFoundError as bnfe:
+        raise HTTPException(404) from bnfe
 
 
 @router.get("/ueditor", response_model=UEditorSettings)
-async def tei_config() -> dict:
-    """Fetch the TEI configuration."""
-    async with uedition_lock:
-        return get_ueditor_settings().model_dump()
+async def tei_config(branch_id: str) -> dict:
+    """Fetch the uEditor configuration."""
+    try:
+        async with BranchContextManager(branch_id):
+            return get_ueditor_settings().model_dump()
+    except BranchNotFoundError as bnfe:
+        raise HTTPException(404) from bnfe
 
 
 @router.get("/ui-stylesheet")
-async def ui_stylesheet() -> str:
+async def ui_stylesheet(branch_id: str) -> str:
     """Fetch the configured CSS stylesheets."""
-    async with uedition_lock:
-        tmp = []
-        for filename in get_ueditor_settings().ui.css_files:
-            full_path = os.path.join(init_settings.base_path, filename)
-            if os.path.exists(full_path):
-                with open(full_path) as in_f:
-                    tmp.append(in_f.read())
-            else:
-                raise HTTPException(404)
-        return Response("\n\n".join(tmp), media_type="text/css")
+    try:
+        async with BranchContextManager(branch_id):
+            tmp = []
+            for filename in get_ueditor_settings().ui.css_files:
+                full_path = os.path.join(init_settings.base_path, filename)
+                if os.path.exists(full_path):
+                    with open(full_path) as in_f:
+                        tmp.append(in_f.read())
+                else:
+                    raise HTTPException(404)
+            return Response("\n\n".join(tmp), media_type="text/css")
+    except BranchNotFoundError as bnfe:
+        raise HTTPException(404) from bnfe

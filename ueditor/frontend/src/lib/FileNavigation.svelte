@@ -1,19 +1,32 @@
 <script lang="ts">
   import { createTreeView } from "@melt-ui/svelte";
-  import { onDestroy, onMount, setContext, tick } from "svelte";
-  import { type Unsubscriber } from "svelte/store";
+  import { getContext, onDestroy, onMount, setContext, tick } from "svelte";
+  import { type Unsubscriber, type Writable, derived } from "svelte/store";
   import { createQuery } from "@tanstack/svelte-query";
 
   import { apiQueryHandler, getApplicationParameter } from "../util";
-  import { currentBranch, currentFile } from "../stores";
+  import { currentFile } from "../stores";
 
   import Tree from "./FileTree.svelte";
   import LoadingIndicator from "./LoadingIndicator.svelte";
 
-  const fileList = createQuery({
-    queryKey: ["branches", $currentBranch, "files/"],
-    queryFn: apiQueryHandler<FileTreeEntry[]>,
+  const currentBranch = getContext("currentBranch") as Writable<Branch | null>;
+
+  const fileListQuery = derived(currentBranch, (currentBranch) => {
+    if (currentBranch) {
+      return {
+        queryKey: ["branches", currentBranch.id, "files/"],
+        queryFn: apiQueryHandler<FileTreeEntry[]>,
+      };
+    } else {
+      return {
+        queryKey: ["branches", "-", "files/"],
+        queryFn: apiQueryHandler<FileTreeEntry[]>,
+        enabled: false,
+      };
+    }
   });
+  const fileList = createQuery(fileListQuery);
 
   const ctx = createTreeView({ defaultExpanded: ["file-tree--1-0"] });
   setContext("tree", ctx);

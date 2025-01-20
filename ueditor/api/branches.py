@@ -8,10 +8,14 @@ from pydantic import BaseModel
 from pygit2 import GitError, Repository
 from pygit2.enums import RepositoryOpenFlag
 
+from ueditor.api.configs import router as configs_router
+from ueditor.api.files import router as files_router
 from ueditor.api.util import uedition_lock
 from ueditor.settings import init_settings
 
 router = APIRouter(prefix="/branches")
+router.include_router(files_router, prefix="/{branch_id}")
+router.include_router(configs_router, prefix="/{branch_id}")
 
 
 class BranchModel(BaseModel):
@@ -28,7 +32,7 @@ def de_slugify(slug: str) -> str:
 
 
 @router.get("", response_model=list[BranchModel])
-async def uedition_config() -> list:
+async def branches() -> list:
     """Fetch the available branches."""
     async with uedition_lock:
         try:
