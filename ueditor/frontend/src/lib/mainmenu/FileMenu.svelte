@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Dialog, Menubar } from "bits-ui";
+  import { Menubar } from "bits-ui";
   import { mdiPencil, mdiTrashCanOutline } from "@mdi/js";
 
   import Icon from "../Icon.svelte";

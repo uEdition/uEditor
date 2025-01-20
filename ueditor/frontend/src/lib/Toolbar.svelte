@@ -5,20 +5,21 @@
 
   import Icon from "./Icon.svelte";
   import {
-    currentBranch,
     currentFile,
     currentFileContent,
     currentFileModified,
+    useCurrentBranch,
   } from "../stores";
   import { runAction } from "./actions/Index.svelte";
 
   const queryClient = useQueryClient();
+  const currentBranch = useCurrentBranch();
 
   function saveCurrentFile() {
     if ($currentFile !== null && $currentFileContent !== null) {
       runAction({
         action: "SaveCurrentFile",
-        branch: $currentBranch,
+        branch: $currentBranch as Branch,
         filename: $currentFile.fullpath,
         data: $currentFileContent,
         callback() {

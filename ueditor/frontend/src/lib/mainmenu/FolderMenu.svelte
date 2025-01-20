@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Dialog, Menubar, Separator } from "bits-ui";
+  import { Menubar } from "bits-ui";
   import {
     mdiFileDocumentPlusOutline,
     mdiFileUploadOutline,

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Dialog, Menubar, RadioGroup } from "bits-ui";
+  import { Dialog, Menubar } from "bits-ui";
   import { mdiCheckCircle, mdiSourceBranchPlus } from "@mdi/js";
   import { getContext } from "svelte";
   import type { Writable } from "svelte/store";

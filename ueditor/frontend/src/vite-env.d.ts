@@ -218,7 +218,7 @@ type FileTreeEntry = {
 
 type LoadTextFileAction = {
   action: "LoadTextFile";
-  branch: string;
+  branch: Branch;
   filename: string;
   callback: (data: string) => void;
   status?: string;
@@ -226,7 +226,7 @@ type LoadTextFileAction = {
 
 type SaveCurrentFileAction = {
   action: "SaveCurrentFile";
-  branch: string;
+  branch: Branch;
   filename: string;
   data: string;
   callback: () => void;

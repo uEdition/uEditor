@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { getContext, setContext } from "svelte";
-  import { derived, type Readable } from "svelte/store";
-  import { createQuery, type CreateQueryResult } from "@tanstack/svelte-query";
+  import { setContext } from "svelte";
+  import { derived } from "svelte/store";
+  import { createQuery } from "@tanstack/svelte-query";
 
   import { apiQueryHandler } from "../../util";
+  import { useCurrentBranch } from "../../stores";
 
-  const currentBranch = getContext("currentBranch") as Readable<Branch | null>;
+  const currentBranch = useCurrentBranch();
 
   const uEditionConfigQuery = derived(currentBranch, (currentBranch) => {
     if (currentBranch !== null) {

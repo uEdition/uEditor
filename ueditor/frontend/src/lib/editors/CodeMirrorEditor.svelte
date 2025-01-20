@@ -9,10 +9,10 @@
 
   import LoadingIndicator from "../LoadingIndicator.svelte";
   import {
-    currentBranch,
     currentFile,
     currentFileContent,
     currentFileModified,
+    useCurrentBranch,
   } from "../../stores";
   import { runAction } from "../actions/Index.svelte";
 
@@ -20,6 +20,7 @@
   let value: string | null = "";
   let lang: LanguageSupport | null = null;
   const queryClient = useQueryClient();
+  const currentBranch = useCurrentBranch();
 
   const currentFileUnsubscribe = currentFile.subscribe((currentFile) => {
     if (currentFile) {
@@ -34,7 +35,7 @@
       }
       runAction({
         action: "LoadTextFile",
-        branch: $currentBranch,
+        branch: $currentBranch as Branch,
         filename: currentFile.fullpath,
         callback: (data: string) => {
           value = data;
@@ -49,7 +50,7 @@
   const currentFileContentUnsubscribe = currentFileContent.subscribe(
     (content) => {
       value = content;
-    },
+    }
   );
 
   function shortCutTracker(ev: KeyboardEvent) {
@@ -58,7 +59,7 @@
         ev.preventDefault();
         runAction({
           action: "SaveCurrentFile",
-          branch: $currentBranch,
+          branch: $currentBranch as Branch,
           filename: $currentFile.fullpath,
           data: $currentFileContent,
           callback() {

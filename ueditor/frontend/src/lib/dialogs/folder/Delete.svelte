@@ -3,10 +3,11 @@
   import { useQueryClient } from "@tanstack/svelte-query";
 
   import Base from "../Base.svelte";
-  import { currentBranch, currentFile } from "../../../stores";
+  import { currentFile, useCurrentBranch } from "../../../stores";
   import { Dialogs, activeDialog } from "../Index.svelte";
 
   const queryClient = useQueryClient();
+  const currentBranch = useCurrentBranch();
   let open = false;
   let error = "";
   let confirmationText = "";
@@ -19,14 +20,17 @@
       confirmationText == $currentFile?.name
     ) {
       const response = await fetch(
-        "/api/branches/" + $currentBranch + "/files/" + $currentFile.fullpath,
+        "/api/branches/" +
+          $currentBranch?.id +
+          "/files/" +
+          $currentFile.fullpath,
         {
           method: "DELETE",
-        },
+        }
       );
       if (response.ok) {
         queryClient.invalidateQueries({
-          queryKey: ["branches", $currentBranch, "files/"],
+          queryKey: ["branches", $currentBranch?.id, "files/"],
         });
         currentFile.set(null);
         open = false;

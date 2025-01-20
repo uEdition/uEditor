@@ -3,7 +3,7 @@
   import { mdiCheck, mdiCloseThick, mdiSync, mdiTimerSandEmpty } from "@mdi/js";
   import { useQueryClient } from "@tanstack/svelte-query";
 
-  import { currentBranch, currentFile } from "../../../stores";
+  import { currentFile, useCurrentBranch } from "../../../stores";
   import { Dialogs, activeDialog } from "../Index.svelte";
   import Base from "../Base.svelte";
   import Icon from "../../Icon.svelte";
@@ -16,6 +16,7 @@
   }
 
   const queryClient = useQueryClient();
+  const currentBranch = useCurrentBranch();
   let fileElement: HTMLInputElement | null = null;
   let submitElement: HTMLButtonElement | null = null;
   let dropFile = false;
@@ -88,7 +89,7 @@
       filesToUpload = filesToUpload;
       const response = await fetch(
         "/api/branches/" +
-          $currentBranch +
+          $currentBranch?.id +
           "/files/" +
           $currentFile?.fullpath +
           "/" +
@@ -96,14 +97,14 @@
         {
           method: "POST",
           headers: { "X-uEditor-New-Type": "file" },
-        },
+        }
       );
       if (response.ok) {
         const formData = new FormData();
         formData.append("content", upload[0]);
         const response = await fetch(
           "/api/branches/" +
-            $currentBranch +
+            $currentBranch?.id +
             "/files/" +
             $currentFile?.fullpath +
             "/" +
@@ -111,7 +112,7 @@
           {
             method: "PUT",
             body: formData,
-          },
+          }
         );
         if (response.ok) {
           upload[1] = UploadStatus.SUCCESS;
@@ -125,7 +126,7 @@
       }
     }
     queryClient.invalidateQueries({
-      queryKey: ["branches", $currentBranch, "files/"],
+      queryKey: ["branches", $currentBranch?.id, "files/"],
     });
     uploadComplete = true;
   }

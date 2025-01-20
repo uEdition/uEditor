@@ -3,10 +3,11 @@
   import { useQueryClient } from "@tanstack/svelte-query";
 
   import Base from "../Base.svelte";
-  import { currentBranch, currentFile } from "../../../stores";
+  import { currentFile, useCurrentBranch } from "../../../stores";
   import { Dialogs, activeDialog } from "../Index.svelte";
 
   const queryClient = useQueryClient();
+  const currentBranch = useCurrentBranch();
   let open = false;
   let newFileName = "";
   let errorMessage = "";
@@ -18,7 +19,7 @@
     } else {
       const response = await fetch(
         "/api/branches/" +
-          $currentBranch +
+          $currentBranch?.id +
           "/files/" +
           $currentFile?.fullpath +
           "/" +
@@ -26,12 +27,12 @@
         {
           method: "POST",
           headers: { "X-uEditor-New-Type": "file" },
-        },
+        }
       );
       if (response.ok) {
         open = false;
         queryClient.invalidateQueries({
-          queryKey: ["branches", $currentBranch, "files/"],
+          queryKey: ["branches", $currentBranch?.id, "files/"],
         });
         activeDialog.set(Dialogs.NONE);
       } else {

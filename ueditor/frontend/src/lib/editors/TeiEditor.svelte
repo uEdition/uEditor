@@ -7,10 +7,10 @@
 
   import { runAction } from "../actions/Index.svelte";
   import {
-    currentBranch,
     currentFile,
     currentFileContent,
     currentFileModified,
+    useCurrentBranch,
   } from "../../stores";
   import LoadingIndicator from "../LoadingIndicator.svelte";
   import TeiMetadataEditor from "./TeiMetadataEditor.svelte";
@@ -25,6 +25,7 @@
   const uEditorConfig = getContext(
     "uEditorConfig"
   ) as CreateQueryResult<UEditorSettings>;
+  const currentBranch = useCurrentBranch();
 
   const teiDocument = derived(
     [uEditorConfig, currentFile],

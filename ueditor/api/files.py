@@ -564,7 +564,7 @@ def serialise_tei_file(path: str, json_doc: list, settings: UEditorSettings) -> 
 
 @router.put("/{path:path}", status_code=204)
 async def update_file(
-    branch_id: int,
+    branch_id: str,
     path: str,
     content: UploadFile,
     settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)],
@@ -593,7 +593,7 @@ async def update_file(
 
 @router.delete("/{path:path}", status_code=204)
 async def delete_file(
-    branch_id: int,
+    branch_id: str,
     path: str,
 ) -> None:
     """Delete a file in the repo."""
