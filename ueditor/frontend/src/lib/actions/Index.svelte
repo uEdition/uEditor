@@ -41,7 +41,7 @@
    */
   async function loadTextFile(action: LoadTextFileAction) {
     const response = await window.fetch(
-      "/api/branches/" + action.branch.id + "/files/" + action.filename
+      "/api/branches/" + action.branch.id + "/files/" + action.filename,
     );
     action.callback(await response.text());
   }
@@ -57,7 +57,7 @@
     formData.append("content", new Blob([action.data]));
     const response = await window.fetch(
       "/api/branches/" + action.branch.id + "/files/" + action.filename,
-      { method: "PUT", body: formData }
+      { method: "PUT", body: formData },
     );
     if (response.ok) {
       action.callback();
@@ -70,17 +70,40 @@
 <script lang="ts">
   import { Dialog, Popover } from "bits-ui";
   import { mdiSync } from "@mdi/js";
+  import { derived } from "svelte/store";
+
   import Icon from "../Icon.svelte";
+  import {
+    useBranches,
+    useRemoteBranches,
+    useSyncBranches,
+  } from "../../stores";
+
+  const branches = useBranches();
+  const remoteBranches = useRemoteBranches();
+  const syncBranches = useSyncBranches();
+  const backgroundBusyCount = derived(
+    [branches, remoteBranches, syncBranches],
+    (stores) => {
+      let count = 0;
+      for (const store of stores) {
+        if (store !== null && store.isFetching) {
+          count = count + 1;
+        }
+      }
+      return count;
+    },
+  );
 </script>
 
 <Popover.Root>
   <Popover.Trigger>
-    {#if $activeActions.length === 0}
+    {#if $activeActions.length + $backgroundBusyCount === 0}
       Idle
-    {:else if $activeActions.length === 1}
+    {:else if $activeActions.length + $backgroundBusyCount === 1}
       1 action running
     {:else}
-      {$activeActions.length} actions running
+      {$activeActions.length + $backgroundBusyCount} actions running
     {/if}
     <Popover.Content class="z-50 bg-white shadow-lg">
       <ul>
@@ -90,10 +113,37 @@
           >
             {#if action.action === "LoadTextFile"}
               <Icon path={mdiSync} class="w-4 h-4 animate-spin" />
-              <span class="flex-1">Loading file...</span>
+              <span class="flex-1">Loading file</span>
+            {:else if action.action === "SaveCurrentFile"}
+              <Icon path={mdiSync} class="w-4 h-4 animate-spin" />
+              <span class="flex-1">Saving file</span>
             {/if}
           </li>
         {/each}
+        {#if $branches.isFetching}
+          <li
+            class="flex flex-row items-center space-x-2 px-3 py-1 border-l border-r last:border-b first-border-t border-slate-300"
+          >
+            <Icon path={mdiSync} class="w-4 h-4 animate-spin" />
+            <span class="flex-1">Fetching branches</span>
+          </li>
+        {/if}
+        {#if $remoteBranches.isFetching}
+          <li
+            class="flex flex-row items-center space-x-2 px-3 py-1 border-l border-r last:border-b first-border-t border-slate-300"
+          >
+            <Icon path={mdiSync} class="w-4 h-4 animate-spin" />
+            <span class="flex-1">Fetching remote branches</span>
+          </li>
+        {/if}
+        {#if $syncBranches.isFetching}
+          <li
+            class="flex flex-row items-center space-x-2 px-3 py-1 border-l border-r last:border-b first-border-t border-slate-300"
+          >
+            <Icon path={mdiSync} class="w-4 h-4 animate-spin" />
+            <span class="flex-1">Synchronising with remote git</span>
+          </li>
+        {/if}
       </ul>
     </Popover.Content>
   </Popover.Trigger>

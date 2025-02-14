@@ -55,14 +55,24 @@ class RemoteRepositoryCallbacks(RemoteCallbacks):
             return None
 
 
-def fetch_and_pull_branch(repo: Repository, branch: str, remote: str) -> None:
-    """Fetch and pull the `branch` from the `remote` repository."""
+def fetch_repo(repo: Repository, remote: str) -> None:
+    """Fetch the remote repository."""
     repo.remotes[remote].fetch(prune=FetchPrune.PRUNE, callbacks=RemoteRepositoryCallbacks())
-    repo.checkout(repo.branches[branch])
-    remote_default_head = repo.lookup_reference(f"refs/remotes/{remote}/{branch}")
+
+
+def pull_branch(repo: Repository, branch: str) -> None:
+    """Pull and update the branch from the remote repository."""
+    remote_default_head = repo.lookup_reference(repo.branches[branch].upstream_name)
     result, _ = repo.merge_analysis(remote_default_head.target)
     if result & MergeAnalysis.FASTFORWARD == MergeAnalysis.FASTFORWARD:
         repo.checkout_tree(repo.get(remote_default_head.target))
         local_default_head = repo.lookup_reference(f"refs/heads/{branch}")
         local_default_head.set_target(remote_default_head.target)
         repo.head.set_target(remote_default_head.target)
+
+
+def fetch_and_pull_branch(repo: Repository, remote: str, branch: str) -> None:
+    """Fetch and pull the `branch` from the `remote` repository."""
+    repo.checkout(repo.branches[branch])
+    fetch_repo(repo, remote)
+    pull_branch(repo, branch)
