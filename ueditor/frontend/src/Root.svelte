@@ -12,10 +12,10 @@
   import { currentFile } from "./stores";
 
   const uEditionConfig = getContext(
-    "uEditionConfig"
+    "uEditionConfig",
   ) as CreateQueryResult<UEditionSettings>;
   const uEditorConfig = getContext(
-    "uEditorConfig"
+    "uEditorConfig",
   ) as CreateQueryResult<UEditorSettings>;
   const currentBranch = getContext("currentBranch") as Readable<Branch | null>;
 
@@ -75,21 +75,3 @@
 </main>
 
 <Dialogs />
-<!--
-<Dialog.Root
-  bind:open={$uEditionConfig.isPending}
-  closeOnEscape={false}
-  closeOnOutsideClick={false}
->
-  <Dialog.Trigger class="hidden" />
-  <Dialog.Portal>
-    <Dialog.Overlay transition={fade} />
-    <Dialog.Content class="flex flex-col overflow-hidden">
-      <Dialog.Title>Loading the Configuration</Dialog.Title>
-      <div data-dialog-content-area>
-        <p>The configuration is being loaded. Please wait...</p>
-      </div>
-    </Dialog.Content>
-  </Dialog.Portal>
-</Dialog.Root>
--->

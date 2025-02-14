@@ -18,10 +18,26 @@
     return {
       queryKey: ["branches"],
       queryFn: apiQueryHandler<Branch[]>,
+      refetchInterval: 60000,
+      enabled: apiStatus.isSuccess && apiStatus.data.ready,
     };
   });
   const branches = createQuery(branchesQuery);
   setContext("branches", branches);
+
+  const remoteBranchesQuery = derived(apiStatus, (apiStatus) => {
+    return {
+      queryKey: ["branches"],
+      queryFn: apiQueryHandler<Branch[]>,
+      refetchInterval: 60000,
+      enabled:
+        apiStatus.isSuccess &&
+        apiStatus.data.ready &&
+        apiStatus.data.git_enabled,
+    };
+  });
+  const remoteBranches = createQuery(remoteBranchesQuery);
+  setContext("remoteBranches", remoteBranches);
 
   const currentBranch = writable(null as Branch | null);
   setContext("currentBranch", currentBranch);

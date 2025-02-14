@@ -1,15 +1,19 @@
 <script lang="ts">
-  import { Dialog, Menubar } from "bits-ui";
-  import { mdiCheckCircle, mdiSourceBranchPlus } from "@mdi/js";
+  import { Menubar } from "bits-ui";
+  import {
+    mdiCheckCircle,
+    mdiSourceBranchPlus,
+    mdiSourceBranchRemove,
+  } from "@mdi/js";
   import { getContext } from "svelte";
   import type { Writable } from "svelte/store";
   import type { CreateQueryResult } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
+  import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
 
   const branches = getContext("branches") as CreateQueryResult<Branch[]>;
   const currentBranch = getContext("currentBranch") as Writable<Branch | null>;
-  let newBranchDialogOpen = false;
 </script>
 
 <Menubar.Menu>
@@ -19,13 +23,24 @@
   <Menubar.Content>
     <Menubar.Item
       on:click={() => {
-        newBranchDialogOpen = true;
+        activeDialog.set(Dialogs.UEDITOR_NEW_BRANCH);
       }}
     >
       <Icon path={mdiSourceBranchPlus} class="w-4 h-4"></Icon>
       <span>New Branch</span>
     </Menubar.Item>
     <Menubar.Separator></Menubar.Separator>
+    {#if $currentBranch !== null}
+      <Menubar.Item
+        on:click={() => {
+          activeDialog.set(Dialogs.UEDITOR_DELETE_BRANCH);
+        }}
+      >
+        <Icon path={mdiSourceBranchRemove} class="w-4 h-4"></Icon>
+        <span>Delete Branch {$currentBranch.title}</span>
+      </Menubar.Item>
+      <Menubar.Separator></Menubar.Separator>
+    {/if}
     {#if $branches.isSuccess}
       <Menubar.RadioGroup
         onValueChange={(value) => {
@@ -52,13 +67,3 @@
     {/if}
   </Menubar.Content>
 </Menubar.Menu>
-
-<Dialog.Root bind:open={newBranchDialogOpen}>
-  <Dialog.Trigger class="hidden" />
-  <Dialog.Portal>
-    <Dialog.Overlay />
-    <Dialog.Content>
-      <Dialog.Title>Create a new Branch</Dialog.Title>
-    </Dialog.Content>
-  </Dialog.Portal>
-</Dialog.Root>
