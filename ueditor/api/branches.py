@@ -14,7 +14,7 @@ from pygit2.enums import FetchPrune, RepositoryOpenFlag
 from ueditor.api.configs import router as configs_router
 from ueditor.api.files import router as files_router
 from ueditor.api.util import RemoteRepositoryCallbacks, fetch_and_pull_branch, fetch_repo, pull_branch, uedition_lock
-from ueditor.settings import init_settings
+from ueditor.settings import get_ueditor_settings, init_settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/branches")
@@ -53,10 +53,16 @@ async def branches(category: str = "local") -> list:
                 for branch_name in repo.branches.local:
                     branches.append({"id": branch_name, "title": de_slugify(branch_name)})
             elif category == "remote":
-                if "origin" in list(repo.remotes.names()):
-                    repo.remotes["origin"].fetch(prune=FetchPrune.PRUNE, callbacks=RemoteRepositoryCallbacks())
+                settings = get_ueditor_settings()
+                if settings.git.remote_name in list(repo.remotes.names()):
+                    repo.remotes[settings.git.remote_name].fetch(
+                        prune=FetchPrune.PRUNE, callbacks=RemoteRepositoryCallbacks()
+                    )
                     for branch_name in repo.branches.remote:
-                        if repo.branches[branch_name].remote_name == "origin" and "HEAD" not in branch_name:
+                        if (
+                            repo.branches[branch_name].remote_name == settings.git.remote_name
+                            and "HEAD" not in branch_name
+                        ):
                             branches.append({"id": branch_name, "title": de_slugify(branch_name)})
             return branches
         except GitError as ge:
@@ -82,10 +88,11 @@ async def create_branch(data: CreateBranchModel) -> dict:
             repo = Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
             if branch_id in repo.branches.local:
                 raise HTTPException(422, detail=[{"msg": "this branch name is already in use"}])
-            if "origin" in list(repo.remotes.names()):
-                fetch_and_pull_branch(repo, "origin", "default")
+            settings = get_ueditor_settings()
+            if settings.git.remote_name in list(repo.remotes.names()):
+                fetch_and_pull_branch(repo, settings.git.remote_name, settings.git.default_branch)
             else:
-                repo.checkout(repo.branches["default"])
+                repo.checkout(repo.branches[settings.git.default_branch])
             for remote_branch_id in repo.branches.remote:
                 if remote_branch_id.endswith(branch_id):
                     raise HTTPException(
@@ -94,10 +101,12 @@ async def create_branch(data: CreateBranchModel) -> dict:
             last_default_commit = repo.revparse_single(str(repo.branches["default"].target))
             repo.branches.local.create(branch_id, last_default_commit)
             repo.checkout(repo.branches[branch_id])
-            if "origin" in list(repo.remotes.names()):
-                repo.remotes["origin"].push([f"refs/heads/{branch_id}"], callbacks=RemoteRepositoryCallbacks())
-                fetch_repo(repo, "origin")
-                repo.branches[branch_id].upstream = repo.branches[f"origin/{branch_id}"]
+            if settings.git.remote_name in list(repo.remotes.names()):
+                repo.remotes[settings.git.remote_name].push(
+                    [f"refs/heads/{branch_id}"], callbacks=RemoteRepositoryCallbacks()
+                )
+                fetch_repo(repo, settings.git.remote_name)
+                repo.branches[branch_id].upstream = repo.branches[f"{settings.git.remote_name}/{branch_id}"]
             return {"id": branch_id, "title": data.title}
         except GitError as ge:
             logger.error(ge)
@@ -110,8 +119,9 @@ async def fetch_branches() -> None:
     async with uedition_lock:
         try:
             repo = Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
-            if "origin" in list(repo.remotes.names()):
-                fetch_repo(repo, "origin")
+            settings = get_ueditor_settings()
+            if settings.git.remote_name in list(repo.remotes.names()):
+                fetch_repo(repo, settings.git.remote_name)
                 for branch_id in repo.branches.local:
                     if repo.branches[branch_id].upstream is not None:
                         pull_branch(repo, branch_id)
@@ -126,13 +136,18 @@ async def delete_branch(branch_id: str) -> None:
     async with uedition_lock:
         try:
             repo = Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
-            if "origin" in list(repo.remotes.names()):
-                fetch_and_pull_branch(repo, "default", "origin")
+            settings = get_ueditor_settings()
+            repo.checkout(settings.git.remote_name)
+            settings = get_ueditor_settings()
+            if settings.git.remote_name in list(repo.remotes.names()):
+                fetch_and_pull_branch(repo, settings.git.default_branch, settings.git.remote_name)
             else:
-                repo.checkout(repo.branches["default"])
-            if "origin" in list(repo.remotes.names()):
+                repo.checkout(repo.branches[settings.git.default_branch])
+            if settings.git.remote_name in list(repo.remotes.names()):
                 if repo.branches[branch_id].upstream is not None:
-                    repo.remotes["origin"].push([f":refs/heads/{branch_id}"], callbacks=RemoteRepositoryCallbacks())
+                    repo.remotes[settings.git.remote_name].push(
+                        [f":refs/heads/{branch_id}"], callbacks=RemoteRepositoryCallbacks()
+                    )
             if branch_id in repo.branches:
                 repo.branches.delete(branch_id)
         except GitError as ge:

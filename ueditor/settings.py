@@ -323,10 +323,17 @@ class TEISettings(BaseModel):
     """List of sections within the TEI document."""
 
 
-class UISettings(BaseSettings):
+class UISettings(BaseModel):
     """Settings for the UI."""
 
     css_files: list[str] = []
+
+
+class GitSettings(BaseModel):
+    """Settings for Git."""
+
+    remote_name: str = "origin"
+    default_branch: str = "main"
 
 
 class UEditorSettings(BaseSettings):
@@ -334,6 +341,7 @@ class UEditorSettings(BaseSettings):
 
     tei: TEISettings = TEISettings()
     ui: UISettings = UISettings()
+    git: GitSettings = GitSettings()
 
     @classmethod
     def settings_customise_sources(
