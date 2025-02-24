@@ -1,12 +1,14 @@
 """Utility functionality for the API."""
 
+import logging
 from asyncio import Lock
 
-from pygit2 import CredentialType, GitError, KeypairFromAgent, RemoteCallbacks, Repository
+from pygit2 import CredentialType, GitError, KeypairFromAgent, RemoteCallbacks, Repository, Signature
 from pygit2.enums import FetchPrune, MergeAnalysis, RepositoryOpenFlag
 
 from ueditor.settings import init_settings
 
+logger = logging.getLogger(__name__)
 uedition_lock = Lock()
 
 
@@ -76,3 +78,19 @@ def fetch_and_pull_branch(repo: Repository, remote: str, branch: str) -> None:
     repo.checkout(repo.branches[branch])
     fetch_repo(repo, remote)
     pull_branch(repo, branch)
+
+
+def commit_and_push(repo: Repository, remote: str, branch: str, commit_msg: str, author: Signature) -> None:
+    """Commit changes to the repository and push."""
+    if len(repo.status()) > 0:
+        logger.debug(f"Committing changes to {', '.join(repo.status().keys())}")
+        ref = repo.head.name
+        parents = [repo.head.target]
+        index = repo.index
+        index.add_all()
+        index.write()
+        tree = index.write_tree()
+        repo.create_commit(ref, author, author, commit_msg, tree, parents)
+        if remote in repo.remotes.names():
+            logger.debug(f"Pushing changes to {remote}")
+            repo.remotes[remote].push([f"refs/heads/{branch}"], callbacks=RemoteRepositoryCallbacks())

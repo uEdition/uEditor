@@ -17,7 +17,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from lxml import etree
 
-from ueditor.api.util import BranchContextManager, BranchNotFoundError, RemoteRepositoryCallbacks
+from ueditor.api.util import BranchContextManager, BranchNotFoundError, commit_and_push
 from ueditor.settings import (
     TEIMetadataSection,
     TEINodeAttribute,
@@ -268,14 +268,15 @@ async def get_file(
 
 @router.post("/{path:path}", status_code=204)
 async def create_file(
-    branch_id: int,
+    branch_id: str,
     path: str,
     new_type: Annotated[str, Header(alias="X-uEditor-New-Type")],
     rename_from: Annotated[str | None, Header(alias="X-uEditor-Rename-From")] = None,
 ) -> None:
     """Create a new file in the repo."""
     try:
-        async with BranchContextManager(branch_id):
+        async with BranchContextManager(branch_id) as repo:
+            settings = get_ueditor_settings()
             if new_type in ("file", "folder"):
                 full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
                 if full_path.startswith(os.path.abspath(init_settings.base_path)) and not os.path.exists(full_path):
@@ -288,6 +289,17 @@ async def create_file(
                         ):
                             try:
                                 os.rename(rename_source_path, full_path)
+                                if path.startswith("/"):
+                                    path = path[1:]
+                                commit_and_push(
+                                    repo,
+                                    settings.git.remote_name,
+                                    branch_id,
+                                    f"Renamed {path}",
+                                    pygit2.Signature(
+                                        settings.git.default_author.name, settings.git.default_author.email
+                                    ),
+                                )
                                 return
                             except OSError as err:
                                 raise HTTPException(
@@ -308,6 +320,15 @@ async def create_file(
                         if new_type == "file":
                             with open(full_path, "w") as out_f:  # noqa: F841
                                 pass
+                            if path.startswith("/"):
+                                path = path[1:]
+                            commit_and_push(
+                                repo,
+                                settings.git.remote_name,
+                                branch_id,
+                                f"Added {path}",
+                                pygit2.Signature(settings.git.default_author.name, settings.git.default_author.email),
+                            )
                             return
                         elif new_type == "folder":
                             os.makedirs(full_path)
@@ -586,22 +607,29 @@ async def update_file(
                     with open(full_path, "wb") as out_f:
                         out_f.write(await content.read())
                 if repo is not None and settings.git.default_author is not None:
-                    if len(repo.status()) > 0:
-                        logger.debug(f"Committing changes to {', '.join(repo.status().keys())}")
-                        ref = repo.head.name
-                        parents = [repo.head.target]
-                        index = repo.index
-                        index.add_all()
-                        index.write()
-                        author = pygit2.Signature(settings.git.default_author.name, settings.git.default_author.email)
-                        message = f"Updating {path}"
-                        tree = index.write_tree()
-                        repo.create_commit(ref, author, author, message, tree, parents)
-                        if settings.git.remote_name in repo.remotes.names():
-                            logger.debug(f"Pushing changes to {settings.git.remote_name}")
-                            repo.remotes[settings.git.remote_name].push(
-                                [f"refs/heads/{branch_id}"], callbacks=RemoteRepositoryCallbacks()
-                            )
+                    commit_and_push(
+                        repo,
+                        settings.git.remote_name,
+                        branch_id,
+                        f"Updated {path}",
+                        pygit2.Signature(settings.git.default_author.name, settings.git.default_author.email),
+                    )
+                    # if len(repo.status()) > 0:
+                    #     logger.debug(f"Committing changes to {', '.join(repo.status().keys())}")
+                    #     ref = repo.head.name
+                    #     parents = [repo.head.target]
+                    #     index = repo.index
+                    #     index.add_all()
+                    #     index.write()
+                    #     author = pygit2.Signature(settings.git.default_author.name, settings.git.default_author.email)
+                    #     message = f"Updating {path}"
+                    #     tree = index.write_tree()
+                    #     repo.create_commit(ref, author, author, message, tree, parents)
+                    #     if settings.git.remote_name in repo.remotes.names():
+                    #         logger.debug(f"Pushing changes to {settings.git.remote_name}")
+                    #         repo.remotes[settings.git.remote_name].push(
+                    #             [f"refs/heads/{branch_id}"], callbacks=RemoteRepositoryCallbacks()
+                    #         )
 
             else:
                 raise HTTPException(
@@ -619,20 +647,27 @@ async def delete_file(
 ) -> None:
     """Delete a file in the repo."""
     try:
-        async with BranchContextManager(branch_id):
+        async with BranchContextManager(branch_id) as repo:
+            settings = get_ueditor_settings()
             full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
             if full_path.startswith(os.path.abspath(init_settings.base_path)):
                 if os.path.isfile(full_path):
                     os.unlink(full_path)
-                    return
                 elif os.path.isdir(full_path):
                     shutil.rmtree(full_path)
-                    return
                 else:  # pragma: no cover
                     raise HTTPException(
                         422,
                         detail=[{"loc": ["path", "path"], "msg": "Unknown type of file"}],
                     )
-            raise HTTPException(404)
+                commit_and_push(
+                    repo,
+                    settings.git.remote_name,
+                    branch_id,
+                    f"Deleted {path}",
+                    pygit2.Signature(settings.git.default_author.name, settings.git.default_author.email),
+                )
+            else:
+                raise HTTPException(404)
     except BranchNotFoundError as bnfe:
         raise HTTPException(404) from bnfe
