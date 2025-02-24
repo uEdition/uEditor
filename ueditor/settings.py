@@ -2,10 +2,11 @@
 #
 # SPDX-License-Identifier: MIT
 """Settings for the uEditor."""
+
 import os
 from typing import Any, Dict, Literal, Optional, Tuple, Type
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 from uedition.settings import Settings as UEditonSettingsBase
@@ -39,7 +40,9 @@ class YAMLConfigSettingsSource(PydanticBaseSettingsSource):
                     break
 
     def get_field_value(
-        self: "YAMLConfigSettingsSource", field: FieldInfo, field_name: str  # noqa: ARG002
+        self: "YAMLConfigSettingsSource",
+        field: FieldInfo,  # noqa: ARG002
+        field_name: str,
     ) -> Tuple[Any, str, bool]:
         """Get the value of a specific field."""
         if self._file_content is not None:
@@ -329,11 +332,19 @@ class UISettings(BaseModel):
     css_files: list[str] = []
 
 
+class GitAuthor(BaseModel):
+    """Settings for an author in Git."""
+
+    name: str
+    email: EmailStr
+
+
 class GitSettings(BaseModel):
     """Settings for Git."""
 
     remote_name: str = "origin"
     default_branch: str = "main"
+    default_author: GitAuthor | None = None
 
 
 class UEditorSettings(BaseSettings):

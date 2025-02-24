@@ -4,18 +4,20 @@
 """The uEditor API for manipulating files."""
 
 import json
+import logging
 import mimetypes
 import os
 import re
 import shutil
 from typing import Annotated
 
+import pygit2
 from fastapi import APIRouter, Depends, Header, UploadFile
 from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from lxml import etree
 
-from ueditor.api.util import BranchContextManager, BranchNotFoundError
+from ueditor.api.util import BranchContextManager, BranchNotFoundError, RemoteRepositoryCallbacks
 from ueditor.settings import (
     TEIMetadataSection,
     TEINodeAttribute,
@@ -26,6 +28,7 @@ from ueditor.settings import (
     init_settings,
 )
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/files")
 namespaces = {
     "xml": "http://www.w3.org/XML/1998/namespace",
@@ -567,11 +570,11 @@ async def update_file(
     branch_id: str,
     path: str,
     content: UploadFile,
-    settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)],
 ) -> None:
     """Update the file in the repo."""
     try:
-        async with BranchContextManager(branch_id):
+        async with BranchContextManager(branch_id) as repo:
+            settings = get_ueditor_settings()
             full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
             if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
                 if full_path.endswith(".tei"):
@@ -582,6 +585,24 @@ async def update_file(
                 else:
                     with open(full_path, "wb") as out_f:
                         out_f.write(await content.read())
+                if repo is not None and settings.git.default_author is not None:
+                    if len(repo.status()) > 0:
+                        logger.debug(f"Committing changes to {', '.join(repo.status().keys())}")
+                        ref = repo.head.name
+                        parents = [repo.head.target]
+                        index = repo.index
+                        index.add_all()
+                        index.write()
+                        author = pygit2.Signature(settings.git.default_author.name, settings.git.default_author.email)
+                        message = f"Updating {path}"
+                        tree = index.write_tree()
+                        repo.create_commit(ref, author, author, message, tree, parents)
+                        if settings.git.remote_name in repo.remotes.names():
+                            logger.debug(f"Pushing changes to {settings.git.remote_name}")
+                            repo.remotes[settings.git.remote_name].push(
+                                [f"refs/heads/{branch_id}"], callbacks=RemoteRepositoryCallbacks()
+                            )
+
             else:
                 raise HTTPException(
                     422,
