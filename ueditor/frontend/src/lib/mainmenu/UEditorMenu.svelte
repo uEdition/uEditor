@@ -32,6 +32,14 @@
       <Icon path={mdiSourceBranchPlus} class="w-4 h-4"></Icon>
       <span>New Branch</span>
     </Menubar.Item>
+    <Menubar.Item
+      on:click={() => {
+        activeDialog.set(Dialogs.UEDITOR_IMPORT_REMOTE_BRANCH);
+      }}
+    >
+      <Icon class="w-4 h-4" />
+      <span>Import Branch</span>
+    </Menubar.Item>
     <Menubar.Separator></Menubar.Separator>
     {#if $currentBranch !== null && $uEditorConfig.isSuccess && $uEditorConfig.data.git.default_branch !== $currentBranch.id}
       <Menubar.Item

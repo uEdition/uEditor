@@ -4,10 +4,11 @@
 """The uEditor API for accessing branches."""
 
 import logging
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Header
 from fastapi.exceptions import HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pygit2 import GitError, Repository
 from pygit2.enums import FetchPrune, RepositoryOpenFlag
 
@@ -83,11 +84,14 @@ async def branches(category: str = "local") -> list:
 class CreateBranchModel(BaseModel):
     """Model representing a new branch."""
 
-    title: str
+    title: str = Field(min_length=1)
 
 
 @router.post("", response_model=BranchModel)
-async def create_branch(data: CreateBranchModel) -> dict:
+async def create_branch(
+    data: CreateBranchModel,
+    x_ueditor_import_branch: Annotated[bool, Header()] = False,  # noqa: FBT002
+) -> dict:
     """Create a new branch."""
     async with uedition_lock:
         try:
@@ -99,21 +103,28 @@ async def create_branch(data: CreateBranchModel) -> dict:
             if settings.git.remote_name in list(repo.remotes.names()):
                 fetch_and_pull_branch(repo, settings.git.remote_name, settings.git.default_branch)
             repo.checkout(repo.branches[settings.git.default_branch])
-            for remote_branch_id in repo.branches.remote:
-                if remote_branch_id.endswith(branch_id):
-                    raise HTTPException(
-                        422, detail=[{"msg": "this branch name is already used in the remote repository"}]
-                    )
-            last_default_commit = repo.revparse_single(str(repo.branches[settings.git.default_branch].target))
-            repo.branches.local.create(branch_id, last_default_commit)
-            repo.checkout(repo.branches[branch_id])
-            if settings.git.remote_name in list(repo.remotes.names()):
-                repo.remotes[settings.git.remote_name].push(
-                    [f"refs/heads/{branch_id}"], callbacks=RemoteRepositoryCallbacks()
-                )
-                fetch_repo(repo, settings.git.remote_name)
+            if x_ueditor_import_branch:
+                commit, reference = repo.resolve_refish(f"{settings.git.remote_name}/{branch_id}")
+                repo.branches.local.create(branch_id, commit)
+                repo.checkout(repo.branches[branch_id])
                 repo.branches[branch_id].upstream = repo.branches[f"{settings.git.remote_name}/{branch_id}"]
-            return {"id": branch_id, "title": data.title}
+                return {"id": branch_id, "title": de_slugify(data.title)}
+            else:
+                for remote_branch_id in repo.branches.remote:
+                    if remote_branch_id.endswith(branch_id):
+                        raise HTTPException(
+                            422, detail=[{"msg": "this branch name is already used in the remote repository"}]
+                        )
+                last_default_commit = repo.revparse_single(str(repo.branches[settings.git.default_branch].target))
+                repo.branches.local.create(branch_id, last_default_commit)
+                repo.checkout(repo.branches[branch_id])
+                if settings.git.remote_name in list(repo.remotes.names()):
+                    repo.remotes[settings.git.remote_name].push(
+                        [f"refs/heads/{branch_id}"], callbacks=RemoteRepositoryCallbacks()
+                    )
+                    fetch_repo(repo, settings.git.remote_name)
+                    repo.branches[branch_id].upstream = repo.branches[f"{settings.git.remote_name}/{branch_id}"]
+                return {"id": branch_id, "title": data.title}
         except GitError as ge:
             logger.error(ge)
             raise HTTPException(500, "Git error") from ge

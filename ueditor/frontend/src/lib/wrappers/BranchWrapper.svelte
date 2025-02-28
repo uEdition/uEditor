@@ -27,7 +27,7 @@
 
   const remoteBranchesQuery = derived(apiStatus, (apiStatus) => {
     return {
-      queryKey: ["branches"],
+      queryKey: ["branches", "?category=remote"],
       queryFn: apiQueryHandler<Branch[]>,
       refetchInterval: 60000,
       enabled:

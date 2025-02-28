@@ -8,11 +8,18 @@ import { type QueryOptions } from "@tanstack/svelte-query";
  */
 export async function apiQueryHandler<ResponseModel>({ queryKey }: QueryOptions) {
   if (queryKey) {
-    let url = "/api";
-    if (queryKey.length > 1 || (queryKey.length === 1 && queryKey[0] !== "")) {
-      url = url + "/" + queryKey.join("/");
+    const url = ["/api"];
+    for (const part of (queryKey as string[])) {
+      if (part !== "") {
+        if (part[0] === "?" || part[0] === "&") {
+          url.push(part);
+        } else {
+          url.push("/");
+          url.push(part);
+        }
+      }
     }
-    let response = await window.fetch(url);
+    let response = await window.fetch(url.join(""));
     if (response.ok) {
       return (await response.json()) as ResponseModel;
     }
