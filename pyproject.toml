@@ -44,7 +44,7 @@ Source = "https://github.com/unknown/ueditor"
 path = "ueditor/__about__.py"
 
 [tool.hatch.envs.default]
-extra-dependencies = ["coverage[toml]>=6.5", "httpx", "pytest"]
+extra-dependencies = ["coverage[toml]>=6.5", "httpx", "pytest", "ruff==0.9.5"]
 
 [tool.hatch.envs.default.scripts]
 server = "uvicorn --reload --port 8000 ueditor:app {args}"
@@ -54,18 +54,7 @@ test = "UEDITOR_BASE_PATH=./tmp_fixtures UEDITOR_TEST=true pytest {args:tests}"
 test-cov = "UEDITOR_BASE_PATH=./tmp_fixtures UEDITOR_TEST=true coverage run -m pytest {args:tests}"
 cov-report = ["- coverage combine", "coverage report"]
 cov = ["test-cov", "cov-report"]
-
-[tool.hatch.envs.lint]
-detached = true
-dependencies = ["black>=23.1.0", "mypy>=1.0.0", "ruff>=0.0.243"]
-[tool.hatch.envs.lint.scripts]
-style = ["ruff check {args:.}", "black --check --diff {args:.}"]
-fmt = ["black {args:.}", "ruff --fix {args:.}", "style"]
-all = ["style"]
-
-[tool.black]
-target-version = ["py37"]
-line-length = 120
+style = ["ruff check {args:.}", "ruff format {args:.}"]
 
 [tool.ruff]
 target-version = "py37"
