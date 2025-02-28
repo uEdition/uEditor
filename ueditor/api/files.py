@@ -291,15 +291,16 @@ async def create_file(
                                 os.rename(rename_source_path, full_path)
                                 if path.startswith("/"):
                                     path = path[1:]
-                                commit_and_push(
-                                    repo,
-                                    settings.git.remote_name,
-                                    branch_id,
-                                    f"Renamed {path}",
-                                    pygit2.Signature(
-                                        settings.git.default_author.name, settings.git.default_author.email
-                                    ),
-                                )
+                                if repo is not None and settings.git.default_author is not None:
+                                    commit_and_push(
+                                        repo,
+                                        settings.git.remote_name,
+                                        branch_id,
+                                        f"Renamed {path}",
+                                        pygit2.Signature(
+                                            settings.git.default_author.name, settings.git.default_author.email
+                                        ),
+                                    )
                                 return
                             except OSError as err:
                                 raise HTTPException(
@@ -322,13 +323,16 @@ async def create_file(
                                 pass
                             if path.startswith("/"):
                                 path = path[1:]
-                            commit_and_push(
-                                repo,
-                                settings.git.remote_name,
-                                branch_id,
-                                f"Added {path}",
-                                pygit2.Signature(settings.git.default_author.name, settings.git.default_author.email),
-                            )
+                            if repo is not None and settings.git.default_author is not None:
+                                commit_and_push(
+                                    repo,
+                                    settings.git.remote_name,
+                                    branch_id,
+                                    f"Added {path}",
+                                    pygit2.Signature(
+                                        settings.git.default_author.name, settings.git.default_author.email
+                                    ),
+                                )
                             return
                         elif new_type == "folder":
                             os.makedirs(full_path)
@@ -643,13 +647,14 @@ async def delete_file(
                         422,
                         detail=[{"loc": ["path", "path"], "msg": "Unknown type of file"}],
                     )
-                commit_and_push(
-                    repo,
-                    settings.git.remote_name,
-                    branch_id,
-                    f"Deleted {path}",
-                    pygit2.Signature(settings.git.default_author.name, settings.git.default_author.email),
-                )
+                if repo is not None and settings.git.default_author is not None:
+                    commit_and_push(
+                        repo,
+                        settings.git.remote_name,
+                        branch_id,
+                        f"Deleted {path}",
+                        pygit2.Signature(settings.git.default_author.name, settings.git.default_author.email),
+                    )
             else:
                 raise HTTPException(404)
     except BranchNotFoundError as bnfe:
