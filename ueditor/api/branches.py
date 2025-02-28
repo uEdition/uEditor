@@ -126,6 +126,8 @@ async def fetch_branches() -> None:
         try:
             repo = Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
             settings = get_ueditor_settings()
+            repo.checkout(repo.branches[settings.git.default_branch])
+            settings = get_ueditor_settings()
             if settings.git.remote_name in list(repo.remotes.names()):
                 fetch_repo(repo, settings.git.remote_name)
                 for branch_id in repo.branches.local:
