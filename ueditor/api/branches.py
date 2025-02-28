@@ -91,14 +91,13 @@ async def create_branch(data: CreateBranchModel) -> dict:
             settings = get_ueditor_settings()
             if settings.git.remote_name in list(repo.remotes.names()):
                 fetch_and_pull_branch(repo, settings.git.remote_name, settings.git.default_branch)
-            else:
-                repo.checkout(repo.branches[settings.git.default_branch])
+            repo.checkout(repo.branches[settings.git.default_branch])
             for remote_branch_id in repo.branches.remote:
                 if remote_branch_id.endswith(branch_id):
                     raise HTTPException(
                         422, detail=[{"msg": "this branch name is already used in the remote repository"}]
                     )
-            last_default_commit = repo.revparse_single(str(repo.branches["default"].target))
+            last_default_commit = repo.revparse_single(str(repo.branches[settings.git.default_branch].target))
             repo.branches.local.create(branch_id, last_default_commit)
             repo.checkout(repo.branches[branch_id])
             if settings.git.remote_name in list(repo.remotes.names()):
