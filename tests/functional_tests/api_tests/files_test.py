@@ -592,32 +592,32 @@ def test_update_tei_file(tei_app: TestClient) -> None:
   <tei:text>
     <tei:body>
       <tei:head type="level-1">
-        <tei:span>Welcome</tei:span>
+        <tei:seg>Welcome</tei:seg>
       </tei:head>
       <tei:p>
-        <tei:span>This is a </tei:span>
+        <tei:seg>This is a </tei:seg>
         <tei:hi style="font-weight-bold">very, </tei:hi>
         <tei:hi style="font-weight-bold">
           <tei:hi style="font-style-italic">very</tei:hi>
         </tei:hi>
-        <tei:span> </tei:span>
+        <tei:seg> </tei:seg>
         <tei:hi style="font-style-italic">important</tei:hi>
-        <tei:span> message.</tei:span>
+        <tei:seg> message.</tei:seg>
         <tei:ref target="#footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c" type="footnote">[1]</tei:ref>
       </tei:p>
       <tei:head type="">
-        <tei:span>Heading with the default type</tei:span>
+        <tei:seg>Heading with the default type</tei:seg>
       </tei:head>
     </tei:body>
     <tei:noteGrp type="footnotes">
       <tei:note xml:id="footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836c">
         <tei:p>
-          <tei:span>This is just a footnote.</tei:span>
+          <tei:seg>This is just a footnote.</tei:seg>
         </tei:p>
       </tei:note>
       <tei:note xml:id="footnote-5b24d8dd-c031-49e0-bcfd-5ab400ee836d">
         <tei:p>
-          <tei:span>A second footnote.</tei:span>
+          <tei:seg>A second footnote.</tei:seg>
         </tei:p>
       </tei:note>
     </tei:noteGrp>
