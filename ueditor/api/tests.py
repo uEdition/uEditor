@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """The uEditor API for accessing configurations."""
+
 import logging
 import os
 from shutil import copytree, rmtree

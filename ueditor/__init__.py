@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """The main uEditor server."""
+
 import logging
 
 from fastapi import FastAPI
