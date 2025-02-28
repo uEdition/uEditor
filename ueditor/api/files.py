@@ -614,23 +614,6 @@ async def update_file(
                         f"Updated {path}",
                         pygit2.Signature(settings.git.default_author.name, settings.git.default_author.email),
                     )
-                    # if len(repo.status()) > 0:
-                    #     logger.debug(f"Committing changes to {', '.join(repo.status().keys())}")
-                    #     ref = repo.head.name
-                    #     parents = [repo.head.target]
-                    #     index = repo.index
-                    #     index.add_all()
-                    #     index.write()
-                    #     author = pygit2.Signature(settings.git.default_author.name, settings.git.default_author.email)
-                    #     message = f"Updating {path}"
-                    #     tree = index.write_tree()
-                    #     repo.create_commit(ref, author, author, message, tree, parents)
-                    #     if settings.git.remote_name in repo.remotes.names():
-                    #         logger.debug(f"Pushing changes to {settings.git.remote_name}")
-                    #         repo.remotes[settings.git.remote_name].push(
-                    #             [f"refs/heads/{branch_id}"], callbacks=RemoteRepositoryCallbacks()
-                    #         )
-
             else:
                 raise HTTPException(
                     422,
