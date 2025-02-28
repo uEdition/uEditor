@@ -9,7 +9,7 @@ import { type QueryOptions } from "@tanstack/svelte-query";
 export async function apiQueryHandler<ResponseModel>({ queryKey }: QueryOptions) {
   if (queryKey) {
     let url = "/api";
-    if (queryKey.length > 0) {
+    if (queryKey.length > 1 || (queryKey.length === 1 && queryKey[0] !== "")) {
       url = url + "/" + queryKey.join("/");
     }
     let response = await window.fetch(url);
