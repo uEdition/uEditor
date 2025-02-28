@@ -54,7 +54,7 @@ test = "UEDITOR_BASE_PATH=./tmp_fixtures UEDITOR_TEST=true pytest {args:tests}"
 test-cov = "UEDITOR_BASE_PATH=./tmp_fixtures UEDITOR_TEST=true coverage run -m pytest {args:tests}"
 cov-report = ["- coverage combine", "coverage report"]
 cov = ["test-cov", "cov-report"]
-style = ["ruff check {args:.}", "ruff format {args:.}"]
+style = ["ruff check --fix --exit-non-zero-on-fix {args:.}", "ruff format --check {args:.}"]
 
 [tool.ruff]
 target-version = "py37"
