@@ -14,6 +14,10 @@ currentFile.subscribe((currentFile) => {
   }
 });
 
+export function useUEditorConfig() {
+  return getContext("uEditorConfig") as CreateQueryResult<UEditorSettings>;
+}
+
 export function useCurrentBranch() {
   return getContext("currentBranch") as Writable<Branch | null>;
 }

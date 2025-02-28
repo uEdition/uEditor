@@ -206,7 +206,16 @@ type UEditorTEIActions =
   | UEditorTEISelectCrossReferenceMarkAttribute
   | UEditorTEIInputMarkAttribute;
 
-type UEditorSettings = { tei: UEditorTEISettings };
+type UEditorGitSettings = {
+  remote_name: string;
+  default_branch: string;
+  default_author: {
+    name: string;
+    email: string;
+  };
+};
+
+type UEditorSettings = { tei: UEditorTEISettings; git: UEditorGitSettings; };
 
 type FileTreeEntry = {
   name: string;

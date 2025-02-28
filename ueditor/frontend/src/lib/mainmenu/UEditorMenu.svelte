@@ -5,15 +5,18 @@
     mdiSourceBranchPlus,
     mdiSourceBranchRemove,
   } from "@mdi/js";
-  import { getContext } from "svelte";
-  import type { Writable } from "svelte/store";
-  import type { CreateQueryResult } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
   import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
+  import {
+    useBranches,
+    useCurrentBranch,
+    useUEditorConfig,
+  } from "../../stores";
 
-  const branches = getContext("branches") as CreateQueryResult<Branch[]>;
-  const currentBranch = getContext("currentBranch") as Writable<Branch | null>;
+  const uEditorConfig = useUEditorConfig();
+  const branches = useBranches();
+  const currentBranch = useCurrentBranch();
 </script>
 
 <Menubar.Menu>
@@ -30,7 +33,7 @@
       <span>New Branch</span>
     </Menubar.Item>
     <Menubar.Separator></Menubar.Separator>
-    {#if $currentBranch !== null}
+    {#if $currentBranch !== null && $uEditorConfig.isSuccess && $uEditorConfig.data.git.default_branch !== $currentBranch.id}
       <Menubar.Item
         on:click={() => {
           activeDialog.set(Dialogs.UEDITOR_DELETE_BRANCH);

@@ -13,7 +13,14 @@ from pygit2.enums import FetchPrune, RepositoryOpenFlag
 
 from ueditor.api.configs import router as configs_router
 from ueditor.api.files import router as files_router
-from ueditor.api.util import RemoteRepositoryCallbacks, fetch_and_pull_branch, fetch_repo, pull_branch, uedition_lock
+from ueditor.api.util import (
+    BranchContextManager,
+    RemoteRepositoryCallbacks,
+    fetch_and_pull_branch,
+    fetch_repo,
+    pull_branch,
+    uedition_lock,
+)
 from ueditor.settings import get_ueditor_settings, init_settings
 
 logger = logging.getLogger(__name__)
@@ -132,23 +139,18 @@ async def fetch_branches() -> None:
 @router.delete("/{branch_id}", status_code=204)
 async def delete_branch(branch_id: str) -> None:
     """Delete the given branch locally and remotely."""
-    async with uedition_lock:
-        try:
-            repo = Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
-            settings = get_ueditor_settings()
-            repo.checkout(settings.git.remote_name)
-            settings = get_ueditor_settings()
-            if settings.git.remote_name in list(repo.remotes.names()):
-                fetch_and_pull_branch(repo, settings.git.default_branch, settings.git.remote_name)
-            else:
-                repo.checkout(repo.branches[settings.git.default_branch])
-            if settings.git.remote_name in list(repo.remotes.names()):
-                if repo.branches[branch_id].upstream is not None:
-                    repo.remotes[settings.git.remote_name].push(
-                        [f":refs/heads/{branch_id}"], callbacks=RemoteRepositoryCallbacks()
-                    )
-            if branch_id in repo.branches:
-                repo.branches.delete(branch_id)
-        except GitError as ge:
-            logger.error(ge)
-            raise HTTPException(500, "Git error") from ge
+    async with BranchContextManager(branch_id) as repo:
+        settings = get_ueditor_settings()
+        fetch_and_pull_branch(repo, settings.git.remote_name, branch_id)
+        settings = get_ueditor_settings()
+        if settings.git.default_branch == branch_id:
+            raise HTTPException(422, detail=[{"msg": "you cannot delete the default branch"}])
+        repo.checkout(repo.branches[settings.git.default_branch])
+        settings = get_ueditor_settings()
+        if settings.git.remote_name in list(repo.remotes.names()):
+            if repo.branches[branch_id].upstream is not None:
+                repo.remotes[settings.git.remote_name].push(
+                    [f":refs/heads/{branch_id}"], callbacks=RemoteRepositoryCallbacks()
+                )
+        if branch_id in repo.branches:
+            repo.branches.delete(branch_id)
