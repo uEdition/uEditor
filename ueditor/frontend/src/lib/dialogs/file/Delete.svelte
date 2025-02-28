@@ -26,7 +26,7 @@
           $currentFile.fullpath,
         {
           method: "DELETE",
-        }
+        },
       );
       if (response.ok) {
         queryClient.invalidateQueries({
@@ -63,7 +63,7 @@
       >. To confirm the action, please enter the name of the file to delete.
     </p>
     <label class="block">
-      <span data-form-field-label>Confirmation Filename</span>
+      <span data-form-field-label>Confirm filename</span>
       <input bind:value={confirmationText} type="text" data-form-field-text />
       {#if error}
         <span data-form-field-error>{error}</span>

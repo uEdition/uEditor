@@ -5,17 +5,22 @@ from fastapi.testclient import TestClient
 
 def test_basic_tei_config(simple_app: TestClient) -> None:
     """Test fetching a simple TEI config."""
-    response = simple_app.get("/api/configs/ueditor")
+    response = simple_app.get("/api/branches/-1/configs/ueditor")
     assert response.status_code == 200
-    assert response.json() == {"ui": {"css_files": []}, "tei": {"blocks": [], "marks": [], "sections": []}}
+    assert response.json() == {
+        "ui": {"css_files": []},
+        "git": {"default_author": None, "default_branch": "main", "remote_name": "origin"},
+        "tei": {"blocks": [], "marks": [], "sections": []},
+    }
 
 
 def test_complex_tei_config(tei_app: TestClient) -> None:
     """Test fetching a complex TEI config."""
-    response = tei_app.get("/api/configs/ueditor")
+    response = tei_app.get("/api/branches/-1/configs/ueditor")
     assert response.status_code == 200
     assert response.json() == {
         "ui": {"css_files": ["static/style.css"]},
+        "git": {"default_author": None, "default_branch": "main", "remote_name": "origin"},
         "tei": {
             "blocks": [
                 {
@@ -158,7 +163,7 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
 
 def test_basic_uedition_config(simple_app: TestClient) -> None:
     """Test fetching a simple uEdition config."""
-    response = simple_app.get("/api/configs/uedition")
+    response = simple_app.get("/api/branches/-1/configs/uedition")
     assert response.status_code == 200
     assert response.json() == {
         "version": "1",
@@ -173,7 +178,7 @@ def test_basic_uedition_config(simple_app: TestClient) -> None:
 
 def test_empty_custom_css_styles(simple_app: TestClient) -> None:
     """Test fetching empty custom CSS styles."""
-    response = simple_app.get("/api/configs/ui-stylesheet")
+    response = simple_app.get("/api/branches/-1/configs/ui-stylesheet")
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "text/css; charset=utf-8"
     assert response.text == ""
@@ -181,7 +186,7 @@ def test_empty_custom_css_styles(simple_app: TestClient) -> None:
 
 def test_custom_css_styles(tei_app: TestClient) -> None:
     """Test fetching empty custom CSS styles."""
-    response = tei_app.get("/api/configs/ui-stylesheet")
+    response = tei_app.get("/api/branches/-1/configs/ui-stylesheet")
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "text/css; charset=utf-8"
     assert (

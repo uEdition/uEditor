@@ -9,6 +9,7 @@
   const apiStatus = createQuery({
     queryKey: [""],
     queryFn: apiQueryHandler<APIStatus>,
+    refetchInterval: 60000,
   });
   setContext("apiStatus", apiStatus);
 </script>

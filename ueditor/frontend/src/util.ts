@@ -8,7 +8,18 @@ import { type QueryOptions } from "@tanstack/svelte-query";
  */
 export async function apiQueryHandler<ResponseModel>({ queryKey }: QueryOptions) {
   if (queryKey) {
-    let response = await window.fetch("/api/" + queryKey.join("/"));
+    const url = ["/api"];
+    for (const part of (queryKey as string[])) {
+      if (part !== "") {
+        if (part[0] === "?" || part[0] === "&") {
+          url.push(part);
+        } else {
+          url.push("/");
+          url.push(part);
+        }
+      }
+    }
+    let response = await window.fetch(url.join(""));
     if (response.ok) {
       return (await response.json()) as ResponseModel;
     }
@@ -70,7 +81,7 @@ export function textForFirstNodeOfTipTapDocument(doc: TipTapDocument): string {
  * @param name The name of the parameter to set.
  * @param value The value to use.
  */
-export function setApplicationParameter(name: string, value:string) {
+export function setApplicationParameter(name: string, value: string) {
   let hash = window.location.hash;
   if (hash.startsWith("#")) {
     hash = hash.substring(1);
@@ -104,7 +115,7 @@ export function getApplicationParameter(name: string): string | null {
  *
  * @param name The name of the parameter to delete.
  */
-export function deleteApplicationParameter(name:string){
+export function deleteApplicationParameter(name: string) {
   let hash = window.location.hash;
   if (hash.startsWith("#")) {
     hash = hash.substring(1);

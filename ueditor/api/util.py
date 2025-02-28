@@ -1,12 +1,14 @@
 """Utility functionality for the API."""
 
+import logging
 from asyncio import Lock
 
-from pygit2 import GitError, Repository
-from pygit2.enums import RepositoryOpenFlag
+from pygit2 import CredentialType, GitError, KeypairFromAgent, RemoteCallbacks, Repository, Signature
+from pygit2.enums import FetchPrune, MergeAnalysis, RepositoryOpenFlag
 
 from ueditor.settings import init_settings
 
+logger = logging.getLogger(__name__)
 uedition_lock = Lock()
 
 
@@ -42,3 +44,53 @@ class BranchContextManager:
     async def __aexit__(self, exc_type, exc, tb):
         """Exit the context manager, releasing the lock."""
         uedition_lock.release()
+
+
+class RemoteRepositoryCallbacks(RemoteCallbacks):
+    """Callback handler for connecting to remote repositories."""
+
+    def credentials(self, url: str, username_from_url: str | None, allowed_types: CredentialType):  # noqa:ARG002
+        """Return the credentials for the remote connection."""
+        if allowed_types & CredentialType.SSH_KEY == CredentialType.SSH_KEY:
+            return KeypairFromAgent(username_from_url)
+        else:
+            return None
+
+
+def fetch_repo(repo: Repository, remote: str) -> None:
+    """Fetch the remote repository."""
+    repo.remotes[remote].fetch(prune=FetchPrune.PRUNE, callbacks=RemoteRepositoryCallbacks())
+
+
+def pull_branch(repo: Repository, branch: str) -> None:
+    """Pull and update the branch from the remote repository."""
+    remote_default_head = repo.lookup_reference(repo.branches[branch].upstream_name)
+    result, _ = repo.merge_analysis(remote_default_head.target)
+    if result & MergeAnalysis.FASTFORWARD == MergeAnalysis.FASTFORWARD:
+        repo.checkout_tree(repo.get(remote_default_head.target))
+        local_default_head = repo.lookup_reference(f"refs/heads/{branch}")
+        local_default_head.set_target(remote_default_head.target)
+        repo.head.set_target(remote_default_head.target)
+
+
+def fetch_and_pull_branch(repo: Repository, remote: str, branch: str) -> None:
+    """Fetch and pull the `branch` from the `remote` repository."""
+    repo.checkout(repo.branches[branch])
+    fetch_repo(repo, remote)
+    pull_branch(repo, branch)
+
+
+def commit_and_push(repo: Repository, remote: str, branch: str, commit_msg: str, author: Signature) -> None:
+    """Commit changes to the repository and push."""
+    if len(repo.status()) > 0:
+        logger.debug(f"Committing changes to {', '.join(repo.status().keys())}")
+        ref = repo.head.name
+        parents = [repo.head.target]
+        index = repo.index
+        index.add_all()
+        index.write()
+        tree = index.write_tree()
+        repo.create_commit(ref, author, author, commit_msg, tree, parents)
+        if remote in repo.remotes.names():
+            logger.debug(f"Pushing changes to {remote}")
+            repo.remotes[remote].push([f"refs/heads/{branch}"], callbacks=RemoteRepositoryCallbacks())
