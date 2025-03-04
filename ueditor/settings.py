@@ -7,13 +7,16 @@ import os
 from secrets import token_hex
 from typing import Any, Dict, Literal, Optional, Tuple, Type
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, model_validator
 from pydantic.fields import FieldInfo
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
     SettingsConfigDict,
 )
+from pygit2 import GitError, Repository
+from pygit2.enums import RepositoryOpenFlag
+from typing_extensions import Self
 from uedition.settings import Settings as UEditonSettingsBase
 from yaml import safe_load
 
@@ -65,13 +68,34 @@ class SessionSettings(BaseModel):
     key: str = token_hex(32)
 
 
+class GitSettings(BaseModel):
+    """Settings for Git."""
+
+    remote_name: str = "origin"
+    default_branch: str = "main"
+
+
 class InitSettings(BaseSettings):
     """The initialisation settings."""
 
     base_path: str = "./"
     auth: NoAuth | EmailAuth | EmailPasswordAuth | GithubOAuth2 = NoAuth()
     session: SessionSettings = SessionSettings()
+    git: GitSettings = GitSettings()
     test: bool = False
+
+    @model_validator(mode="after")
+    def git_auth_check(self) -> Self:
+        """Check that there is no git repository for no-auth authentication."""
+        if self.auth.provider == "no-auth":
+            try:
+                Repository(self.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
+                raise ValueError(
+                    "You need to configure an authentication method when using a git repository."  # noqa: EM101
+                )
+            except GitError:
+                pass
+        return self
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -392,27 +416,11 @@ class UISettings(BaseModel):
     css_files: list[str] = []
 
 
-class GitAuthor(BaseModel):
-    """Settings for an author in Git."""
-
-    name: str
-    email: EmailStr
-
-
-class GitSettings(BaseModel):
-    """Settings for Git."""
-
-    remote_name: str = "origin"
-    default_branch: str = "main"
-    default_author: GitAuthor | None = None
-
-
 class UEditorSettings(BaseSettings):
     """The uEditor settings."""
 
     tei: TEISettings = TEISettings()
     ui: UISettings = UISettings()
-    git: GitSettings = GitSettings()
 
     @classmethod
     def settings_customise_sources(

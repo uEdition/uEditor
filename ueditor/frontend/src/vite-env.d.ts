@@ -3,7 +3,10 @@
 
 type APIStatus = {
   ready: boolean;
-  git_enabled: boolean;
+  git: {
+    enabled: boolean;
+    default_branch: string | null;
+  };
   auth: {
     provider: "no-auth" | "email" | "email-password";
   };
@@ -214,16 +217,7 @@ type UEditorTEIActions =
   | UEditorTEISelectCrossReferenceMarkAttribute
   | UEditorTEIInputMarkAttribute;
 
-type UEditorGitSettings = {
-  remote_name: string;
-  default_branch: string;
-  default_author: {
-    name: string;
-    email: string;
-  };
-};
-
-type UEditorSettings = { tei: UEditorTEISettings; git: UEditorGitSettings };
+type UEditorSettings = { tei: UEditorTEISettings };
 
 type FileTreeEntry = {
   name: string;

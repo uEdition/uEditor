@@ -41,7 +41,7 @@
         enabled:
           apiStatus.isSuccess &&
           apiStatus.data.ready &&
-          apiStatus.data.git_enabled &&
+          apiStatus.data.git.enabled &&
           currentUser.isSuccess,
       };
     }
@@ -70,7 +70,7 @@
         enabled:
           apiStatus.isSuccess &&
           apiStatus.data.ready &&
-          apiStatus.data.git_enabled &&
+          apiStatus.data.git.enabled &&
           currentUser.isSuccess,
       };
     }
@@ -82,7 +82,7 @@
     if (
       apiStatus.isSuccess &&
       apiStatus.data.ready &&
-      !apiStatus.data.git_enabled
+      !apiStatus.data.git.enabled
     ) {
       currentBranch.set({ id: "-", nogit: true, title: "All files" });
     }

@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth")
 
 
-def current_user(ueditor_user: Annotated[str | None, Cookie()] = None):
+def get_current_user(ueditor_user: Annotated[str | None, Cookie()] = None):
     """Get the current user from the session cookie."""
     if ueditor_user is not None:
         try:
@@ -119,6 +119,6 @@ class UserModel(BaseModel):
 
 
 @router.get("/user", response_model=UserModel)
-def user(current_user: Annotated[dict, Depends(current_user)]):
+def user(current_user: Annotated[dict, Depends(get_current_user)]):
     """Return the currently logged in user."""
     return current_user

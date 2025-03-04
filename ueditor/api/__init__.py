@@ -29,14 +29,22 @@ class APIStatusAuth(BaseModel):
     provider: Literal["no-auth"] | Literal["email"] | Literal["email-password"]
 
 
+class APIStatusGit(BaseModel):
+    """Pydantic model for validating the git API status."""
+
+    enabled: bool
+    default_branch: str | None
+
+
 class APIStatus(BaseModel):
     """Pydantic model for validating the API status."""
 
     ready: bool
     """Indicate whether the API is ready."""
-    git_enabled: bool
-    """Indicate whether Git is available."""
+    git: APIStatusGit
+    """Indicate the Git status."""
     auth: APIStatusAuth
+    """Indicate the authentication system status."""
 
 
 @router.get("", response_model=APIStatus)
@@ -44,12 +52,15 @@ def api() -> dict:
     """Return the status of the API."""
     api_status = {
         "ready": True,
-        "git_enabled": False,
+        "git": {
+            "enabled": False,
+        },
         "auth": {"provider": init_settings.auth.provider},
     }
     try:
         Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
-        api_status["git_enabled"] = True
+        api_status["git"]["enabled"] = True
+        api_status["git"]["default_branch"] = init_settings.git.default_branch
     except GitError:
         pass
     return api_status
