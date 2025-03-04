@@ -9,56 +9,72 @@
     getApplicationParameter,
     setApplicationParameter,
   } from "../../util";
+  import { useApiStatus, useCurrentUser } from "../../stores";
 
   const initialBranchId = getApplicationParameter("branch");
 
-  const apiStatus = getContext("apiStatus") as CreateQueryResult<APIStatus>;
+  const apiStatus = useApiStatus();
+  const currentUser = useCurrentUser();
 
-  const branchesQuery = derived(apiStatus, (apiStatus) => {
-    return {
-      queryKey: ["branches"],
-      queryFn: apiQueryHandler<Branch[]>,
-      refetchInterval: 60000,
-      enabled: apiStatus.isSuccess && apiStatus.data.ready,
-    };
-  });
+  const branchesQuery = derived(
+    [apiStatus, currentUser],
+    ([apiStatus, currentUser]) => {
+      return {
+        queryKey: ["branches"],
+        queryFn: apiQueryHandler<Branch[]>,
+        refetchInterval: 60000,
+        enabled:
+          apiStatus.isSuccess && apiStatus.data.ready && currentUser.isSuccess,
+      };
+    }
+  );
   const branches = createQuery(branchesQuery);
   setContext("branches", branches);
 
-  const remoteBranchesQuery = derived(apiStatus, (apiStatus) => {
-    return {
-      queryKey: ["branches", "?category=remote"],
-      queryFn: apiQueryHandler<Branch[]>,
-      refetchInterval: 60000,
-      enabled:
-        apiStatus.isSuccess &&
-        apiStatus.data.ready &&
-        apiStatus.data.git_enabled,
-    };
-  });
+  const remoteBranchesQuery = derived(
+    [apiStatus, currentUser],
+    ([apiStatus, currentUser]) => {
+      return {
+        queryKey: ["branches", "?category=remote"],
+        queryFn: apiQueryHandler<Branch[]>,
+        refetchInterval: 60000,
+        enabled:
+          apiStatus.isSuccess &&
+          apiStatus.data.ready &&
+          apiStatus.data.git_enabled &&
+          currentUser.isSuccess,
+      };
+    }
+  );
   const remoteBranches = createQuery(remoteBranchesQuery);
   setContext("remoteBranches", remoteBranches);
 
   const currentBranch = writable(null as Branch | null);
   setContext("currentBranch", currentBranch);
 
-  const syncBranchesQuery = derived(apiStatus, (apiStatus) => {
-    return {
-      queryKey: [":internal:", "branches"],
-      queryFn: async () => {
-        let response = await window.fetch("/api/branches", { method: "PATCH" });
-        if (response.ok) {
-          return true;
-        }
-        throw new Error("Could not fetch data");
-      },
-      refetchInterval: 60000,
-      enabled:
-        apiStatus.isSuccess &&
-        apiStatus.data.ready &&
-        apiStatus.data.git_enabled,
-    };
-  });
+  const syncBranchesQuery = derived(
+    [apiStatus, currentUser],
+    ([apiStatus, currentUser]) => {
+      return {
+        queryKey: [":internal:", "branches"],
+        queryFn: async () => {
+          let response = await window.fetch("/api/branches", {
+            method: "PATCH",
+          });
+          if (response.ok) {
+            return true;
+          }
+          throw new Error("Could not fetch data");
+        },
+        refetchInterval: 60000,
+        enabled:
+          apiStatus.isSuccess &&
+          apiStatus.data.ready &&
+          apiStatus.data.git_enabled &&
+          currentUser.isSuccess,
+      };
+    }
+  );
   const syncBranches = createQuery(syncBranchesQuery);
   setContext("syncBranches", syncBranches);
 

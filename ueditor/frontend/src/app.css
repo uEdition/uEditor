@@ -14,6 +14,10 @@
   /**
    * Menu components
    */
+  [data-menubar-root] {
+    @apply flex flex-row;
+  }
+
   [data-menu-trigger] {
     @apply px-3 py-1;
   }

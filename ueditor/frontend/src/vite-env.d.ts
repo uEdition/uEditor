@@ -4,6 +4,14 @@
 type APIStatus = {
   ready: boolean;
   git_enabled: boolean;
+  auth: {
+    provider: "no-auth" | "email" | "email-password";
+  };
+};
+
+type CurrentUser = {
+  sub: string;
+  name: string;
 };
 
 type Branch = {
@@ -215,7 +223,7 @@ type UEditorGitSettings = {
   };
 };
 
-type UEditorSettings = { tei: UEditorTEISettings; git: UEditorGitSettings; };
+type UEditorSettings = { tei: UEditorTEISettings; git: UEditorGitSettings };
 
 type FileTreeEntry = {
   name: string;

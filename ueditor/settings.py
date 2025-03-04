@@ -4,22 +4,76 @@
 """Settings for the uEditor."""
 
 import os
+from secrets import token_hex
 from typing import Any, Dict, Literal, Optional, Tuple, Type
 
 from pydantic import BaseModel, EmailStr
 from pydantic.fields import FieldInfo
-from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
+from pydantic_settings import (
+    BaseSettings,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 from uedition.settings import Settings as UEditonSettingsBase
 from yaml import safe_load
+
+
+class NoAuth(BaseModel):
+    """Configuration model for no authentication."""
+
+    provider: Literal["no-auth"] = "no-auth"
+    email: Literal[""] = ""
+    name: Literal[""] = ""
+
+
+class EmailAuth(BaseModel):
+    """Configuration model for password-less authentication."""
+
+    provider: Literal["email"]
+    email: EmailStr
+    name: str
+
+
+class EmailPasswordAuth(BaseModel):
+    """Configuration model for email/password authentication."""
+
+    provider: Literal["email-password"]
+    email: EmailStr
+    name: str
+    password: str
+
+
+class GithubOAuth2(BaseModel):
+    """Configuration model for authenticating via GitHub."""
+
+    provider: Literal["github"]
+    client_id: str
+    client_secret: str
+    callback: str
+    allowed_users: list[str] = []
+
+
+class SessionSettings(BaseModel):
+    """Session configuration."""
+
+    key: str = token_hex(32)
 
 
 class InitSettings(BaseSettings):
     """The initialisation settings."""
 
     base_path: str = "./"
+    auth: NoAuth | EmailAuth | EmailPasswordAuth | GithubOAuth2 = NoAuth()
+    session: SessionSettings = SessionSettings()
     test: bool = False
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", env_prefix="ueditor_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_prefix="ueditor.",
+        env_nested_delimiter=".",
+        extra="ignore",
+    )
 
 
 init_settings = InitSettings()

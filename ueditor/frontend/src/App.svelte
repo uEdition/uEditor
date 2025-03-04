@@ -3,6 +3,7 @@
 
   import Root from "./Root.svelte";
   import ApiStatusWrapper from "./lib/wrappers/ApiStatusWrapper.svelte";
+  import AuthWrapper from "./lib/wrappers/AuthWrapper.svelte";
   import BranchWrapper from "./lib/wrappers/BranchWrapper.svelte";
   import ConfigWrapper from "./lib/wrappers/ConfigWrapper.svelte";
 
@@ -11,10 +12,12 @@
 
 <QueryClientProvider client={queryClient}>
   <ApiStatusWrapper>
-    <BranchWrapper>
-      <ConfigWrapper>
-        <Root />
-      </ConfigWrapper>
-    </BranchWrapper>
+    <AuthWrapper>
+      <BranchWrapper>
+        <ConfigWrapper>
+          <Root />
+        </ConfigWrapper>
+      </BranchWrapper>
+    </AuthWrapper>
   </ApiStatusWrapper>
 </QueryClientProvider>

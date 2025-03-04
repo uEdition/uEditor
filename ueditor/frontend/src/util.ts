@@ -6,10 +6,12 @@ import { type QueryOptions } from "@tanstack/svelte-query";
  * @param queryOptions The query options to use for customising the query
  * @returns The returned data in the appropriate type
  */
-export async function apiQueryHandler<ResponseModel>({ queryKey }: QueryOptions) {
+export async function apiQueryHandler<ResponseModel>({
+  queryKey,
+}: QueryOptions) {
   if (queryKey) {
     const url = ["/api"];
-    for (const part of (queryKey as string[])) {
+    for (const part of queryKey as string[]) {
       if (part !== "") {
         if (part[0] === "?" || part[0] === "&") {
           url.push(part);

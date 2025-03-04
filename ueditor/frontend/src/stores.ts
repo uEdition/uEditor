@@ -14,6 +14,14 @@ currentFile.subscribe((currentFile) => {
   }
 });
 
+export function useApiStatus() {
+  return getContext("apiStatus") as CreateQueryResult<APIStatus>;
+}
+
+export function useCurrentUser() {
+  return getContext("currentUser") as CreateQueryResult<CurrentUser>;
+}
+
 export function useUEditorConfig() {
   return getContext("uEditorConfig") as CreateQueryResult<UEditorSettings>;
 }

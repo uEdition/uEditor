@@ -5,27 +5,32 @@
   import { createQuery } from "@tanstack/svelte-query";
 
   import { apiQueryHandler, getApplicationParameter } from "../util";
-  import { currentFile } from "../stores";
+  import { currentFile, useCurrentBranch, useCurrentUser } from "../stores";
 
   import Tree from "./FileTree.svelte";
   import LoadingIndicator from "./LoadingIndicator.svelte";
 
-  const currentBranch = getContext("currentBranch") as Writable<Branch | null>;
+  const currentBranch = useCurrentBranch();
+  const currentUser = useCurrentUser();
 
-  const fileListQuery = derived(currentBranch, (currentBranch) => {
-    if (currentBranch) {
-      return {
-        queryKey: ["branches", currentBranch.id, "files/"],
-        queryFn: apiQueryHandler<FileTreeEntry[]>,
-      };
-    } else {
-      return {
-        queryKey: ["branches", "-", "files/"],
-        queryFn: apiQueryHandler<FileTreeEntry[]>,
-        enabled: false,
-      };
+  const fileListQuery = derived(
+    [currentBranch, currentUser],
+    ([currentBranch, currentUser]) => {
+      if (currentBranch) {
+        return {
+          queryKey: ["branches", currentBranch.id, "files/"],
+          queryFn: apiQueryHandler<FileTreeEntry[]>,
+          enabled: currentUser.isSuccess,
+        };
+      } else {
+        return {
+          queryKey: ["branches", "-", "files/"],
+          queryFn: apiQueryHandler<FileTreeEntry[]>,
+          enabled: false,
+        };
+      }
     }
-  });
+  );
   const fileList = createQuery(fileListQuery);
 
   const ctx = createTreeView({ defaultExpanded: ["file-tree--1-0"] });
@@ -38,7 +43,7 @@
 
   function recursiveFileSeach(
     entries: FileTreeEntry[],
-    fullpath: string,
+    fullpath: string
   ): FileTreeEntry | null {
     for (let entry of entries) {
       if (entry.fullpath === fullpath) {
@@ -62,7 +67,7 @@
     ) {
       const selectedFileTreeEntry = recursiveFileSeach(
         $fileList.data,
-        selectedElement?.getAttribute("data-file-path") as string,
+        selectedElement?.getAttribute("data-file-path") as string
       );
       currentFile.set(selectedFileTreeEntry);
       // if (selectedFileTreeEntry) {
@@ -80,7 +85,7 @@
       expansion.splice(0, 0, button.getAttribute("data-id") as string);
       button =
         button.parentElement?.parentElement?.parentElement?.querySelector(
-          ":scope > [role=treeitem]",
+          ":scope > [role=treeitem]"
         ) as HTMLElement;
     }
     return expansion;
@@ -94,7 +99,7 @@
         if (path) {
           tick().then(() => {
             const selectedButton = document.querySelector(
-              '[data-file-path="' + path + '"]',
+              '[data-file-path="' + path + '"]'
             ) as HTMLElement;
             if (selectedButton) {
               expanded.set(calculateExpanded(selectedButton));
