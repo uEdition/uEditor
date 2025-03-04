@@ -41,7 +41,7 @@
    */
   async function loadTextFile(action: LoadTextFileAction) {
     const response = await window.fetch(
-      "/api/branches/" + action.branch.id + "/files/" + action.filename,
+      "/api/branches/" + action.branch.id + "/files/" + action.filename
     );
     action.callback(await response.text());
   }
@@ -52,12 +52,11 @@
    * @param action The action with the details of the file to save
    */
   async function saveCurrentFile(action: SaveCurrentFileAction) {
-    console.log(action.branch);
     const formData = new FormData();
     formData.append("content", new Blob([action.data]));
     const response = await window.fetch(
       "/api/branches/" + action.branch.id + "/files/" + action.filename,
-      { method: "PUT", body: formData },
+      { method: "PUT", body: formData }
     );
     if (response.ok) {
       action.callback();
@@ -92,7 +91,7 @@
         }
       }
       return count;
-    },
+    }
   );
 </script>
 

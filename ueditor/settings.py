@@ -34,13 +34,19 @@ class EmailAuth(BaseModel):
     name: str
 
 
+class EmailPasswordUser(BaseModel):
+    """Configuration model for a single email/password combination."""
+
+    email: EmailStr
+    name: str
+    password: str
+
+
 class EmailPasswordAuth(BaseModel):
     """Configuration model for email/password authentication."""
 
     provider: Literal["email-password"]
-    email: EmailStr
-    name: str
-    password: str
+    users: list[EmailPasswordUser]
 
 
 class GithubOAuth2(BaseModel):
