@@ -148,6 +148,13 @@
             {/if}
           </div>
         </form>
+      {:else if $apiStatus.data?.auth.provider === "github"}
+        <div data-dialog-content-area>
+          <p>Click on the link below to log in via GitHub.</p>
+          <div class="my-8 text-center">
+            <a href="/api/auth/oidc/login" data-button>Log in via GitHub</a>
+          </div>
+        </div>
       {/if}
     </Dialog.Content>
   </Dialog.Portal>

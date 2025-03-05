@@ -58,8 +58,8 @@ class GithubOAuth2(BaseModel):
     provider: Literal["github"]
     client_id: str
     client_secret: str
-    callback: str
-    allowed_users: list[str] = []
+    callback_base: str
+    users: list[str] = []
 
 
 class SessionSettings(BaseModel):

@@ -23,8 +23,8 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "aioauth>=1.7.0,<2",
   "fastapi<1",
+  "httpx>=0.28.1,<1",
   "lxml>=5,<6",
   "pydantic[email]>=2,<3",
   "pydantic_settings>=2,<3",

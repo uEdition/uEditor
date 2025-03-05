@@ -26,7 +26,7 @@ if init_settings.test:  # pragma: no cover
 class APIStatusAuth(BaseModel):
     """Pydantic model for validating the auth settings."""
 
-    provider: Literal["no-auth"] | Literal["email"] | Literal["email-password"]
+    provider: Literal["no-auth"] | Literal["email"] | Literal["email-password"] | Literal["github"]
 
 
 class APIStatusGit(BaseModel):

@@ -8,7 +8,7 @@ type APIStatus = {
     default_branch: string | null;
   };
   auth: {
-    provider: "no-auth" | "email" | "email-password";
+    provider: "no-auth" | "email" | "email-password" | "github";
   };
 };
 

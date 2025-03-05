@@ -2,11 +2,15 @@
 
 import logging
 from datetime import datetime, timedelta, timezone
+from secrets import token_hex
 from typing import Annotated
+from urllib.parse import urlencode
 
 import jwt
 from fastapi import APIRouter, Cookie, Depends, Response
 from fastapi.exceptions import HTTPException
+from fastapi.responses import RedirectResponse
+from httpx import AsyncClient
 from pydantic import BaseModel, EmailStr
 
 from ueditor.settings import init_settings
@@ -109,6 +113,86 @@ def logout(response: Response) -> None:
         secure=True,
         samesite="strict",
     )
+
+
+OIDC_STATES = {}
+
+
+@router.get("/oidc/login", response_class=RedirectResponse)
+def start_oidc_login():
+    """Start an OIDC (or equivalent) authorization process."""
+    if init_settings.auth.provider != "github":
+        raise HTTPException(404)
+    state = token_hex(64)
+    now = datetime.now(tz=timezone.utc).timestamp()
+    valid_until = now + 600
+    OIDC_STATES[state] = valid_until
+    for key in list(OIDC_STATES.keys()):
+        if now > OIDC_STATES[key]:
+            del OIDC_STATES[key]
+    params = {
+        "client_id": init_settings.auth.client_id,
+        "redirect_uri": f"{init_settings.auth.callback_base}/api/auth/oidc/callback",
+        "scope": "read:user",
+        "state": state,
+    }
+    return f"https://github.com/login/oauth/authorize?{urlencode(params)}"
+
+
+@router.get("/oidc/callback", response_class=RedirectResponse)
+async def complete_oidc_login(code: str, state: str, redirect_response: Response):
+    """Complete an OIDC (or equivalent) authorization process."""
+    if init_settings.auth.provider != "github":
+        raise HTTPException(404)
+    now = datetime.now(tz=timezone.utc)
+    if state not in OIDC_STATES or now.timestamp() > OIDC_STATES[state]:
+        raise HTTPException(403)
+    async with AsyncClient() as client:
+        params = {
+            "client_id": init_settings.auth.client_id,
+            "client_secret": init_settings.auth.client_secret,
+            "code": code,
+            "redirect_uri": f"{init_settings.auth.callback_base}/api/auth/oidc/callback",
+        }
+        response = await client.get(
+            f"https://github.com/login/oauth/access_token?{urlencode(params)}",
+            headers={"Accept": "application/json"},
+        )
+        if response.status_code == 200:  # noqa:PLR2004
+            token = response.json()
+            response = await client.get(
+                "https://api.github.com/user",
+                headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": f"Bearer {token['access_token']}",
+                },
+            )
+            if response.status_code == 200:  # noqa: PLR2004
+                user_data = response.json()
+                ueditor_user = jwt.encode(
+                    {
+                        "sub": user_data["email"],
+                        "name": user_data["name"],
+                        "exp": now + timedelta(days=14),
+                        "iat": now,
+                        "nbf": now,
+                        "provider": init_settings.auth.provider,
+                    },
+                    init_settings.session.key,
+                    algorithm="HS512",
+                )
+                redirect_response.set_cookie(
+                    "ueditor_user",
+                    ueditor_user,
+                    expires=now + timedelta(14),
+                    secure=True,
+                    samesite="strict",
+                )
+                return "/app"
+            else:
+                raise HTTPException(403)
+        else:
+            raise HTTPException(403)
 
 
 class UserModel(BaseModel):
