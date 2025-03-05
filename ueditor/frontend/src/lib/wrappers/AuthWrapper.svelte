@@ -68,7 +68,8 @@
         body: JSON.stringify({ email, password }),
       });
       if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ["auth", "branches"] });
+        queryClient.invalidateQueries({ queryKey: ["auth"] });
+        queryClient.invalidateQueries({ queryKey: ["branches"] });
         authEmail = "";
         authPassword = "";
       } else {
@@ -81,7 +82,24 @@
 <slot></slot>
 
 <Dialog.Root
-  open={$authStatus === "pending" || $authStatus === "error"}
+  open={$authStatus === "pending"}
+  closeOnEscape={false}
+  closeOnOutsideClick={false}
+>
+  <Dialog.Trigger class="hidden" />
+  <Dialog.Portal>
+    <Dialog.Overlay transition={fade} class="z-40" />
+    <Dialog.Content class="flex flex-col overflow-hidden z-50">
+      <Dialog.Title>Authenticating</Dialog.Title>
+      <div data-dialog-content-area>
+        <p>You are being authenticated. Please wait.</p>
+      </div>
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>
+
+<Dialog.Root
+  open={$authStatus === "error"}
   closeOnEscape={false}
   closeOnOutsideClick={false}
 >
@@ -90,11 +108,7 @@
     <Dialog.Overlay transition={fade} class="z-40" />
     <Dialog.Content class="flex flex-col overflow-hidden z-50">
       <Dialog.Title>Login</Dialog.Title>
-      {#if $apiStatus.data?.auth.provider === "no-auth" || $apiStatus.data?.auth.provider === "email"}
-        <div data-dialog-content-area>
-          <p>You are being authenticated. Please wait.</p>
-        </div>
-      {:else if $apiStatus.data?.auth.provider === "email-password"}
+      {#if $apiStatus.data?.auth.provider === "email-password"}
         <form
           data-dialog-content-area
           on:submit={(ev) => {
@@ -127,7 +141,7 @@
             {/if}
           </label>
           <div data-dialog-buttons>
-            {#if $emailPasswordLogin.isPending || ($emailPasswordLogin.isSuccess && $authStatus !== "authenticated")}
+            {#if $emailPasswordLogin.isPending}
               <span data-button class="inline-flex">Logging in...</span>
             {:else}
               <button type="submit" data-button>Login</button>
