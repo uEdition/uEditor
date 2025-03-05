@@ -68,7 +68,9 @@
         body: JSON.stringify({ email, password }),
       });
       if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ["auth"] });
+        queryClient.invalidateQueries({ queryKey: ["auth", "branches"] });
+        authEmail = "";
+        authPassword = "";
       } else {
         throw "Authentication failed";
       }
@@ -97,7 +99,9 @@
           data-dialog-content-area
           on:submit={(ev) => {
             ev.preventDefault();
-            $emailPasswordLogin.mutate([authEmail, authPassword]);
+            if (!$emailPasswordLogin.isPending) {
+              $emailPasswordLogin.mutate([authEmail, authPassword]);
+            }
           }}
         >
           <label>
@@ -123,7 +127,11 @@
             {/if}
           </label>
           <div data-dialog-buttons>
-            <button type="submit" data-button>Login</button>
+            {#if $emailPasswordLogin.isPending || ($emailPasswordLogin.isSuccess && $authStatus !== "authenticated")}
+              <span data-button class="inline-flex">Logging in...</span>
+            {:else}
+              <button type="submit" data-button>Login</button>
+            {/if}
           </div>
         </form>
       {/if}
