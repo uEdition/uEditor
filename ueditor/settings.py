@@ -100,8 +100,8 @@ class InitSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        env_prefix="ueditor.",
-        env_nested_delimiter=".",
+        env_prefix="ueditor__",
+        env_nested_delimiter="__",
         extra="ignore",
     )
 
