@@ -158,41 +158,41 @@ async def complete_oidc_login(code: str, state: str, redirect_response: Response
             f"https://github.com/login/oauth/access_token?{urlencode(params)}",
             headers={"Accept": "application/json"},
         )
-        if response.status_code == 200:  # noqa:PLR2004
-            token = response.json()
-            response = await client.get(
-                "https://api.github.com/user",
-                headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": f"Bearer {token['access_token']}",
-                },
-            )
-            if response.status_code == 200:  # noqa: PLR2004
-                user_data = response.json()
-                ueditor_user = jwt.encode(
-                    {
-                        "sub": user_data["email"],
-                        "name": user_data["name"],
-                        "exp": now + timedelta(days=14),
-                        "iat": now,
-                        "nbf": now,
-                        "provider": init_settings.auth.provider,
-                    },
-                    init_settings.session.key,
-                    algorithm="HS512",
-                )
-                redirect_response.set_cookie(
-                    "ueditor_user",
-                    ueditor_user,
-                    expires=now + timedelta(14),
-                    secure=True,
-                    samesite="strict",
-                )
-                return "/app"
-            else:
-                raise HTTPException(403)
-        else:
+        if response.status_code != 200:  # noqa:PLR2004
             raise HTTPException(403)
+        token = response.json()
+        response = await client.get(
+            "https://api.github.com/user",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {token['access_token']}",
+            },
+        )
+        if response.status_code != 200:  # noqa: PLR2004
+            raise HTTPException(403)
+        user_data = response.json()
+        if user_data["email"] not in init_settings.auth.users:
+            raise HTTPException(403)
+        ueditor_user = jwt.encode(
+            {
+                "sub": user_data["email"],
+                "name": user_data["name"],
+                "exp": now + timedelta(days=14),
+                "iat": now,
+                "nbf": now,
+                "provider": init_settings.auth.provider,
+            },
+            init_settings.session.key,
+            algorithm="HS512",
+        )
+        redirect_response.set_cookie(
+            "ueditor_user",
+            ueditor_user,
+            expires=now + timedelta(14),
+            secure=True,
+            samesite="strict",
+        )
+        return "/app"
 
 
 class UserModel(BaseModel):
