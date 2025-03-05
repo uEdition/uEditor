@@ -8,13 +8,9 @@
 
   import Icon from "../Icon.svelte";
   import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
-  import {
-    useBranches,
-    useCurrentBranch,
-    useUEditorConfig,
-  } from "../../stores";
+  import { useApiStatus, useBranches, useCurrentBranch } from "../../stores";
 
-  const uEditorConfig = useUEditorConfig();
+  const apiStatus = useApiStatus();
   const branches = useBranches();
   const currentBranch = useCurrentBranch();
 </script>
@@ -41,7 +37,7 @@
       <span>Import Branch</span>
     </Menubar.Item>
     <Menubar.Separator></Menubar.Separator>
-    {#if $currentBranch !== null && $uEditorConfig.isSuccess && $uEditorConfig.data.git.default_branch !== $currentBranch.id}
+    {#if $currentBranch !== null && $apiStatus.isSuccess && $apiStatus.data.git.enabled && $apiStatus.data.git.default_branch !== $currentBranch.id}
       <Menubar.Item
         on:click={() => {
           activeDialog.set(Dialogs.UEDITOR_DELETE_BRANCH);

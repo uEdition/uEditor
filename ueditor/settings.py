@@ -4,22 +4,106 @@
 """Settings for the uEditor."""
 
 import os
+from secrets import token_hex
 from typing import Any, Dict, Literal, Optional, Tuple, Type
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, model_validator
 from pydantic.fields import FieldInfo
-from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
+from pydantic_settings import (
+    BaseSettings,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
+from pygit2 import GitError, Repository
+from pygit2.enums import RepositoryOpenFlag
+from typing_extensions import Self
 from uedition.settings import Settings as UEditonSettingsBase
 from yaml import safe_load
+
+
+class NoAuth(BaseModel):
+    """Configuration model for no authentication."""
+
+    provider: Literal["no-auth"] = "no-auth"
+    email: Literal[""] = ""
+    name: Literal[""] = ""
+
+
+class EmailAuth(BaseModel):
+    """Configuration model for password-less authentication."""
+
+    provider: Literal["email"]
+    email: EmailStr
+    name: str
+
+
+class EmailPasswordUser(BaseModel):
+    """Configuration model for a single email/password combination."""
+
+    email: EmailStr
+    name: str
+    password: str
+
+
+class EmailPasswordAuth(BaseModel):
+    """Configuration model for email/password authentication."""
+
+    provider: Literal["email-password"]
+    users: list[EmailPasswordUser]
+
+
+class GithubOAuth2(BaseModel):
+    """Configuration model for authenticating via GitHub."""
+
+    provider: Literal["github"]
+    client_id: str
+    client_secret: str
+    callback_base: str
+    users: list[str] = []
+
+
+class SessionSettings(BaseModel):
+    """Session configuration."""
+
+    key: str = token_hex(32)
+
+
+class GitSettings(BaseModel):
+    """Settings for Git."""
+
+    remote_name: str = "origin"
+    default_branch: str = "main"
 
 
 class InitSettings(BaseSettings):
     """The initialisation settings."""
 
     base_path: str = "./"
+    auth: NoAuth | EmailAuth | EmailPasswordAuth | GithubOAuth2 = NoAuth()
+    session: SessionSettings = SessionSettings()
+    git: GitSettings = GitSettings()
     test: bool = False
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", env_prefix="ueditor_", extra="ignore")
+    @model_validator(mode="after")
+    def git_auth_check(self) -> Self:
+        """Check that there is no git repository for no-auth authentication."""
+        if self.auth.provider == "no-auth":
+            try:
+                Repository(self.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
+                raise ValueError(
+                    "You need to configure an authentication method when using a git repository."  # noqa: EM101
+                )
+            except GitError:
+                pass
+        return self
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_prefix="ueditor__",
+        env_nested_delimiter="__",
+        extra="ignore",
+    )
 
 
 init_settings = InitSettings()
@@ -332,27 +416,11 @@ class UISettings(BaseModel):
     css_files: list[str] = []
 
 
-class GitAuthor(BaseModel):
-    """Settings for an author in Git."""
-
-    name: str
-    email: EmailStr
-
-
-class GitSettings(BaseModel):
-    """Settings for Git."""
-
-    remote_name: str = "origin"
-    default_branch: str = "main"
-    default_author: GitAuthor | None = None
-
-
 class UEditorSettings(BaseSettings):
     """The uEditor settings."""
 
     tei: TEISettings = TEISettings()
     ui: UISettings = UISettings()
-    git: GitSettings = GitSettings()
 
     @classmethod
     def settings_customise_sources(

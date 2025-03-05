@@ -23,12 +23,14 @@ classifiers = [
 ]
 dependencies = [
   "fastapi<1",
+  "httpx>=0.28.1,<1",
   "lxml>=5,<6",
   "pydantic[email]>=2,<3",
   "pydantic_settings>=2,<3",
   "pygit2>=1.17.0,<2",
   "python-multipart>=0.0.9,<1",
   "python-slugify>=8.0.4,<9",
+  "pyjwt[crypto]>=2.10.1,<3",
   "PyYaml>=6,<7",
   "uedition>=1,<2",
   "uvicorn<1",
@@ -48,12 +50,15 @@ extra-dependencies = ["coverage[toml]>=6.5", "httpx", "pytest", "ruff==0.9.5"]
 [tool.hatch.envs.default.scripts]
 server = "uvicorn --reload --port 8000 ueditor:app {args}"
 build-frontend = "cd ueditor/frontend && npm install && vite build --watch"
-e2e-tests = "cd tests/e2e_tests && UEDITOR_BASE_PATH=./tmp_fixtures UEDITOR_TEST=true npx playwright test"
-test = "UEDITOR_BASE_PATH=./tmp_fixtures UEDITOR_TEST=true pytest {args:tests}"
-test-cov = "UEDITOR_BASE_PATH=./tmp_fixtures UEDITOR_TEST=true coverage run -m pytest {args:tests}"
+e2e-tests = "cd tests/e2e_tests && UEDITOR__BASE_PATH=./tmp_fixtures UEDITOR__TEST=true UEDITOR__AUTH__PROVIDER=no-auth UEDITOR__AUTH__EMAIL= UEDITOR__AUTH__NAME= npx playwright test"
+test = "UEDITOR__BASE_PATH=./tmp_fixtures UEDITOR__TEST=true UEDITOR__AUTH__PROVIDER=no-auth UEDITOR__AUTH__EMAIL= UEDITOR__AUTH__NAME=  pytest {args:tests}"
+test-cov = "UEDITOR__BASE_PATH=./tmp_fixtures UEDITOR__TEST=true UEDITOR__AUTH__PROVIDER=no-auth UEDITOR__AUTH__EMAIL= UEDITOR__AUTH__NAME=  coverage run -m pytest {args:tests}"
 cov-report = ["- coverage combine", "coverage report"]
 cov = ["test-cov", "cov-report"]
-style = ["ruff check --fix --exit-non-zero-on-fix {args:.}", "ruff format --check {args:.}"]
+style = [
+  "ruff check --fix --exit-non-zero-on-fix {args:.}",
+  "ruff format --check {args:.}",
+]
 
 [tool.ruff]
 target-version = "py37"

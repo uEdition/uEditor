@@ -9,7 +9,6 @@ def test_basic_tei_config(simple_app: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == {
         "ui": {"css_files": []},
-        "git": {"default_author": None, "default_branch": "main", "remote_name": "origin"},
         "tei": {"blocks": [], "marks": [], "sections": []},
     }
 
@@ -20,7 +19,6 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == {
         "ui": {"css_files": ["static/style.css"]},
-        "git": {"default_author": None, "default_branch": "main", "remote_name": "origin"},
         "tei": {
             "blocks": [
                 {
@@ -34,7 +32,14 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
                 {
                     "name": "heading",
                     "selector": "tei:head",
-                    "attributes": [{"name": "type", "value": None, "type": "string", "default": "level-1"}],
+                    "attributes": [
+                        {
+                            "name": "type",
+                            "value": None,
+                            "type": "string",
+                            "default": "level-1",
+                        }
+                    ],
                     "tag": "div",
                     "text": None,
                     "content": None,
@@ -44,7 +49,14 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
                 {
                     "name": "bold",
                     "selector": 'tei:hi[@style="font-weight-bold"]',
-                    "attributes": [{"name": "style", "value": None, "type": "string", "default": ""}],
+                    "attributes": [
+                        {
+                            "name": "style",
+                            "value": None,
+                            "type": "string",
+                            "default": "",
+                        }
+                    ],
                     "tag": "strong",
                     "text": None,
                     "content": None,
@@ -52,7 +64,14 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
                 {
                     "name": "italic",
                     "selector": 'tei:hi[@style="font-style-italic"]',
-                    "attributes": [{"name": "style", "value": None, "type": "string", "default": ""}],
+                    "attributes": [
+                        {
+                            "name": "style",
+                            "value": None,
+                            "type": "string",
+                            "default": "",
+                        }
+                    ],
                     "tag": "em",
                     "text": None,
                     "content": None,
@@ -61,8 +80,18 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
                     "name": "footnoteRef",
                     "selector": 'tei:ref[@type="footnote"]',
                     "attributes": [
-                        {"name": "target", "value": None, "type": "id-ref", "default": ""},
-                        {"name": "type", "value": "footnote", "type": "static", "default": ""},
+                        {
+                            "name": "target",
+                            "value": None,
+                            "type": "id-ref",
+                            "default": "",
+                        },
+                        {
+                            "name": "type",
+                            "value": "footnote",
+                            "type": "static",
+                            "default": "",
+                        },
                     ],
                     "tag": None,
                     "text": None,
@@ -70,7 +99,12 @@ def test_complex_tei_config(tei_app: TestClient) -> None:
                 },
             ],
             "sections": [
-                {"name": "metadata", "title": "Metadata", "type": "metadata", "selector": "/tei:TEI/tei:teiHeader"},
+                {
+                    "name": "metadata",
+                    "title": "Metadata",
+                    "type": "metadata",
+                    "selector": "/tei:TEI/tei:teiHeader",
+                },
                 {
                     "name": "text",
                     "title": "Text",

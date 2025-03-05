@@ -4,11 +4,13 @@
 """The uEditor API for accessing configurations."""
 
 import os
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.responses import Response
 
+from ueditor.api.auth import get_current_user
 from ueditor.api.util import BranchContextManager, BranchNotFoundError
 from ueditor.settings import (
     UEditonSettings,
@@ -22,7 +24,10 @@ router = APIRouter(prefix="/configs")
 
 
 @router.get("/uedition", response_model=UEditonSettings)
-async def uedition_config(branch_id: str) -> dict:
+async def uedition_config(
+    branch_id: str,
+    current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
+) -> dict:
     """Fetch the uEdition configuration."""
     try:
         async with BranchContextManager(branch_id):
@@ -32,7 +37,10 @@ async def uedition_config(branch_id: str) -> dict:
 
 
 @router.get("/ueditor", response_model=UEditorSettings)
-async def tei_config(branch_id: str) -> dict:
+async def tei_config(
+    branch_id: str,
+    current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
+) -> dict:
     """Fetch the uEditor configuration."""
     try:
         async with BranchContextManager(branch_id):
@@ -42,7 +50,10 @@ async def tei_config(branch_id: str) -> dict:
 
 
 @router.get("/ui-stylesheet")
-async def ui_stylesheet(branch_id: str) -> str:
+async def ui_stylesheet(
+    branch_id: str,
+    current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
+) -> str:
     """Fetch the configured CSS stylesheets."""
     try:
         async with BranchContextManager(branch_id):

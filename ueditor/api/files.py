@@ -17,6 +17,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from lxml import etree
 
+from ueditor.api.auth import get_current_user
 from ueditor.api.util import BranchContextManager, BranchNotFoundError, commit_and_push
 from ueditor.settings import (
     TEIMetadataSection,
@@ -89,7 +90,10 @@ def build_file_tree(path: str, strip_len) -> list[dict]:
 
 
 @router.get("/")
-async def get_files(branch_id: str) -> list[dict]:
+async def get_files(
+    branch_id: str,
+    current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
+) -> list[dict]:
     """Fetch the full tree of files."""
     try:
         async with BranchContextManager(branch_id):
@@ -160,7 +164,12 @@ def parse_tei_subtree(node: etree.Element, settings: TEISettings) -> dict:
                 return {
                     "type": "text",
                     "marks": child["marks"]
-                    + [{"type": conf.name, "attrs": parse_tei_attributes(node.attrib, conf.attributes)}],
+                    + [
+                        {
+                            "type": conf.name,
+                            "attrs": parse_tei_attributes(node.attrib, conf.attributes),
+                        }
+                    ],
                     "text": text,
                 }
             else:
@@ -170,7 +179,12 @@ def parse_tei_subtree(node: etree.Element, settings: TEISettings) -> dict:
                         text = node.attrib[conf.text[1:]]
                 return {
                     "type": "text",
-                    "marks": [{"type": conf.name, "attrs": parse_tei_attributes(node.attrib, conf.attributes)}],
+                    "marks": [
+                        {
+                            "type": conf.name,
+                            "attrs": parse_tei_attributes(node.attrib, conf.attributes),
+                        }
+                    ],
                     "text": text,
                 }
     if len(node) == 0:
@@ -181,7 +195,10 @@ def parse_tei_subtree(node: etree.Element, settings: TEISettings) -> dict:
 
 def parse_tei_subdoc(node: etree.Element, settings: TEISettings) -> dict:
     """Parse part of the TEI document into a subdoc."""
-    return {"type": "doc", "content": [parse_tei_subtree(child, settings) for child in node]}
+    return {
+        "type": "doc",
+        "content": [parse_tei_subtree(child, settings) for child in node],
+    }
 
 
 def clean_tei_subdoc(node: dict) -> dict:
@@ -209,11 +226,32 @@ def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
         section_root = doc.xpath(section.selector, namespaces=namespaces)
         if len(section_root) == 0:
             if section.type == "metadata":
-                result.append({"name": section.name, "title": section.title, "type": section.type, "content": []})
+                result.append(
+                    {
+                        "name": section.name,
+                        "title": section.title,
+                        "type": section.type,
+                        "content": [],
+                    }
+                )
             elif section.type == "text":
-                result.append({"name": section.name, "title": section.title, "type": section.type, "content": {}})
+                result.append(
+                    {
+                        "name": section.name,
+                        "title": section.title,
+                        "type": section.type,
+                        "content": {},
+                    }
+                )
             elif section.type == "textlist":
-                result.append({"name": section.name, "title": section.title, "type": section.type, "content": []})
+                result.append(
+                    {
+                        "name": section.name,
+                        "title": section.title,
+                        "type": section.type,
+                        "content": [],
+                    }
+                )
         else:  # noqa: PLR5501
             if section.type == "metadata":
                 result.append(
@@ -242,7 +280,14 @@ def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
                             "content": clean_tei_subdoc(parse_tei_subdoc(node, settings.tei)),
                         }
                     )
-                result.append({"name": section.name, "title": section.title, "type": section.type, "content": content})
+                result.append(
+                    {
+                        "name": section.name,
+                        "title": section.title,
+                        "type": section.type,
+                        "content": content,
+                    }
+                )
     return result
 
 
@@ -251,6 +296,7 @@ async def get_file(
     branch_id: str,
     path: str,
     settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)],
+    current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
 ) -> dict | FileResponse:
     """Fetch a single file from the repo."""
     try:
@@ -271,12 +317,12 @@ async def create_file(
     branch_id: str,
     path: str,
     new_type: Annotated[str, Header(alias="X-uEditor-New-Type")],
+    current_user: Annotated[dict, Depends(get_current_user)],
     rename_from: Annotated[str | None, Header(alias="X-uEditor-Rename-From")] = None,
 ) -> None:
     """Create a new file in the repo."""
     try:
         async with BranchContextManager(branch_id) as repo:
-            settings = get_ueditor_settings()
             if new_type in ("file", "folder"):
                 full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
                 if full_path.startswith(os.path.abspath(init_settings.base_path)) and not os.path.exists(full_path):
@@ -291,15 +337,13 @@ async def create_file(
                                 os.rename(rename_source_path, full_path)
                                 if path.startswith("/"):
                                     path = path[1:]
-                                if repo is not None and settings.git.default_author is not None:
+                                if repo is not None:
                                     commit_and_push(
                                         repo,
-                                        settings.git.remote_name,
+                                        init_settings.git.remote_name,
                                         branch_id,
                                         f"Renamed {path}",
-                                        pygit2.Signature(
-                                            settings.git.default_author.name, settings.git.default_author.email
-                                        ),
+                                        pygit2.Signature(current_user["name"], current_user["sub"]),
                                     )
                                 return
                             except OSError as err:
@@ -323,15 +367,13 @@ async def create_file(
                                 pass
                             if path.startswith("/"):
                                 path = path[1:]
-                            if repo is not None and settings.git.default_author is not None:
+                            if repo is not None:
                                 commit_and_push(
                                     repo,
-                                    settings.git.remote_name,
+                                    init_settings.git.remote_name,
                                     branch_id,
                                     f"Added {path}",
-                                    pygit2.Signature(
-                                        settings.git.default_author.name, settings.git.default_author.email
-                                    ),
+                                    pygit2.Signature(current_user["name"], current_user["sub"]),
                                 )
                             return
                         elif new_type == "folder":
@@ -340,11 +382,21 @@ async def create_file(
                 else:
                     raise HTTPException(
                         422,
-                        detail=[{"loc": ["path", "path"], "msg": "this file or folder already exists"}],
+                        detail=[
+                            {
+                                "loc": ["path", "path"],
+                                "msg": "this file or folder already exists",
+                            }
+                        ],
                     )
             raise HTTPException(
                 422,
-                detail=[{"loc": ["header", "X-uEditor-NewType"], "msg": "must be set to either file or folder"}],
+                detail=[
+                    {
+                        "loc": ["header", "X-uEditor-NewType"],
+                        "msg": "must be set to either file or folder",
+                    }
+                ],
             )
     except BranchNotFoundError as bnfe:
         raise HTTPException(404) from bnfe
@@ -354,7 +406,10 @@ def find_nodes(node: dict, path: list[str]) -> list[dict]:
     """Find the set of nodes matching the path."""
     nodes = []
     if len(path) > 0:
-        match = re.match(r'([a-z]+:[a-zA-Z][a-zA-Z0-9]*)(?:\[@([a-zA-Z]*:?[a-zA-Z]+)\="(.*)"])?', path[0])
+        match = re.match(
+            r'([a-z]+:[a-zA-Z][a-zA-Z0-9]*)(?:\[@([a-zA-Z]*:?[a-zA-Z]+)\="(.*)"])?',
+            path[0],
+        )
         matches = False
         if match.group(1) == node["name"]:
             if match.group(2) is not None and match.group(3) is not None:
@@ -378,7 +433,10 @@ def find_nodes(node: dict, path: list[str]) -> list[dict]:
 
 def create_path_node(path_part: str) -> dict:
     """Create a single node on an XPath expression."""
-    match = re.match(r'([a-z]+:[a-zA-Z][a-zA-Z0-9]*)(?:\[@([a-zA-Z]*:?[a-zA-Z]+)\="(.*)"])?', path_part)
+    match = re.match(
+        r'([a-z]+:[a-zA-Z][a-zA-Z0-9]*)(?:\[@([a-zA-Z]*:?[a-zA-Z]+)\="(.*)"])?',
+        path_part,
+    )
     new_node = {"name": match.group(1)}
     if match.group(2) is not None and match.group(3) is not None:
         new_node["attrs"] = {match.group(2): match.group(3)}
@@ -569,7 +627,11 @@ def xml_dict_to_etree(data: dict) -> etree.Element:
     return node
 
 
-def serialise_tei_file(path: str, json_doc: list, settings: UEditorSettings) -> etree.Element:  # noqa: ARG001
+def serialise_tei_file(
+    path: str,  # noqa:ARG001
+    json_doc: list,
+    settings: UEditorSettings,
+) -> etree.Element:
     """Serialise a TEI file."""
     for prefix, uri in namespaces.items():
         etree.register_namespace(prefix, uri)
@@ -595,6 +657,7 @@ async def update_file(
     branch_id: str,
     path: str,
     content: UploadFile,
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> None:
     """Update the file in the repo."""
     try:
@@ -606,22 +669,34 @@ async def update_file(
                     root = serialise_tei_file(full_path, json.load(content.file), settings)
                     with open(full_path, "wb") as out_f:
                         out_f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
-                        out_f.write(etree.tostring(root, encoding="utf-8", xml_declaration=False, pretty_print=True))
+                        out_f.write(
+                            etree.tostring(
+                                root,
+                                encoding="utf-8",
+                                xml_declaration=False,
+                                pretty_print=True,
+                            )
+                        )
                 else:
                     with open(full_path, "wb") as out_f:
                         out_f.write(await content.read())
-                if repo is not None and settings.git.default_author is not None:
+                if repo is not None:
                     commit_and_push(
                         repo,
-                        settings.git.remote_name,
+                        init_settings.git.remote_name,
                         branch_id,
                         f"Updated {path}",
-                        pygit2.Signature(settings.git.default_author.name, settings.git.default_author.email),
+                        pygit2.Signature(current_user["name"], current_user["sub"]),
                     )
             else:
                 raise HTTPException(
                     422,
-                    detail=[{"loc": ["body", "content"], "msg": "this file or folder does not exist"}],
+                    detail=[
+                        {
+                            "loc": ["body", "content"],
+                            "msg": "this file or folder does not exist",
+                        }
+                    ],
                 )
     except BranchNotFoundError as bnfe:
         raise HTTPException(404) from bnfe
@@ -631,11 +706,11 @@ async def update_file(
 async def delete_file(
     branch_id: str,
     path: str,
+    current_user: Annotated[dict, Depends(get_current_user)],
 ) -> None:
     """Delete a file in the repo."""
     try:
         async with BranchContextManager(branch_id) as repo:
-            settings = get_ueditor_settings()
             full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
             if full_path.startswith(os.path.abspath(init_settings.base_path)):
                 if os.path.isfile(full_path):
@@ -647,13 +722,13 @@ async def delete_file(
                         422,
                         detail=[{"loc": ["path", "path"], "msg": "Unknown type of file"}],
                     )
-                if repo is not None and settings.git.default_author is not None:
+                if repo is not None:
                     commit_and_push(
                         repo,
-                        settings.git.remote_name,
+                        init_settings.git.remote_name,
                         branch_id,
                         f"Deleted {path}",
-                        pygit2.Signature(settings.git.default_author.name, settings.git.default_author.email),
+                        pygit2.Signature(current_user["name"], current_user["sub"]),
                     )
             else:
                 raise HTTPException(404)
