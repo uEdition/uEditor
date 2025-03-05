@@ -33,7 +33,7 @@ class APIStatusGit(BaseModel):
     """Pydantic model for validating the git API status."""
 
     enabled: bool
-    default_branch: str | None
+    default_branch: str | None = None
 
 
 class APIStatus(BaseModel):
