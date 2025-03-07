@@ -10,6 +10,7 @@
 **Table of Contents**
 
 - [Installation](#installation)
+- [Documentation](#documentation)
 - [License](#license)
 
 ## Installation
