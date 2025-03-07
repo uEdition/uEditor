@@ -2,64 +2,64 @@ name: Coverage
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   coverage:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v5
-      with:
-        python-version: |
-          3.10
-          3.11
+      - uses: actions/setup-python@v5
+        with:
+          python-version: |
+            3.10
+            3.11
 
-    - uses: actions/setup-node@v4
-      with:
-        node-version: "20.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
 
-    - name: Add .local path
-      run: |
-        echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
-        echo "PIPX_HOME=$HOME/.local/pipx" >> $GITHUB_ENV
-        echo "PIPX_BIN_DIR=$HOME/.local/bin" >> $GITHUB_ENV
+      - name: Add .local path
+        run: |
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+          echo "PIPX_HOME=$HOME/.local/pipx" >> $GITHUB_ENV
+          echo "PIPX_BIN_DIR=$HOME/.local/bin" >> $GITHUB_ENV
 
-    - name: Install Base Dependencies
-      run: |
-        sudo apt-get install python3-venv pipx
-        pipx install hatch
-        cd ueditor/frontend
-        npm install
+      - name: Install Base Dependencies
+        run: |
+          sudo apt-get install python3-venv pipx
+          pipx install hatch
+          cd uedition-editor/frontend
+          npm install
 
-    - name: Build the Frontend
-      run: |
-        cd ueditor/frontend
-        npm run build
+      - name: Build the Frontend
+        run: |
+          cd uedition-editor/frontend
+          npm run build
 
-    - name: Run Tests
-      run: |
-        hatch run cov
+      - name: Run Tests
+        run: |
+          hatch run cov
 
-    - name: Calculate coverage
-      run: |
-        hatch run coverage json
-        export TOTAL=$(python -c "import json;print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
-        echo "total=$TOTAL" >> $GITHUB_ENV
-        echo "### Total coverage: ${TOTAL}%" >> $GITHUB_STEP_SUMMARY
+      - name: Calculate coverage
+        run: |
+          hatch run coverage json
+          export TOTAL=$(python -c "import json;print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
+          echo "total=$TOTAL" >> $GITHUB_ENV
+          echo "### Total coverage: ${TOTAL}%" >> $GITHUB_STEP_SUMMARY
 
-    - name: "Make badge"
-      uses: schneegans/dynamic-badges-action@v1.7.0
-      with:
-        auth: ${{ secrets.GIST_TOKEN }}
-        gistID: 5e5b6cc511c2b9d625cba7bf9857a820
-        filename: coverage.json
-        label: Coverage
-        message: ${{ env.total }}%
-        minColorRange: 50
-        maxColorRange: 90
-        valColorRange: ${{ env.total }}
+      - name: "Make badge"
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_TOKEN }}
+          gistID: 5e5b6cc511c2b9d625cba7bf9857a820
+          filename: coverage.json
+          label: Coverage
+          message: ${{ env.total }}%
+          minColorRange: 50
+          maxColorRange: 90
+          valColorRange: ${{ env.total }}
