@@ -33,6 +33,7 @@ dependencies = [
   "pyjwt[crypto]>=2.10.1,<3",
   "PyYaml>=6,<7",
   "uedition>=1,<2",
+  "typer>=0.15.1,<1",
   "uvicorn<1",
 ]
 
@@ -40,6 +41,9 @@ dependencies = [
 Documentation = "https://github.com/unknown/ueditor#readme"
 Issues = "https://github.com/unknown/ueditor/issues"
 Source = "https://github.com/unknown/ueditor"
+
+[project.scripts]
+ueditor = "ueditor.cli:app"
 
 [tool.hatch.version]
 path = "ueditor/__about__.py"
