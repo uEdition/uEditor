@@ -33,12 +33,12 @@ jobs:
         run: |
           sudo apt-get install python3-venv pipx
           pipx install hatch
-          cd uedition-editor/frontend
+          cd uedition_editor/frontend
           npm install
 
       - name: Build the Frontend
         run: |
-          cd uedition-editor/frontend
+          cd uedition_editor/frontend
           npm run build
 
       - name: Run Tests
