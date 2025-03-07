@@ -18,7 +18,7 @@ The simplest way to install the μEditor is using [pipx](https://github.com/pypa
 operating system and then run the following command to install the μEditor:
 
 ```console
-pipx install ueditor
+pipx install "uedition-editor>=2.0.0b2,<3"
 ```
 
 Then run the following command to start the μEditor:
