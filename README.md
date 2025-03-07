@@ -1,7 +1,7 @@
 # μEditor
 
-[![PyPI - Version](https://img.shields.io/pypi/v/uedition-ueditor.svg)](https://pypi.org/project/uedition-ueditor)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ueditor.svg)](https://pypi.org/project/ueditor)
+[![PyPI - Version](https://img.shields.io/pypi/v/uedition-editor.svg)](https://pypi.org/project/uedition-editor)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/uedition-editor.svg)](https://pypi.org/project/uedition-editor)
 [![Test workflow status](https://github.com/uEdition/uEditor/actions/workflows/tests.yml/badge.svg)](https://github.com/uEdition/uEditor/actions/workflows/tests.yml)
 [![Test coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/scmmmh/5e5b6cc511c2b9d625cba7bf9857a820/raw/coverage.json)](https://github.com/uEdition/uEditor/actions/workflows/tests.yml)
 
@@ -10,6 +10,7 @@
 **Table of Contents**
 
 - [Installation](#installation)
+- [Documentation](#documentation)
 - [License](#license)
 
 ## Installation

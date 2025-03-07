@@ -38,9 +38,9 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/unknown/ueditor#readme"
-Issues = "https://github.com/unknown/ueditor/issues"
-Source = "https://github.com/unknown/ueditor"
+Documentation = "https://github.com/uEdition/uEditor#readme"
+Issues = "https://github.com/uEdition/uEditor/issues"
+Source = "https://github.com/uEdition/uEditor"
 
 [project.scripts]
 ueditor = "uedition_editor.cli:app"
