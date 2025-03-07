@@ -8,7 +8,7 @@ import re
 from typer import Context, Typer
 from uvicorn import Config, Server
 
-from ueditor.__about__ import __version__
+from uedition_editor.__about__ import __version__
 
 app = Typer()
 

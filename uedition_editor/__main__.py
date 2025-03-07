@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 """The uEditor module entry point."""
 
-from ueditor.cli import app
+from uedition_editor.cli import app
 
 if __name__ == "__main__":
     app()

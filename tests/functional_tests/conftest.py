@@ -5,8 +5,8 @@ from typing import Generator
 from fastapi.testclient import TestClient
 from pytest import fixture
 
-from ueditor import app
-from ueditor.settings import init_settings
+from uedition_editor import app
+from uedition_editor.settings import init_settings
 
 
 @fixture

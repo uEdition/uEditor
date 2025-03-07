@@ -13,7 +13,7 @@ from fastapi.responses import RedirectResponse
 from httpx import AsyncClient
 from pydantic import BaseModel, EmailStr
 
-from ueditor.settings import init_settings
+from uedition_editor.settings import init_settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth")

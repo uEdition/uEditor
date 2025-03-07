@@ -6,7 +6,7 @@ from asyncio import Lock
 from pygit2 import CredentialType, GitError, KeypairFromAgent, RemoteCallbacks, Repository, Signature
 from pygit2.enums import FetchPrune, MergeAnalysis, RepositoryOpenFlag
 
-from ueditor.settings import init_settings
+from uedition_editor.settings import init_settings
 
 logger = logging.getLogger(__name__)
 uedition_lock = Lock()

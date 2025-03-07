@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 
-from ueditor.settings import get_uedition_settings, get_ueditor_settings, init_settings
+from uedition_editor.settings import get_uedition_settings, get_ueditor_settings, init_settings
 
 
 def test_basic_env_settings(simple_app: FastAPI) -> None:  # noqa: ARG001
