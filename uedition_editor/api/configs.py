@@ -10,9 +10,9 @@ from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.responses import Response
 
-from ueditor.api.auth import get_current_user
-from ueditor.api.util import BranchContextManager, BranchNotFoundError
-from ueditor.settings import (
+from uedition_editor.api.auth import get_current_user
+from uedition_editor.api.util import BranchContextManager, BranchNotFoundError
+from uedition_editor.settings import (
     UEditonSettings,
     UEditorSettings,
     get_uedition_settings,

@@ -4,8 +4,8 @@ import os
 
 from fastapi.testclient import TestClient
 
-from ueditor import app
-from ueditor.settings import init_settings
+from uedition_editor import app
+from uedition_editor.settings import init_settings
 
 
 def test_fail_incorrect_fixture() -> None:

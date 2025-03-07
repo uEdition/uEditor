@@ -10,15 +10,15 @@ from pydantic import BaseModel
 from pygit2 import GitError, Repository
 from pygit2.enums import RepositoryOpenFlag
 
-from ueditor.api.auth import router as auth_router
-from ueditor.api.branches import router as branches_router
-from ueditor.settings import init_settings
+from uedition_editor.api.auth import router as auth_router
+from uedition_editor.api.branches import router as branches_router
+from uedition_editor.settings import init_settings
 
 router = APIRouter(prefix="/api")
 router.include_router(auth_router)
 router.include_router(branches_router)
 if init_settings.test:  # pragma: no cover
-    from ueditor.api.tests import router as tests_router
+    from uedition_editor.api.tests import router as tests_router
 
     router.include_router(tests_router)
 

@@ -1,9 +1,9 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-build-scripts"]
 build-backend = "hatchling.build"
 
 [project]
-name = "uEditor"
+name = "uEdition-Editor"
 dynamic = ["version"]
 description = ''
 readme = "README.md"
@@ -43,17 +43,23 @@ Issues = "https://github.com/unknown/ueditor/issues"
 Source = "https://github.com/unknown/ueditor"
 
 [project.scripts]
-ueditor = "ueditor.cli:app"
+ueditor = "uedition_editor.cli:app"
 
 [tool.hatch.version]
-path = "ueditor/__about__.py"
+path = "uedition_editor/__about__.py"
+
+[[tool.hatch.build.hooks.build-scripts.scripts]]
+artifacts = ["dist/**/*"]
+commands = ["npm ci", "npm run build"]
+work_dir = "uedition_editor/frontend"
+out_dir = "uedition_editor/frontend/dist"
 
 [tool.hatch.envs.default]
 extra-dependencies = ["coverage[toml]>=6.5", "httpx", "pytest", "ruff==0.9.5"]
 
 [tool.hatch.envs.default.scripts]
-server = "uvicorn --reload --port 8000 ueditor:app {args}"
-build-frontend = "cd ueditor/frontend && npm install && vite build --watch"
+server = "uvicorn --reload --port 8000 uedition_editor:app {args}"
+build-frontend = "cd uedition_editor/frontend && npm install && vite build --watch"
 e2e-tests = "cd tests/e2e_tests && UEDITOR__BASE_PATH=./tmp_fixtures UEDITOR__TEST=true UEDITOR__AUTH__PROVIDER=no-auth UEDITOR__AUTH__EMAIL= UEDITOR__AUTH__NAME= npx playwright test"
 test = "UEDITOR__BASE_PATH=./tmp_fixtures UEDITOR__TEST=true UEDITOR__AUTH__PROVIDER=no-auth UEDITOR__AUTH__EMAIL= UEDITOR__AUTH__NAME=  pytest {args:tests}"
 test-cov = "UEDITOR__BASE_PATH=./tmp_fixtures UEDITOR__TEST=true UEDITOR__AUTH__PROVIDER=no-auth UEDITOR__AUTH__EMAIL= UEDITOR__AUTH__NAME=  coverage run -m pytest {args:tests}"
@@ -122,7 +128,7 @@ unfixable = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["ueditor"]
+known-first-party = ["uedition_editor"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
@@ -132,14 +138,14 @@ ban-relative-imports = "all"
 "tests/**/*" = ["PLR2004", "S101", "TID252"]
 
 [tool.coverage.run]
-source_pkgs = ["ueditor"]
+source_pkgs = ["uedition_editor"]
 branch = true
 parallel = true
-omit = ["ueditor/__about__.py"]
+omit = ["uedition_editor/__about__.py"]
 
 [tool.coverage.paths]
-ueditor = ["ueditor", "*/ueditor/ueditor"]
-tests = ["tests", "*/ueditor/tests"]
+uedition_editor = ["uedition_editor", "*/uedition_editor/uedition_editor"]
+tests = ["tests", "*/uedition_editor/tests"]
 
 [tool.coverage.report]
 exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]

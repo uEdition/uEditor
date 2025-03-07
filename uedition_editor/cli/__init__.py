@@ -8,7 +8,7 @@ import re
 from typer import Context, Typer
 from uvicorn import Config, Server
 
-from ueditor.__about__ import __version__
+from uedition_editor.__about__ import __version__
 
 app = Typer()
 
@@ -33,6 +33,6 @@ def server(ctx: Context) -> None:
             else:
                 settings[key] = arg
             key = None
-    config = Config("ueditor:app", **settings)
+    config = Config("uedition_editor:app", **settings)
     server = Server(config)
     server.run()

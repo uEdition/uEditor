@@ -12,10 +12,10 @@ from pydantic import BaseModel, Field
 from pygit2 import GitError, Repository
 from pygit2.enums import FetchPrune, RepositoryOpenFlag
 
-from ueditor.api.auth import get_current_user
-from ueditor.api.configs import router as configs_router
-from ueditor.api.files import router as files_router
-from ueditor.api.util import (
+from uedition_editor.api.auth import get_current_user
+from uedition_editor.api.configs import router as configs_router
+from uedition_editor.api.files import router as files_router
+from uedition_editor.api.util import (
     BranchContextManager,
     RemoteRepositoryCallbacks,
     fetch_and_pull_branch,
@@ -23,7 +23,7 @@ from ueditor.api.util import (
     pull_branch,
     uedition_lock,
 )
-from ueditor.settings import init_settings
+from uedition_editor.settings import init_settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/branches")

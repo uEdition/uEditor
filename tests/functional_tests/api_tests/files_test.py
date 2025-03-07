@@ -5,7 +5,7 @@ import os
 
 from fastapi.testclient import TestClient
 
-from ueditor.settings import init_settings
+from uedition_editor.settings import init_settings
 
 
 def test_list_files(simple_app: TestClient) -> None:
