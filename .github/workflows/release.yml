@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   pypi:
@@ -17,21 +17,26 @@ jobs:
       id-token: write
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v5
-      with:
-        python-version: |
-          3.11
+      - uses: actions/setup-python@v5
+        with:
+          python-version: |
+            3.11
 
-    - name: Install Base Dependencies
-      run: |
-        sudo apt-get install python3-venv
-        sudo pip install hatch
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
 
-    - name: Build the package
-      run: |
-        hatch build
+      - name: Install Base Dependencies
+        run: |
+          sudo apt-get install -y python3-venv
+          sudo apt-get uninstall -y python3-packaging
+          sudo pip install hatch
 
-    - name: Publish package distributions to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Build the package
+        run: |
+          hatch build
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
