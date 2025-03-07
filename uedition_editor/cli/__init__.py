@@ -33,6 +33,6 @@ def server(ctx: Context) -> None:
             else:
                 settings[key] = arg
             key = None
-    config = Config("ueditor:app", **settings)
+    config = Config("uedition_editor:app", **settings)
     server = Server(config)
     server.run()

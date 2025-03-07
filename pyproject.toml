@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-build-scripts"]
 build-backend = "hatchling.build"
 
 [project]
@@ -47,6 +47,12 @@ ueditor = "uedition_editor.cli:app"
 
 [tool.hatch.version]
 path = "uedition_editor/__about__.py"
+
+[[tool.hatch.build.hooks.build-scripts.scripts]]
+artifacts = ["dist/**/*"]
+commands = ["npm ci", "npm run build"]
+work_dir = "uedition_editor/frontend"
+out_dir = "uedition_editor/frontend/dist"
 
 [tool.hatch.envs.default]
 extra-dependencies = ["coverage[toml]>=6.5", "httpx", "pytest", "ruff==0.9.5"]
