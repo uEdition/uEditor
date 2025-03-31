@@ -200,13 +200,13 @@ def test_basic_uedition_config(simple_app: TestClient) -> None:
     response = simple_app.get("/api/branches/-1/configs/uedition")
     assert response.status_code == 200
     assert response.json() == {
-        "version": "1",
+        "version": "2",
         "author": {"name": "uEditor Simple Fixture", "email": "devs@example.com"},
         "languages": [{"code": "en", "label": "English", "path": "en"}],
         "output": {"path": "site", "tei": True},
-        "repository": {"url": None, "branch": "main"},
+        "repository": {"url": None},
         "title": {"en": "Simple Fixture"},
-        "jb_config": {},
+        "sphinx_config": {},
     }
 
 
