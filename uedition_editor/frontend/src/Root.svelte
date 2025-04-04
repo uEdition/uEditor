@@ -59,7 +59,7 @@
   {:else if $currentBranch === null}
     <div class="flex-1">
       <p class="px-4 py-2">
-        Please select the branch you wish to work on from the File menu.
+        Please select the branch you wish to work on from the μEditor menu.
       </p>
     </div>
   {:else}
