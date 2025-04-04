@@ -29,7 +29,11 @@
   let updateDebounce = -1;
 
   onMount(() => {
-    if (editorElement !== null && $uEditorConfig.isSuccess) {
+    if (
+      editorElement !== null &&
+      $uEditorConfig.isSuccess &&
+      $uEditionConfig.isSuccess
+    ) {
       const extensions: (Node | Mark)[] = [Document, Text];
       let configuredBlocks = deepCopy($uEditorConfig.data.tei.blocks);
       if (

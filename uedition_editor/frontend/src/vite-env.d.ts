@@ -57,7 +57,7 @@ type UEditionSettings = {
   output: UEditionOutput;
   repository: UEditionRepository;
   title: UEditionTitle;
-  jb_config: any;
+  sphinx_config: any;
 };
 
 type UEditorValueTitlePair = {
