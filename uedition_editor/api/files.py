@@ -22,9 +22,12 @@ from uedition_editor.api.util import BranchContextManager, BranchNotFoundError, 
 from uedition_editor.settings import (
     TEIMetadataSection,
     TEINodeAttribute,
+    TEINode,
     TEISettings,
     TEITextSection,
+    UEditionSettings,
     UEditorSettings,
+    get_uedition_settings,
     get_ueditor_settings,
     init_settings,
 )
@@ -295,7 +298,8 @@ def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
 async def get_file(
     branch_id: str,
     path: str,
-    settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)],
+    ueditor_settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)],
+    uedition_settings: Annotated[UEditionSettings, Depends(get_uedition_settings)],
     current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
 ) -> dict | FileResponse:
     """Fetch a single file from the repo."""
@@ -304,7 +308,16 @@ async def get_file(
             full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
             if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
                 if full_path.endswith(".tei"):
-                    return parse_tei_file(full_path, settings)
+                    if "tei" in uedition_settings.sphinx_config:
+                        if "blocks" in uedition_settings.sphinx_config["tei"]:
+                            ueditor_settings.tei.blocks.extend(
+                                [TEINode(**block) for block in uedition_settings.sphinx_config["tei"]["blocks"]]
+                            )
+                        if "marks" in uedition_settings.sphinx_config["tei"]:
+                            ueditor_settings.tei.marks.extend(
+                                [TEINode(**mark) for mark in uedition_settings.sphinx_config["tei"]["marks"]]
+                            )
+                    return parse_tei_file(full_path, ueditor_settings)
                 else:
                     return FileResponse(full_path, media_type=guess_type(full_path)[0])
             raise HTTPException(404)
@@ -662,11 +675,21 @@ async def update_file(
     """Update the file in the repo."""
     try:
         async with BranchContextManager(branch_id) as repo:
-            settings = get_ueditor_settings()
+            ueditor_settings = get_ueditor_settings()
             full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
             if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
                 if full_path.endswith(".tei"):
-                    root = serialise_tei_file(full_path, json.load(content.file), settings)
+                    uedition_settings = get_uedition_settings()
+                    if "tei" in uedition_settings.sphinx_config:
+                        if "blocks" in uedition_settings.sphinx_config["tei"]:
+                            ueditor_settings.tei.blocks.extend(
+                                [TEINode(**block) for block in uedition_settings.sphinx_config["tei"]["blocks"]]
+                            )
+                        if "marks" in uedition_settings.sphinx_config["tei"]:
+                            ueditor_settings.tei.marks.extend(
+                                [TEINode(**mark) for mark in uedition_settings.sphinx_config["tei"]["marks"]]
+                            )
+                    root = serialise_tei_file(full_path, json.load(content.file), ueditor_settings)
                     with open(full_path, "wb") as out_f:
                         out_f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
                         out_f.write(

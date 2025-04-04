@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Combobox, Toolbar, Separator, type Selected } from "bits-ui";
+  import { deepCopy } from "deep-copy-ts";
   import { mdiChevronDown, mdiChevronUp } from "@mdi/js";
   import { onMount, getContext, createEventDispatcher } from "svelte";
   import { Editor, Node, Mark } from "@tiptap/core";
@@ -20,6 +21,9 @@
   const uEditorConfig = getContext(
     "uEditorConfig",
   ) as CreateQueryResult<UEditorSettings>;
+  const uEditionConfig = getContext(
+    "uEditionConfig",
+  ) as CreateQueryResult<UEditionSettings>;
   let editorElement: HTMLElement | null = null;
   let editor: Editor | null = null;
   let updateDebounce = -1;
@@ -27,7 +31,18 @@
   onMount(() => {
     if (editorElement !== null && $uEditorConfig.isSuccess) {
       const extensions: (Node | Mark)[] = [Document, Text];
-      for (let blockConfig of $uEditorConfig.data.tei.blocks) {
+      let configuredBlocks = deepCopy($uEditorConfig.data.tei.blocks);
+      if (
+        $uEditionConfig.data.sphinx_config &&
+        $uEditionConfig.data.sphinx_config.tei &&
+        $uEditionConfig.data.sphinx_config.tei.blocks
+      ) {
+        configuredBlocks = configuredBlocks.concat(
+          deepCopy($uEditionConfig.data.sphinx_config.tei.blocks),
+        );
+      }
+      console.log(configuredBlocks);
+      for (let blockConfig of configuredBlocks) {
         extensions.push(
           Node.create({
             name: blockConfig.name,
@@ -58,7 +73,17 @@
           }),
         );
       }
-      for (let markConfig of $uEditorConfig.data.tei.marks) {
+      let configuredMarks = deepCopy($uEditorConfig.data.tei.marks);
+      if (
+        $uEditionConfig.data.sphinx_config &&
+        $uEditionConfig.data.sphinx_config.tei &&
+        $uEditionConfig.data.sphinx_config.tei.marks
+      ) {
+        configuredMarks = configuredMarks.concat(
+          deepCopy($uEditionConfig.data.sphinx_config.tei.marks),
+        );
+      }
+      for (let markConfig of configuredMarks) {
         extensions.push(
           Mark.create({
             name: markConfig.name,

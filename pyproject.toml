@@ -32,7 +32,7 @@ dependencies = [
   "python-slugify>=8.0.4,<9",
   "pyjwt[crypto]>=2.10.1,<3",
   "PyYaml>=6,<7",
-  "uedition>=2.0.0a2,<2.1",
+  "uEdition>=2.0.0a2,<2.1",
   "typer>=0.15.1,<1",
   "uvicorn<1",
 ]

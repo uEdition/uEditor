@@ -174,7 +174,9 @@ class TEINodeAttribute(BaseModel):
     """The name of the attribute."""
     value: str | None = None
     """A fixed value to use for the attribute."""
-    type: Literal["string"] | Literal["static"] | Literal["id-ref"] | Literal["text"] = "string"
+    type: Literal["string"] | Literal["static"] | Literal["id-ref"] | Literal["text"] | Literal["html-attribute"] = (
+        "string"
+    )
     """The type of attribute this is."""
     default: str = ""
     """The default value to use if none is set."""
@@ -441,7 +443,7 @@ class UEditorSettings(BaseSettings):
         )
 
 
-class UEditonSettings(UEditonSettingsBase):
+class UEditionSettings(UEditonSettingsBase):
     """The uEdition settings."""
 
     @classmethod
@@ -468,6 +470,6 @@ def get_ueditor_settings() -> UEditorSettings:
     return UEditorSettings()
 
 
-def get_uedition_settings() -> UEditonSettings:
+def get_uedition_settings() -> UEditionSettings:
     """Load the current UEditionSettings."""
-    return UEditonSettings()
+    return UEditionSettings()
