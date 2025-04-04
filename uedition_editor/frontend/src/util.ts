@@ -70,7 +70,7 @@ export function textForTipTapNode(node: TipTapNode): string {
  * @returns The text of the first node in the document
  */
 export function textForFirstNodeOfTipTapDocument(doc: TipTapDocument): string {
-  if (doc.content.length > 0) {
+  if (doc.content && doc.content.length > 0) {
     return textForTipTapNode(doc.content[0]);
   } else {
     return "<Empty Document>";

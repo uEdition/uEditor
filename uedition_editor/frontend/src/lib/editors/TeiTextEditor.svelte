@@ -41,7 +41,6 @@
           deepCopy($uEditionConfig.data.sphinx_config.tei.blocks),
         );
       }
-      console.log(configuredBlocks);
       for (let blockConfig of configuredBlocks) {
         extensions.push(
           Node.create({
@@ -199,6 +198,10 @@
           .run();
       }
     }
+
+    onDestroy(() => {
+      editor.destroy();
+    });
   }
 
   function crossReferenceItems(

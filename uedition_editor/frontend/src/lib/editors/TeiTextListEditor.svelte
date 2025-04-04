@@ -21,13 +21,13 @@
   let selectedDocument: TEITextSection | null = null;
   let showDeleteText = false;
 
-  $: if (section !== null) {
+  $: if (section !== null && section.content) {
     texts = section.content;
   } else {
     texts = [];
   }
 
-  $: if (selected.value !== null && section) {
+  $: if (selected.value !== null && section && section.content) {
     const tmp = texts.filter((text) => {
       return text.attrs.id === selected.value;
     });
@@ -57,7 +57,7 @@
    * @param ev The combobox event triggering the update.
    */
   function updateSelected(ev: CustomEvent) {
-    if (selected.value !== null && section) {
+    if (selected.value !== null && section && section.content) {
       const tmp = texts.filter((text) => {
         return text.attrs.id === selected.value;
       });

@@ -23,7 +23,7 @@
   let loadingError = false;
 
   const uEditorConfig = getContext(
-    "uEditorConfig"
+    "uEditorConfig",
   ) as CreateQueryResult<UEditorSettings>;
   const currentBranch = useCurrentBranch();
 
@@ -70,7 +70,7 @@
         });
       }
     },
-    null as null | TEIDocument
+    null as null | TEIDocument,
   );
 
   const currentFileModifiedUnsubscribe = currentFileModified.subscribe(
@@ -80,7 +80,7 @@
           initialDocument = JSON.parse($currentFileContent);
         } catch (e) {}
       }
-    }
+    },
   );
 
   function updateDocumentSection(idx: number, ev: CustomEvent) {

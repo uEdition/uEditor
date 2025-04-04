@@ -298,13 +298,13 @@ def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
 async def get_file(
     branch_id: str,
     path: str,
-    ueditor_settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)],
-    uedition_settings: Annotated[UEditionSettings, Depends(get_uedition_settings)],
     current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
 ) -> dict | FileResponse:
     """Fetch a single file from the repo."""
     try:
         async with BranchContextManager(branch_id):
+            ueditor_settings = get_ueditor_settings()
+            uedition_settings = get_uedition_settings()
             full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
             if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
                 if full_path.endswith(".tei"):
