@@ -21,11 +21,10 @@ from uedition_editor.api.auth import get_current_user
 from uedition_editor.api.util import BranchContextManager, BranchNotFoundError, commit_and_push
 from uedition_editor.settings import (
     TEIMetadataSection,
-    TEINodeAttribute,
     TEINode,
+    TEINodeAttribute,
     TEISettings,
     TEITextSection,
-    UEditionSettings,
     UEditorSettings,
     get_uedition_settings,
     get_ueditor_settings,
