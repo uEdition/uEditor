@@ -202,10 +202,6 @@
           .run();
       }
     }
-
-    onDestroy(() => {
-      editor.destroy();
-    });
   }
 
   function crossReferenceItems(
