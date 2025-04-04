@@ -11,6 +11,8 @@
 
   export let section: TEITextlistSection | null = null;
   export let sections: TEIDocument;
+  export let selectedEntryId: string | null | undefined;
+  export let editTextListEntry: (textlist: string, textlistId: string) => void;
 
   const dispatch = createEventDispatcher();
   const uEditorConfig = getContext(
@@ -20,6 +22,22 @@
   let texts = [] as TEITextlistDocument[];
   let selectedDocument: TEITextSection | null = null;
   let showDeleteText = false;
+
+  $: if (selectedEntryId && section) {
+    const tmp = texts.filter((text) => {
+      return (
+        text.attrs.id === selectedEntryId ||
+        text.attrs.id === selectedEntryId.substring(1)
+      );
+    });
+    if (tmp.length === 1) {
+      selected = {
+        value: tmp[0].attrs.id,
+        label: textForFirstNodeOfTipTapDocument(tmp[0].content),
+      };
+    }
+    selectedEntryId = null;
+  }
 
   $: if (section !== null && section.content) {
     texts = section.content;
@@ -178,6 +196,7 @@
       <TeiTextEditor
         section={selectedDocument}
         {sections}
+        {editTextListEntry}
         on:update={updateSelected}
       />
     {/if}
