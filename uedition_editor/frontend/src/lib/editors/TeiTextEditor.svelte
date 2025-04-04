@@ -234,7 +234,6 @@
             editor?.getAttributes(item.mark)[item.name].substring(1)
         );
       });
-      console.log(tmp);
       if (tmp.length === 1) {
         return {
           value: editor.getAttributes(item.mark)[item.name],

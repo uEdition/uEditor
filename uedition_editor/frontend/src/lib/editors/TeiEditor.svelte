@@ -40,6 +40,7 @@
         loadingError = false;
         initialDocument = [];
         updatedDocument = [];
+        set(null);
         currentFileContent.set(null);
         currentFileModified.set(false);
         runAction({
