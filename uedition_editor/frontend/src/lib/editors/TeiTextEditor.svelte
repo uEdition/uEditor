@@ -227,8 +227,13 @@
       const tmp = (
         sectionsDict[item.section] as TEITextlistSection
       ).content.filter((text) => {
-        return text.attrs["id"] === editor?.getAttributes(item.mark)[item.name];
+        return (
+          text.attrs["id"] === editor?.getAttributes(item.mark)[item.name] ||
+          text.attrs["id"] ===
+            editor?.getAttributes(item.mark)[item.name].substring(1)
+        );
       });
+      console.log(tmp);
       if (tmp.length === 1) {
         return {
           value: editor.getAttributes(item.mark)[item.name],
@@ -313,41 +318,45 @@
                       />
                     </label>
                   {:else if item.type === "select-cross-reference-attribute"}
-                    <Combobox.Root
-                      selected={crossReferenceSelectedItem(item)}
-                      items={crossReferenceItems(item)}
-                      onSelectedChange={(value) => {
-                        runAction(editor, item, value);
-                      }}
-                    >
-                      <div class="relative">
-                        <Combobox.Input
-                          placeholder="Select the text to edit"
-                          aria-label="Select the text to edit"
-                          class="relative pr-6 z-10 bg-transparent"
-                        />
-                        <div class="absolute top-1/2 right-0 -translate-y-1/2">
-                          <Icon
-                            path={mdiChevronDown}
-                            class="w-6 h-6 combobox-expand"
+                    {#key editor}
+                      <Combobox.Root
+                        selected={crossReferenceSelectedItem(item)}
+                        items={crossReferenceItems(item)}
+                        onSelectedChange={(value) => {
+                          runAction(editor, item, value);
+                        }}
+                      >
+                        <div class="relative">
+                          <Combobox.Input
+                            placeholder="Select the text to edit"
+                            aria-label="Select the text to edit"
+                            class="relative pr-6 z-10 bg-transparent"
                           />
-                          <Icon
-                            path={mdiChevronUp}
-                            class="w-6 h-6 combobox-collapse"
-                          />
+                          <div
+                            class="absolute top-1/2 right-0 -translate-y-1/2"
+                          >
+                            <Icon
+                              path={mdiChevronDown}
+                              class="w-6 h-6 combobox-expand"
+                            />
+                            <Icon
+                              path={mdiChevronUp}
+                              class="w-6 h-6 combobox-collapse"
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <Combobox.Content>
-                        {#if sectionsDict[item.section].type.type === "textlist"}
-                          {#each crossReferenceItems(item) as entry}
-                            <Combobox.Item
-                              value={entry.value}
-                              label={entry.label}>{entry.label}</Combobox.Item
-                            >
-                          {/each}
-                        {/if}
-                      </Combobox.Content>
-                    </Combobox.Root>
+                        <Combobox.Content>
+                          {#if sectionsDict[item.section].type.type === "textlist"}
+                            {#each crossReferenceItems(item) as entry}
+                              <Combobox.Item
+                                value={entry.value}
+                                label={entry.label}>{entry.label}</Combobox.Item
+                              >
+                            {/each}
+                          {/if}
+                        </Combobox.Content>
+                      </Combobox.Root>
+                    {/key}
                   {:else if item.type === "input-mark-attribute"}
                     <label>
                       <span data-form-field-label>{item.title}</span>
