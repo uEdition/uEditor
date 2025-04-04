@@ -21,6 +21,8 @@
   let updateDebounce = -1;
   let initialDocument: TEIDocument = [];
   let loadingError = false;
+  let selectedTab = "";
+  let textlistSelectedEntry = {} as { [key: string]: string };
 
   const uEditorConfig = getContext(
     "uEditorConfig",
@@ -62,6 +64,7 @@
                 }
               }
               set(newSections);
+              selectedTab = "";
             } catch (e) {
               loadingError = true;
               set(null);
@@ -122,13 +125,19 @@
     }
   }
 
+  function editTextListEntry(textlist: string, textlistEntryId: string) {
+    selectedTab = textlist;
+    textlistSelectedEntry[textlist] = textlistEntryId;
+    textlistSelectedEntry = textlistSelectedEntry;
+  }
+
   onDestroy(currentFileModifiedUnsubscribe);
 </script>
 
 <h1 class="sr-only">{$currentFile?.name}</h1>
 {#if $teiDocument}
   <div class="flex-1 flex overflow-hidden" on:keydown={shortCutTracker}>
-    <Tabs.Root class="flex-1 flex flex-col">
+    <Tabs.Root bind:value={selectedTab} class="flex-1 flex flex-col">
       <Tabs.List>
         {#each $teiDocument as section}
           <Tabs.Trigger value={section.type.name}
@@ -149,6 +158,7 @@
             <TeiTextEditor
               {section}
               sections={$teiDocument}
+              {editTextListEntry}
               on:update={(ev) => {
                 updateDocumentSection(idx, ev);
               }}
@@ -157,6 +167,8 @@
             <TeiTextListEditor
               {section}
               sections={$teiDocument}
+              {editTextListEntry}
+              selectedEntryId={textlistSelectedEntry[section.name]}
               on:update={(ev) => {
                 updateDocumentSection(idx, ev);
               }}

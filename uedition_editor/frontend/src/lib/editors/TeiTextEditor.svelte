@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { Combobox, Toolbar, Separator, type Selected } from "bits-ui";
+  import { Combobox, Toolbar, Separator, type Selected, Button } from "bits-ui";
   import { deepCopy } from "deep-copy-ts";
-  import { mdiChevronDown, mdiChevronUp } from "@mdi/js";
+  import { mdiChevronDown, mdiChevronUp, mdiPencil } from "@mdi/js";
   import { onMount, getContext, createEventDispatcher } from "svelte";
   import { Editor, Node, Mark } from "@tiptap/core";
   import { Document } from "@tiptap/extension-document";
@@ -16,6 +16,7 @@
   export let sectionsDict: {
     [name: string]: TEIMetadataSection | TEITextSection | TEITextlistSection;
   } = {};
+  export let editTextListEntry: (textlist: string, textlistId: string) => void;
 
   const dispatch = createEventDispatcher();
   const uEditorConfig = getContext(
@@ -318,45 +319,64 @@
                       />
                     </label>
                   {:else if item.type === "select-cross-reference-attribute"}
-                    {#key editor}
-                      <Combobox.Root
-                        selected={crossReferenceSelectedItem(item)}
-                        items={crossReferenceItems(item)}
-                        onSelectedChange={(value) => {
-                          runAction(editor, item, value);
-                        }}
-                      >
-                        <div class="relative">
-                          <Combobox.Input
-                            placeholder="Select the text to edit"
-                            aria-label="Select the text to edit"
-                            class="relative pr-6 z-10 bg-transparent"
-                          />
-                          <div
-                            class="absolute top-1/2 right-0 -translate-y-1/2"
-                          >
-                            <Icon
-                              path={mdiChevronDown}
-                              class="w-6 h-6 combobox-expand"
+                    <div class="flex flex-row flex-wrap">
+                      {#key editor}
+                        <Combobox.Root
+                          selected={crossReferenceSelectedItem(item)}
+                          items={crossReferenceItems(item)}
+                          onSelectedChange={(value) => {
+                            runAction(editor, item, value);
+                          }}
+                        >
+                          <div class="relative">
+                            <Combobox.Input
+                              placeholder="Select the text to edit"
+                              aria-label="Select the text to edit"
+                              class="relative pr-6 z-10 bg-transparent"
                             />
-                            <Icon
-                              path={mdiChevronUp}
-                              class="w-6 h-6 combobox-collapse"
-                            />
+                            <div
+                              class="absolute top-1/2 right-0 -translate-y-1/2"
+                            >
+                              <Icon
+                                path={mdiChevronDown}
+                                class="w-6 h-6 combobox-expand"
+                              />
+                              <Icon
+                                path={mdiChevronUp}
+                                class="w-6 h-6 combobox-collapse"
+                              />
+                            </div>
                           </div>
-                        </div>
-                        <Combobox.Content>
-                          {#if sectionsDict[item.section].type.type === "textlist"}
-                            {#each crossReferenceItems(item) as entry}
-                              <Combobox.Item
-                                value={entry.value}
-                                label={entry.label}>{entry.label}</Combobox.Item
-                              >
-                            {/each}
-                          {/if}
-                        </Combobox.Content>
-                      </Combobox.Root>
-                    {/key}
+                          <Combobox.Content>
+                            {#if sectionsDict[item.section].type.type === "textlist"}
+                              {#each crossReferenceItems(item) as entry}
+                                <Combobox.Item
+                                  value={entry.value}
+                                  label={entry.label}
+                                  >{entry.label}</Combobox.Item
+                                >
+                              {/each}
+                            {/if}
+                          </Combobox.Content>
+                        </Combobox.Root>
+                      {/key}
+                      <Toolbar.Root class="flex-wrap">
+                        <Toolbar.Button
+                          on:click={() => {
+                            editTextListEntry(
+                              item.section,
+                              editor?.getAttributes(item.mark)[item.name],
+                            );
+                          }}
+                          title="Edit the selected entry"
+                        >
+                          <Icon
+                            path={mdiPencil}
+                            label="Edit the selected entry"
+                          />
+                        </Toolbar.Button>
+                      </Toolbar.Root>
+                    </div>
                   {:else if item.type === "input-mark-attribute"}
                     <label>
                       <span data-form-field-label>{item.title}</span>
