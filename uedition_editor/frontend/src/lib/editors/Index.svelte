@@ -1,7 +1,7 @@
 <script lang="ts">
   import { derived } from "svelte/store";
 
-  import { currentFile } from "../../stores";
+  import { currentFile, useCurrentBranch } from "../../stores";
 
   let loading = false;
   const CODEMIRROR_MIMETYPES = [
@@ -11,6 +11,8 @@
     "application/yaml",
   ];
   const TEI_MIMETYPES = ["application/tei+xml"];
+
+  const currentBranch = useCurrentBranch();
 
   const currentEditorType = derived(currentFile, (currentFile) => {
     if (currentFile) {
@@ -52,19 +54,21 @@
           },
           () => {
             loading = false;
-          }
+          },
         );
       } else {
         set(null);
       }
     },
-    null as any
+    null as any,
   );
 </script>
 
 {#if $currentFile !== null}
   {#if $currentEditor !== null}
-    <svelte:component this={$currentEditor} />
+    {#key $currentBranch.id}
+      <svelte:component this={$currentEditor} />
+    {/key}
   {:else if loading}
     <div class="flex-1 px-2 py-1">Loading the editor. Please wait...</div>
   {:else}
