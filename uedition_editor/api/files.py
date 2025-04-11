@@ -18,7 +18,11 @@ from fastapi.responses import FileResponse
 from lxml import etree
 
 from uedition_editor.api.auth import get_current_user
-from uedition_editor.api.util import BranchContextManager, BranchNotFoundError, commit_and_push
+from uedition_editor.api.util import (
+    BranchContextManager,
+    BranchNotFoundError,
+    commit_and_push,
+)
 from uedition_editor.settings import (
     TEIMetadataSection,
     TEINode,
@@ -222,75 +226,114 @@ def clean_tei_subdoc(node: dict) -> dict:
 
 def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
     """Parse a TEI file into its constituent parts."""
-    doc = etree.parse(path)  # noqa: S320
-    result = []
-    for section in settings.tei.sections:
-        section_root = doc.xpath(section.selector, namespaces=namespaces)
-        if len(section_root) == 0:
-            if section.type == "metadata":
-                result.append(
-                    {
-                        "name": section.name,
-                        "title": section.title,
-                        "type": section.type,
-                        "content": [],
-                    }
-                )
-            elif section.type == "text":
-                result.append(
-                    {
-                        "name": section.name,
-                        "title": section.title,
-                        "type": section.type,
-                        "content": {},
-                    }
-                )
-            elif section.type == "textlist":
-                result.append(
-                    {
-                        "name": section.name,
-                        "title": section.title,
-                        "type": section.type,
-                        "content": [],
-                    }
-                )
-        else:  # noqa: PLR5501
-            if section.type == "metadata":
-                result.append(
-                    {
-                        "name": section.name,
-                        "title": section.title,
-                        "type": section.type,
-                        "content": [parse_metadata_node(node) for node in section_root[0]],
-                    }
-                )
-            elif section.type == "text":
-                result.append(
-                    {
-                        "name": section.name,
-                        "title": section.title,
-                        "type": section.type,
-                        "content": clean_tei_subdoc(parse_tei_subdoc(section_root[0], settings.tei)),
-                    }
-                )
-            elif section.type == "textlist":
-                content = []
-                for node in section_root:
-                    content.append(
+    try:
+        doc = etree.parse(path)  # noqa: S320
+        result = []
+        for section in settings.tei.sections:
+            section_root = doc.xpath(section.selector, namespaces=namespaces)
+            if len(section_root) == 0:
+                if section.type == "metadata":
+                    result.append(
                         {
-                            "attrs": {"id": node.attrib["{http://www.w3.org/XML/1998/namespace}id"]},
-                            "content": clean_tei_subdoc(parse_tei_subdoc(node, settings.tei)),
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": [],
                         }
                     )
-                result.append(
-                    {
-                        "name": section.name,
-                        "title": section.title,
-                        "type": section.type,
-                        "content": content,
-                    }
-                )
-    return result
+                elif section.type == "text":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": {},
+                        }
+                    )
+                elif section.type == "textlist":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": [],
+                        }
+                    )
+            else:  # noqa: PLR5501
+                if section.type == "metadata":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": [parse_metadata_node(node) for node in section_root[0]],
+                        }
+                    )
+                elif section.type == "text":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": clean_tei_subdoc(parse_tei_subdoc(section_root[0], settings.tei)),
+                        }
+                    )
+                elif section.type == "textlist":
+                    content = []
+                    for node in section_root:
+                        content.append(
+                            {
+                                "attrs": {"id": node.attrib["{http://www.w3.org/XML/1998/namespace}id"]},
+                                "content": clean_tei_subdoc(parse_tei_subdoc(node, settings.tei)),
+                            }
+                        )
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": content,
+                        }
+                    )
+        return result
+    except etree.XMLSyntaxError as e:
+        is_empty = False
+        with open(path) as in_f:
+            if in_f.read() == "":
+                is_empty = True
+        if is_empty:
+            result = []
+            for section in settings.tei.sections:
+                if section.type == "metadata":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": [],
+                        }
+                    )
+                elif section.type == "text":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": {},
+                        }
+                    )
+                elif section.type == "textlist":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": [],
+                        }
+                    )
+            return result
+        else:
+            raise e
 
 
 @router.get("/{path:path}", response_model=None)
@@ -599,8 +642,9 @@ def serialise_tei_text(root: dict, data: dict, settings: TEITextSection, tei_set
         parent["children"] = []
     doc = data["content"]
     # TODO: Add docu attributes to the parent node
-    for element in doc["content"]:
-        parent["children"].append(serialise_tei_text_block(element, tei_settings))
+    if "content" in doc:
+        for element in doc["content"]:
+            parent["children"].append(serialise_tei_text_block(element, tei_settings))
 
 
 def serialise_tei_textlist(root: dict, data: dict, settings: TEITextSection, tei_settings: TEISettings) -> None:
