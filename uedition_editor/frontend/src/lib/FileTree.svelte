@@ -40,7 +40,7 @@
       {:else if type === "folder"}
         <Icon path={mdiFolderOutline} />
       {:else if type === "file"}
-        {#if mimetype === "text/markdown"}
+        {#if mimetype === "text/markdown" || mimetype === "application/tei+xml"}
           <Icon path={mdiFileDocumentOutline} />
         {:else if mimetype.startsWith("image/")}
           <Icon path={mdiFileImageOutline} />

@@ -12,7 +12,7 @@ import shutil
 from typing import Annotated
 
 import pygit2
-from fastapi import APIRouter, Depends, Header, UploadFile
+from fastapi import APIRouter, Depends, Header, Response, UploadFile
 from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from lxml import etree
@@ -298,6 +298,7 @@ async def get_file(
     branch_id: str,
     path: str,
     current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
+    response: Response,
 ) -> dict | FileResponse:
     """Fetch a single file from the repo."""
     try:
@@ -316,6 +317,7 @@ async def get_file(
                             ueditor_settings.tei.marks.extend(
                                 [TEINode(**mark) for mark in uedition_settings.sphinx_config["tei"]["marks"]]
                             )
+                    response.headers["Content-Type"] = "application/json+tei"
                     return parse_tei_file(full_path, ueditor_settings)
                 else:
                     return FileResponse(full_path, media_type=guess_type(full_path)[0])
