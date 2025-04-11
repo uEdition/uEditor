@@ -29,6 +29,7 @@ from uedition_editor.settings import (
     TEINodeAttribute,
     TEISettings,
     TEITextSection,
+    UEditionSettings,
     UEditorSettings,
     get_uedition_settings,
     get_ueditor_settings,
@@ -66,21 +67,25 @@ def guess_type(url: str) -> tuple[str | None, str | None]:
         return ("application/unknown", None)
 
 
-def build_file_tree(path: str, strip_len) -> list[dict]:
+def build_file_tree(path: str, strip_len: int, uedition_settings: UEditionSettings) -> list[dict]:
     """Recursively build a tree of directories and files."""
     files = []
     for filename in os.listdir(path):
         full_filename = os.path.join(path, filename)
         if os.path.isdir(full_filename):
-            files.append(
-                {
-                    "name": filename,
-                    "fullpath": full_filename[strip_len:],
-                    "type": "folder",
-                    "content": build_file_tree(full_filename, strip_len),
-                    "mimetype": "application/folder",
-                }
-            )
+            if filename != ".git" and full_filename[strip_len:] not in (
+                uedition_settings.output.path,
+                "_build",
+            ):
+                files.append(
+                    {
+                        "name": filename,
+                        "fullpath": full_filename[strip_len:],
+                        "type": "folder",
+                        "content": build_file_tree(full_filename, strip_len, uedition_settings),
+                        "mimetype": "application/folder",
+                    }
+                )
         elif os.path.isfile(full_filename):
             mimetype = guess_type(filename)
             files.append(
@@ -110,7 +115,7 @@ async def get_files(
                     "fullpath": "",
                     "type": "folder",
                     "mimetype": "application/folder",
-                    "content": build_file_tree(full_path, len(full_path) + 1),
+                    "content": build_file_tree(full_path, len(full_path) + 1, get_uedition_settings()),
                 }
             ]
     except BranchNotFoundError as bnfe:
