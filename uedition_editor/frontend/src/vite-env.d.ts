@@ -21,6 +21,7 @@ type Branch = {
   id: string;
   title: string;
   nogit?: boolean;
+  update_from_default?: boolean
 };
 
 type Config = {};

@@ -3,7 +3,14 @@
 import logging
 from asyncio import Lock
 
-from pygit2 import CredentialType, GitError, KeypairFromAgent, RemoteCallbacks, Repository, Signature
+from pygit2 import (
+    CredentialType,
+    GitError,
+    KeypairFromAgent,
+    RemoteCallbacks,
+    Repository,
+    Signature,
+)
 from pygit2.enums import FetchPrune, MergeAnalysis, RepositoryOpenFlag
 
 from uedition_editor.settings import init_settings
@@ -49,7 +56,12 @@ class BranchContextManager:
 class RemoteRepositoryCallbacks(RemoteCallbacks):
     """Callback handler for connecting to remote repositories."""
 
-    def credentials(self, url: str, username_from_url: str | None, allowed_types: CredentialType):  # noqa:ARG002
+    def credentials(
+        self,
+        url: str,  # noqa: ARG002
+        username_from_url: str | None,
+        allowed_types: CredentialType,
+    ):
         """Return the credentials for the remote connection."""
         if allowed_types & CredentialType.SSH_KEY == CredentialType.SSH_KEY:
             return KeypairFromAgent(username_from_url)
@@ -80,12 +92,21 @@ def fetch_and_pull_branch(repo: Repository, remote: str, branch: str) -> None:
     pull_branch(repo, branch)
 
 
-def commit_and_push(repo: Repository, remote: str, branch: str, commit_msg: str, author: Signature) -> None:
+def commit_and_push(
+    repo: Repository,
+    remote: str,
+    branch: str,
+    commit_msg: str,
+    author: Signature,
+    extra_parents: list[str] | None = None,
+) -> None:
     """Commit changes to the repository and push."""
     if len(repo.status()) > 0:
         logger.debug(f"Committing changes to {', '.join(repo.status().keys())}")
         ref = repo.head.name
         parents = [repo.head.target]
+        if extra_parents is not None:
+            parents.extend(extra_parents)
         index = repo.index
         index.add_all()
         index.write()

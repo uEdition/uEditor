@@ -7,6 +7,7 @@
     UEDITOR_NEW_BRANCH,
     UEDITOR_IMPORT_REMOTE_BRANCH,
     UEDITOR_DELETE_BRANCH,
+    UEDITOR_MERGE_FROM_DEFAULT,
 
     FOLDER_CREATE,
     FOLDER_DELETE,
@@ -25,6 +26,7 @@
   import UEditorNewBranch from "./ueditor/NewBranch.svelte";
   import UEditorDeleteBranch from "./ueditor/DeleteBranch.svelte";
   import UEditorImportRemoteBranch from "./ueditor/ImportRemoteBranch.svelte";
+  import UEditorMergeFromDefault from "./ueditor/MergeFromDefault.svelte";
   import FolderCreate from "./folder/Create.svelte";
   import FolderDelete from "./folder/Delete.svelte";
   import FolderRename from "./folder/Rename.svelte";
@@ -40,6 +42,8 @@
   <UEditorImportRemoteBranch />
 {:else if $activeDialog === Dialogs.UEDITOR_DELETE_BRANCH}
   <UEditorDeleteBranch />
+{:else if $activeDialog === Dialogs.UEDITOR_MERGE_FROM_DEFAULT}
+  <UEditorMergeFromDefault />
 {:else if $activeDialog === Dialogs.FOLDER_CREATE}
   <FolderCreate />
 {:else if $activeDialog === Dialogs.FOLDER_DELETE}
