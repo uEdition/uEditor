@@ -8,5 +8,5 @@
   class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
 >
   <p class="sr-only"><slot></slot></p>
-  <Icon path={mdiSync} class="w-12 h-12 animate-spin"></Icon>
+  <Icon path={mdiSync} class="w-12 h-12 animate-spin animate-reverse"></Icon>
 </div>
