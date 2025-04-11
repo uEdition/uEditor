@@ -9,7 +9,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel, Field
-from pygit2 import GitError, Repository
+from pygit2 import GitError, Repository, Signature
 from pygit2.enums import FetchPrune, RepositoryOpenFlag
 
 from uedition_editor.api.auth import get_current_user
@@ -18,6 +18,7 @@ from uedition_editor.api.files import router as files_router
 from uedition_editor.api.util import (
     BranchContextManager,
     RemoteRepositoryCallbacks,
+    commit_and_push,
     fetch_and_pull_branch,
     fetch_repo,
     pull_branch,
@@ -37,6 +38,7 @@ class BranchModel(BaseModel):
     id: str
     title: str
     nogit: bool = False
+    update_from_default: bool = False
 
 
 def slugify(slug: str) -> str:
@@ -63,7 +65,17 @@ async def branches(
             branches = []
             if category == "local":
                 for branch_name in repo.branches.local:
-                    branches.append({"id": branch_name, "title": de_slugify(branch_name)})
+                    repo.checkout(repo.branches[branch_name])
+                    diff = repo.diff(
+                        repo.revparse_single(init_settings.git.default_branch),
+                    )
+                    branches.append(
+                        {
+                            "id": branch_name,
+                            "title": de_slugify(branch_name),
+                            "update_from_default": diff.stats.files_changed > 0,
+                        }
+                    )
             elif category == "remote":
                 if init_settings.git.remote_name in list(repo.remotes.names()):
                     repo.remotes[init_settings.git.remote_name].fetch(
@@ -156,6 +168,32 @@ async def fetch_branches(
         except GitError as ge:
             logger.error(ge)
             raise HTTPException(500, "Git error") from ge
+
+
+@router.post("/{branch_id}/merge-from-default", status_code=204)
+async def merge_from_default(
+    branch_id: str,
+    current_user: Annotated[dict, Depends(get_current_user)],
+) -> None:
+    """Merge all changes from the default branch."""
+    async with BranchContextManager(branch_id) as repo:
+        repo.checkout(repo.branches[init_settings.git.default_branch])
+        if init_settings.git.remote_name in list(repo.remotes.names()):
+            fetch_repo(repo, init_settings.git.remote_name)
+            pull_branch(repo, init_settings.git.default_branch)
+        repo.checkout(repo.branches[branch_id])
+        default_branch_head = repo.revparse_single(init_settings.git.default_branch)
+        diff = repo.diff(default_branch_head)
+        if diff.stats.files_changed > 0:
+            repo.merge(default_branch_head.id)
+            commit_and_push(
+                repo,
+                init_settings.git.remote_name,
+                branch_id,
+                f"Merged {init_settings.git.default_branch}",
+                Signature(current_user["name"], current_user["sub"]),
+                extra_parents=[default_branch_head.id],
+            )
 
 
 @router.delete("/{branch_id}", status_code=204)

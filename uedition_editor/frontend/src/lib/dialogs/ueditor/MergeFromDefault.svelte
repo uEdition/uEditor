@@ -5,10 +5,11 @@
 
   import Base from "../Base.svelte";
   import Icon from "../../Icon.svelte";
-  import { useCurrentBranch } from "../../../stores";
+  import { useApiStatus, useCurrentBranch } from "../../../stores";
   import { Dialogs, activeDialog } from "../Index.svelte";
 
   const queryClient = useQueryClient();
+  const apiStatus = useApiStatus();
   const currentBranch = useCurrentBranch();
   let open = false;
   let confirmBranchTitle = "";
@@ -20,12 +21,12 @@
     }
   }
 
-  const deleteBranch = createMutation({
+  const mergeBranchFromDefault = createMutation({
     mutationFn: async () => {
       const response = await window.fetch(
-        "/api/branches/" + $currentBranch?.id,
+        "/api/branches/" + $currentBranch?.id + "/merge-from-default",
         {
-          method: "DELETE",
+          method: "POST",
           headers: {
             Accept: "application/json",
           },
@@ -33,7 +34,6 @@
       );
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ["branches"] });
-        currentBranch.set(null);
         activeDialog.set(Dialogs.NONE);
       } else {
         errorMessage = (await response.json()).detail[0].msg;
@@ -43,44 +43,38 @@
     },
   });
 
-  function startDeleteBranch(ev: Event) {
+  function startMergeBranchFromDefault(ev: Event) {
     ev.preventDefault();
-    if ($currentBranch?.title === confirmBranchTitle) {
-      errorMessage = "";
-      $deleteBranch.mutate();
-    } else {
-      errorMessage = "Please enter the exact name of the branch to delete.";
-    }
+    $mergeBranchFromDefault.mutate();
   }
 </script>
 
 <Base bind:open onOpenChange={openDialog}>
-  <Dialog.Title>Delete the branch</Dialog.Title>
-  <form data-dialog-content-area on:submit={startDeleteBranch}>
+  <Dialog.Title>Merge changes from the default branch</Dialog.Title>
+  <form data-dialog-content-area on:submit={startMergeBranchFromDefault}>
     <p class="mb-4">
-      Please confirm you wish to delete the branch <span
+      Please confirm you wish to merge all changes from the default branch <span
+        class="inline-block mx-1 px-2 border boder-fuchsia-700 rounded font-bold"
+        >{$apiStatus.data.git.default_branch}</span
+      >
+      into the current branch<span
         class="inline-block mx-1 px-2 border border-fuchsia-700 rounded font-bold"
         >{$currentBranch?.title}</span
-      >. This cannot be undone. To confirm the action, please enter the name of
-      the branch to delete.
+      >. This cannot be undone.
     </p>
-    <label>
-      <span data-form-field-label>Confirm branch name</span>
-      <input bind:value={confirmBranchTitle} type="text" data-form-field-text />
-      {#if errorMessage}
-        <span data-form-field-error>{errorMessage}</span>
-      {/if}
-    </label>
+    {#if errorMessage}
+      <p data-form-field-error>{errorMessage}</p>
+    {/if}
     <div data-dialog-buttons>
-      {#if $deleteBranch.isPending}
+      {#if $mergeBranchFromDefault.isPending}
         <span data-button class="inline-flex"
           ><Icon path={mdiSync} class="block w-6 h-6 animate-spin" /><span
-            >Deleting...</span
+            >Merging...</span
           ></span
         >
       {:else}
-        <Dialog.Close data-button>Don't delete</Dialog.Close>
-        <button type="submit" data-button>Delete</button>
+        <Dialog.Close data-button>Don't merge</Dialog.Close>
+        <button type="submit" data-button>Merge</button>
       {/if}
     </div>
   </form>
