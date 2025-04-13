@@ -170,6 +170,14 @@ type UEditorTEIInputMarkAttribute = {
   title: string;
 };
 
+type UEditorTEISelectMarkAttribute = {
+  type: "select-mark-attribute";
+  mark: string;
+  name: string;
+  title: string;
+  values: UEditorValueTitlePair[];
+};
+
 type UEditorTEITextFormBlock = {
   title: string;
   type: "form";
@@ -178,6 +186,7 @@ type UEditorTEITextFormBlock = {
     | UEditorTEIInputBlockAttribute
     | UEditorTEISelectCrossReferenceMarkAttribute
     | UEditorTEIInputMarkAttribute
+    | UEditorTEISelectMarkAttribute
   )[];
   condition: UEditorTEIMenuCondition | null;
 };
@@ -216,7 +225,8 @@ type UEditorTEIActions =
   | UEditorTEISelectBlockAttribute
   | UEditorTEIInputBlockAttribute
   | UEditorTEISelectCrossReferenceMarkAttribute
-  | UEditorTEIInputMarkAttribute;
+  | UEditorTEIInputMarkAttribute
+  | UEditorTEISelectMarkAttribute;
 
 type UEditorSettings = { tei: UEditorTEISettings };
 

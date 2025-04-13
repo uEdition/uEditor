@@ -191,7 +191,10 @@
             [action.name]: (evOrSelected as Selected<string>).value,
           })
           .run();
-      } else if (action.type === "input-mark-attribute") {
+      } else if (
+        action.type === "input-mark-attribute" ||
+        action.type === "select-mark-attribute"
+      ) {
         editor
           .chain()
           .focus()
@@ -388,6 +391,24 @@
                         }}
                       />
                     </label>
+                  {:else if item.type === "select-mark-attribute"}
+                    {#key editor}
+                      <label>
+                        <span class="sr-only">{item.title}</span>
+                        <select
+                          value={editor.getAttributes(item.mark)[item.name]}
+                          on:change={(ev) => {
+                            runAction(editor, item, ev);
+                          }}
+                          data-combobox-input=""
+                          class="bg-white"
+                        >
+                          {#each item.values as value, idx}
+                            <option value={value.value}>{value.title}</option>
+                          {/each}
+                        </select>
+                      </label>
+                    {/key}
                   {/if}
                 {/each}
               </div>
