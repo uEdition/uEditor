@@ -76,13 +76,16 @@ def fetch_repo(repo: Repository, remote: str) -> None:
 
 def pull_branch(repo: Repository, branch: str) -> None:
     """Pull and update the branch from the remote repository."""
-    remote_default_head = repo.lookup_reference(repo.branches[branch].upstream_name)
-    result, _ = repo.merge_analysis(remote_default_head.target)
-    if result & MergeAnalysis.FASTFORWARD == MergeAnalysis.FASTFORWARD:
-        repo.checkout_tree(repo.get(remote_default_head.target))
-        local_default_head = repo.lookup_reference(f"refs/heads/{branch}")
-        local_default_head.set_target(remote_default_head.target)
-        repo.head.set_target(remote_default_head.target)
+    try:
+        remote_default_head = repo.lookup_reference(repo.branches[branch].upstream_name)
+        result, _ = repo.merge_analysis(remote_default_head.target)
+        if result & MergeAnalysis.FASTFORWARD == MergeAnalysis.FASTFORWARD:
+            repo.checkout_tree(repo.get(remote_default_head.target))
+            local_default_head = repo.lookup_reference(f"refs/heads/{branch}")
+            local_default_head.set_target(remote_default_head.target)
+            repo.head.set_target(remote_default_head.target)
+    except KeyError as e:
+        logger.error(e)
 
 
 def fetch_and_pull_branch(repo: Repository, remote: str, branch: str) -> None:
