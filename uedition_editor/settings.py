@@ -7,6 +7,7 @@ import os
 from secrets import token_hex
 from typing import Any, Dict, Literal, Optional, Tuple, Type
 
+import yaml_include
 from pydantic import BaseModel, EmailStr, model_validator
 from pydantic.fields import FieldInfo
 from pydantic_settings import (
@@ -18,7 +19,7 @@ from pygit2 import GitError, Repository
 from pygit2.enums import RepositoryOpenFlag
 from typing_extensions import Self
 from uedition.settings import Settings as UEditonSettingsBase
-from yaml import safe_load
+from yaml import SafeLoader, add_constructor, load
 
 
 class NoAuth(BaseModel):
@@ -108,6 +109,8 @@ class InitSettings(BaseSettings):
 
 init_settings = InitSettings()
 
+add_constructor("!include", yaml_include.Constructor(base_dir=init_settings.base_path), SafeLoader)
+
 
 class YAMLConfigSettingsSource(PydanticBaseSettingsSource):
     """Loads the configuration settings from a YAML file."""
@@ -120,7 +123,7 @@ class YAMLConfigSettingsSource(PydanticBaseSettingsSource):
         for filename in source_files:
             if os.path.exists(os.path.join(init_settings.base_path, filename)):
                 with open(os.path.join(init_settings.base_path, filename), encoding=encoding) as in_f:
-                    self._file_content = safe_load(in_f)
+                    self._file_content = load(in_f, SafeLoader)
                     break
 
     def get_field_value(
