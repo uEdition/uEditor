@@ -4,16 +4,31 @@
 """The main uEditor server."""
 
 import logging
+from copy import deepcopy
 
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from uvicorn.config import LOGGING_CONFIG
 
+from uedition_editor import cron  # noqa:F401
 from uedition_editor.api import router as api_router
 from uedition_editor.settings import init_settings
 
+logger = logging.getLogger(__name__)
+# Configure logging
+conf = deepcopy(LOGGING_CONFIG)
+conf["loggers"]["uedition_editor"] = {
+    "level": logging.INFO,
+    "qualname": "uedition_editor",
+    "handlers": ["default"],
+}
+conf["formatters"]["default"]["fmt"] = "%(levelprefix)s %(name)-40s %(message)s"
+conf["root"] = {"level": logging.INFO}
 if init_settings.test:  # pragma: no cover
-    logging.basicConfig(level=logging.DEBUG)
+    conf["loggers"]["uedition_editor"]["level"] = logging.DEBUG
+logging.config.dictConfig(conf)
+logger.debug("Logging configuration set up")
 
 app = FastAPI()
 app.include_router(api_router)
