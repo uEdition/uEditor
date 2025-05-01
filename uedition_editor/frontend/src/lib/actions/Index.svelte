@@ -72,27 +72,19 @@
   import { derived } from "svelte/store";
 
   import Icon from "../Icon.svelte";
-  import {
-    useBranches,
-    useRemoteBranches,
-    useSyncBranches,
-  } from "../../stores";
+  import { useBranches, useRemoteBranches } from "../../stores";
 
   const branches = useBranches();
   const remoteBranches = useRemoteBranches();
-  const syncBranches = useSyncBranches();
-  const backgroundBusyCount = derived(
-    [branches, remoteBranches, syncBranches],
-    (stores) => {
-      let count = 0;
-      for (const store of stores) {
-        if (store !== null && store.isFetching) {
-          count = count + 1;
-        }
+  const backgroundBusyCount = derived([branches, remoteBranches], (stores) => {
+    let count = 0;
+    for (const store of stores) {
+      if (store !== null && store.isFetching) {
+        count = count + 1;
       }
-      return count;
-    },
-  );
+    }
+    return count;
+  });
 </script>
 
 <Popover.Root>
@@ -138,14 +130,6 @@
         >
           <Icon path={mdiSync} class="w-4 h-4 animate-spin animate-reverse" />
           <span class="flex-1">Fetching remote branches</span>
-        </li>
-      {/if}
-      {#if $syncBranches.isFetching}
-        <li
-          class="flex flex-row items-center space-x-2 px-3 py-1 border-l border-r last:border-b first-border-t border-slate-300"
-        >
-          <Icon path={mdiSync} class="w-4 h-4 animate-spin animate-reverse" />
-          <span class="flex-1">Synchronising with remote git</span>
         </li>
       {/if}
     </ul>
