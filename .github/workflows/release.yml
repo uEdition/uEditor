@@ -40,3 +40,65 @@ jobs:
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  ghcr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: |
+            3.11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: |
+            20
+
+      - name: Strip version prefix
+        id: strip-prefix
+        run: |
+          VERSION=`hatch version`
+          echo "result=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: winterjung/split@v2
+        id: split
+        with:
+          msg: ${{ steps.strip-prefix.outputs.result }}
+          separator: "."
+
+      - name: Add .local path
+        run: |
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+          echo "PIPX_HOME=$HOME/.local/pipx" >> $GITHUB_ENV
+          echo "PIPX_BIN_DIR=$HOME/.local/bin" >> $GITHUB_ENV
+
+      - name: Install Base Dependencies
+        run: |
+          sudo apt-get install python3-venv pipx qemu-user-static
+          pipx install hatch
+
+      - name: Build the python package
+        run: |
+          hatch build
+
+      - name: Build the container image
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+            image: ghcr.io/uedition/uedition-editor
+            tags: ${{ steps.strip-prefix.outputs.result }}
+            containerfiles: |
+              ./Containerfile
+            platforms: linux/arm64/v8,linux/amd64
+
+      - name: Push the container image to docker.io
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: ghcr.io
+          username: scmmmh
+          password: ${{secrets.GITHUB_TOKEN}}
