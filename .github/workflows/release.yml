@@ -1,7 +1,5 @@
 name: Release
 
-permissions: write-all
-
 on:
   push:
     tags:
@@ -45,6 +43,7 @@ jobs:
 
   ghcr:
     runs-on: ubuntu-latest
+    permissions: write-all
 
     steps:
       - uses: actions/checkout@v4
