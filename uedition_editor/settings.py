@@ -346,6 +346,21 @@ class TEIInputMarkAttribute(BaseModel):
     """The label for the entry."""
 
 
+class TEISelectMarkAttribute(BaseModel):
+    """A TEI form element to select a mark attribute."""
+
+    type: Literal["select-mark-attribute"]
+    """The form element type."""
+    mark: str
+    """The mark to apply the attribute to."""
+    name: str
+    """The name of the attribute."""
+    title: str
+    """The label for the entry."""
+    values: list
+    """The available selection values."""
+
+
 class TEIInputBlockAttribute(BaseModel):
     """A TEI form element to input a block attribute value."""
 
@@ -367,7 +382,11 @@ class TEITextFormBlock(BaseModel):
     type: Literal["form"]
     """The type is set to form."""
     items: list[
-        TEISelectBlockAttribute | TEISelectCrossReferenceMarkAttribute | TEIInputMarkAttribute | TEIInputBlockAttribute
+        TEISelectBlockAttribute
+        | TEISelectCrossReferenceMarkAttribute
+        | TEIInputMarkAttribute
+        | TEIInputBlockAttribute
+        | TEISelectMarkAttribute
     ]
     """The list of menu items to show."""
     condition: Optional[TEIMenuCondition] = None
