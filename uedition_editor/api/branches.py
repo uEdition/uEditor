@@ -151,25 +151,6 @@ async def create_branch(
             raise HTTPException(500, "Git error") from ge
 
 
-@router.patch("", status_code=204)
-async def fetch_branches(
-    current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
-) -> None:
-    """Update the branches from the remote."""
-    async with uedition_lock:
-        try:
-            repo = Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
-            repo.checkout(repo.branches[init_settings.git.default_branch])
-            if init_settings.git.remote_name in list(repo.remotes.names()):
-                fetch_repo(repo, init_settings.git.remote_name)
-                for branch_id in repo.branches.local:
-                    if repo.branches[branch_id].upstream is not None:
-                        pull_branch(repo, branch_id)
-        except GitError as ge:
-            logger.error(ge)
-            raise HTTPException(500, "Git error") from ge
-
-
 @router.post("/{branch_id}/merge-from-default", status_code=204)
 async def merge_from_default(
     branch_id: str,
