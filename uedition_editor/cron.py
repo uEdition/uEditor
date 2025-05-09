@@ -9,24 +9,49 @@ import aiocron
 from pygit2 import GitError, Repository
 from pygit2.enums import RepositoryOpenFlag
 
-from uedition_editor.api.util import fetch_repo, pull_branch, uedition_lock
+from uedition_editor.api.util import de_slugify, fetch_repo, pull_branch, uedition_lock
 from uedition_editor.settings import init_settings
+from uedition_editor.state import local_branches, remote_branches
 
 logger = logging.getLogger(__name__)
 
 
-@aiocron.crontab("* * * * *")
-async def sync_remote() -> None:
-    """Synchronise with the remote."""
+@aiocron.crontab("*/5 * * * *")
+async def track_branches() -> None:
+    """Track the status of all git branches."""
     async with uedition_lock:
+        remote_branches.clear()
+        local_branches.clear()
         try:
             repo = Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
+            logger.debug("Tracking branches")
             repo.checkout(repo.branches[init_settings.git.default_branch])
             if init_settings.git.remote_name in list(repo.remotes.names()):
-                logging.debug("Synchronising with remote")
+                logger.debug("Synchronising with remote")
                 fetch_repo(repo, init_settings.git.remote_name)
-                for branch_id in repo.branches.local:
-                    if repo.branches[branch_id].upstream is not None:
-                        pull_branch(repo, branch_id)
+            logger.debug("Updating branch status")
+            for branch_name in repo.branches.local:
+                repo.checkout(repo.branches[branch_name])
+                if init_settings.git.remote_name in list(repo.remotes.names()):
+                    if repo.branches[branch_name].upstream is not None:
+                        pull_branch(repo, branch_name)
+                diff = repo.diff(
+                    repo.revparse_single(init_settings.git.default_branch),
+                )
+                local_branches.append(
+                    {
+                        "id": branch_name,
+                        "title": de_slugify(branch_name),
+                        "update_from_default": diff.stats.files_changed > 0,
+                    }
+                )
+            for branch_name in repo.branches.remote:
+                if (
+                    repo.branches[branch_name].remote_name == init_settings.git.remote_name
+                    and "HEAD" not in branch_name
+                ):
+                    remote_branches.append({"id": branch_name, "title": de_slugify(branch_name)})
+            logger.debug("Tracking complete")
         except GitError as ge:
             logger.error(ge)
+            local_branches.append({"id": "-", "title": "Direct Access", "nogit": True})

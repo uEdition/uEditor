@@ -4,6 +4,7 @@
 """The main uEditor server."""
 
 import logging
+from contextlib import asynccontextmanager
 from copy import deepcopy
 
 from fastapi import FastAPI
@@ -11,7 +12,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from uvicorn.config import LOGGING_CONFIG
 
-from uedition_editor import cron  # noqa:F401
+from uedition_editor import cron
 from uedition_editor.api import router as api_router
 from uedition_editor.settings import init_settings
 
@@ -30,7 +31,15 @@ if init_settings.test:  # pragma: no cover
 logging.config.dictConfig(conf)
 logger.debug("Logging configuration set up")
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):  # noqa:ARG001
+    """Startup/shutdown handler."""
+    await cron.track_branches.func()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(api_router)
 app.mount("/app", StaticFiles(packages=[("uedition_editor", "frontend/dist")], html=True))
 

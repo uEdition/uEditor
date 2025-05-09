@@ -6,17 +6,12 @@
 
   import Base from "../Base.svelte";
   import Icon from "../../Icon.svelte";
-  import {
-    useBranches,
-    useCurrentBranch,
-    useRemoteBranches,
-  } from "../../../stores";
+  import { useBranches, useCurrentBranch } from "../../../stores";
   import { Dialogs, activeDialog } from "../Index.svelte";
 
   const queryClient = useQueryClient();
   const currentBranch = useCurrentBranch();
   const branches = useBranches();
-  const remoteBranches = useRemoteBranches();
   let open = false;
   let importBranchId = "";
   let errorMessage = "";
@@ -27,34 +22,30 @@
     }
   }
 
-  const importableBranches = derived(
-    [branches, remoteBranches],
-    ([branches, remoteBranches]) => {
-      if (branches.isSuccess && remoteBranches.isSuccess) {
-        return remoteBranches.data
-          .filter((remoteBranch) => {
-            let found = false;
-            for (const branch of branches.data) {
-              if (remoteBranch.id.endsWith("/" + branch.id)) {
-                found = true;
-                break;
-              }
+  const importableBranches = derived(branches, (branches) => {
+    if (branches.isSuccess) {
+      return branches.data.remote
+        .filter((remoteBranch) => {
+          let found = false;
+          for (const branch of branches.data.local) {
+            if (remoteBranch.id.endsWith("/" + branch.id)) {
+              found = true;
+              break;
             }
-            return !found;
-          })
-          .map((remoteBranch) => {
-            return {
-              id: remoteBranch.id.substring(remoteBranch.id.indexOf("/") + 1),
-              title: remoteBranch.title,
-              nogit: false,
-            };
-          });
-        return [];
-      } else {
-        return [];
-      }
-    },
-  );
+          }
+          return !found;
+        })
+        .map((remoteBranch) => {
+          return {
+            id: remoteBranch.id.substring(remoteBranch.id.indexOf("/") + 1),
+            title: remoteBranch.title,
+            nogit: false,
+          };
+        });
+    } else {
+      return [];
+    }
+  });
 
   const createBranch = createMutation({
     mutationFn: async (newBranch: { title: string }) => {

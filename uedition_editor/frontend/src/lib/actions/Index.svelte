@@ -19,6 +19,8 @@
       promise = loadTextFile(action);
     } else if (action.action === "SaveCurrentFile") {
       promise = saveCurrentFile(action);
+    } else if (action.action === "SynchroniseBranches") {
+      promise = synchroniseBranches(action);
     }
     if (promise !== null) {
       promise.then(() => {
@@ -64,6 +66,15 @@
       showSaveError.set(true);
     }
   }
+
+  /**
+   * Synchronise the branches
+   *
+   * @param action The action
+   */
+  async function synchroniseBranches(action: SynchroniseBranchesAction) {
+    await window.fetch("/api/branches", { method: "PATCH" });
+  }
 </script>
 
 <script lang="ts">
@@ -72,11 +83,10 @@
   import { derived } from "svelte/store";
 
   import Icon from "../Icon.svelte";
-  import { useBranches, useRemoteBranches } from "../../stores";
+  import { useBranches } from "../../stores";
 
   const branches = useBranches();
-  const remoteBranches = useRemoteBranches();
-  const backgroundBusyCount = derived([branches, remoteBranches], (stores) => {
+  const backgroundBusyCount = derived([branches], (stores) => {
     let count = 0;
     for (const store of stores) {
       if (store !== null && store.isFetching) {
@@ -122,14 +132,6 @@
         >
           <Icon path={mdiSync} class="w-4 h-4 animate-spin animate-reverse" />
           <span class="flex-1">Fetching branches</span>
-        </li>
-      {/if}
-      {#if $remoteBranches.isFetching}
-        <li
-          class="flex flex-row items-center space-x-2 px-3 py-1 border-l border-r last:border-b first-border-t border-slate-300"
-        >
-          <Icon path={mdiSync} class="w-4 h-4 animate-spin animate-reverse" />
-          <span class="flex-1">Fetching remote branches</span>
         </li>
       {/if}
     </ul>

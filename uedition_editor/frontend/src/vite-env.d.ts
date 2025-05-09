@@ -24,6 +24,11 @@ type Branch = {
   update_from_default?: boolean
 };
 
+type Branches = {
+  local: Branch[];
+  remote: Branch[];
+};
+
 type Config = {};
 
 type UEditionAuthor = {
@@ -255,7 +260,12 @@ type SaveCurrentFileAction = {
   status?: string;
 };
 
-type Action = LoadTextFileAction | SaveCurrentFileAction;
+type SynchroniseBranchesAction = {
+  action: "SynchroniseBranches";
+  status?: string;
+}
+
+type Action = LoadTextFileAction | SaveCurrentFileAction | SynchroniseBranchesAction;
 
 type TipTapAttribtes = { [key: string]: string };
 
