@@ -21,6 +21,12 @@ type Branch = {
   id: string;
   title: string;
   nogit?: boolean;
+  update_from_default?: boolean
+};
+
+type Branches = {
+  local: Branch[];
+  remote: Branch[];
 };
 
 type Config = {};
@@ -57,7 +63,7 @@ type UEditionSettings = {
   output: UEditionOutput;
   repository: UEditionRepository;
   title: UEditionTitle;
-  jb_config: any;
+  sphinx_config: any;
 };
 
 type UEditorValueTitlePair = {
@@ -169,6 +175,14 @@ type UEditorTEIInputMarkAttribute = {
   title: string;
 };
 
+type UEditorTEISelectMarkAttribute = {
+  type: "select-mark-attribute";
+  mark: string;
+  name: string;
+  title: string;
+  values: UEditorValueTitlePair[];
+};
+
 type UEditorTEITextFormBlock = {
   title: string;
   type: "form";
@@ -177,6 +191,7 @@ type UEditorTEITextFormBlock = {
     | UEditorTEIInputBlockAttribute
     | UEditorTEISelectCrossReferenceMarkAttribute
     | UEditorTEIInputMarkAttribute
+    | UEditorTEISelectMarkAttribute
   )[];
   condition: UEditorTEIMenuCondition | null;
 };
@@ -215,7 +230,8 @@ type UEditorTEIActions =
   | UEditorTEISelectBlockAttribute
   | UEditorTEIInputBlockAttribute
   | UEditorTEISelectCrossReferenceMarkAttribute
-  | UEditorTEIInputMarkAttribute;
+  | UEditorTEIInputMarkAttribute
+  | UEditorTEISelectMarkAttribute;
 
 type UEditorSettings = { tei: UEditorTEISettings };
 
@@ -244,7 +260,12 @@ type SaveCurrentFileAction = {
   status?: string;
 };
 
-type Action = LoadTextFileAction | SaveCurrentFileAction;
+type SynchroniseBranchesAction = {
+  action: "SynchroniseBranches";
+  status?: string;
+}
+
+type Action = LoadTextFileAction | SaveCurrentFileAction | SynchroniseBranchesAction;
 
 type TipTapAttribtes = { [key: string]: string };
 

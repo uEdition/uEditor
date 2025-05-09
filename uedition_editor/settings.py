@@ -7,6 +7,7 @@ import os
 from secrets import token_hex
 from typing import Any, Dict, Literal, Optional, Tuple, Type
 
+import yaml_include
 from pydantic import BaseModel, EmailStr, model_validator
 from pydantic.fields import FieldInfo
 from pydantic_settings import (
@@ -18,7 +19,7 @@ from pygit2 import GitError, Repository
 from pygit2.enums import RepositoryOpenFlag
 from typing_extensions import Self
 from uedition.settings import Settings as UEditonSettingsBase
-from yaml import safe_load
+from yaml import SafeLoader, add_constructor, load
 
 
 class NoAuth(BaseModel):
@@ -108,6 +109,8 @@ class InitSettings(BaseSettings):
 
 init_settings = InitSettings()
 
+add_constructor("!include", yaml_include.Constructor(base_dir=init_settings.base_path), SafeLoader)
+
 
 class YAMLConfigSettingsSource(PydanticBaseSettingsSource):
     """Loads the configuration settings from a YAML file."""
@@ -120,7 +123,7 @@ class YAMLConfigSettingsSource(PydanticBaseSettingsSource):
         for filename in source_files:
             if os.path.exists(os.path.join(init_settings.base_path, filename)):
                 with open(os.path.join(init_settings.base_path, filename), encoding=encoding) as in_f:
-                    self._file_content = safe_load(in_f)
+                    self._file_content = load(in_f, SafeLoader)
                     break
 
     def get_field_value(
@@ -174,7 +177,9 @@ class TEINodeAttribute(BaseModel):
     """The name of the attribute."""
     value: str | None = None
     """A fixed value to use for the attribute."""
-    type: Literal["string"] | Literal["static"] | Literal["id-ref"] | Literal["text"] = "string"
+    type: Literal["string"] | Literal["static"] | Literal["id-ref"] | Literal["text"] | Literal["html-attribute"] = (
+        "string"
+    )
     """The type of attribute this is."""
     default: str = ""
     """The default value to use if none is set."""
@@ -341,6 +346,21 @@ class TEIInputMarkAttribute(BaseModel):
     """The label for the entry."""
 
 
+class TEISelectMarkAttribute(BaseModel):
+    """A TEI form element to select a mark attribute."""
+
+    type: Literal["select-mark-attribute"]
+    """The form element type."""
+    mark: str
+    """The mark to apply the attribute to."""
+    name: str
+    """The name of the attribute."""
+    title: str
+    """The label for the entry."""
+    values: list
+    """The available selection values."""
+
+
 class TEIInputBlockAttribute(BaseModel):
     """A TEI form element to input a block attribute value."""
 
@@ -362,7 +382,11 @@ class TEITextFormBlock(BaseModel):
     type: Literal["form"]
     """The type is set to form."""
     items: list[
-        TEISelectBlockAttribute | TEISelectCrossReferenceMarkAttribute | TEIInputMarkAttribute | TEIInputBlockAttribute
+        TEISelectBlockAttribute
+        | TEISelectCrossReferenceMarkAttribute
+        | TEIInputMarkAttribute
+        | TEIInputBlockAttribute
+        | TEISelectMarkAttribute
     ]
     """The list of menu items to show."""
     condition: Optional[TEIMenuCondition] = None
@@ -441,7 +465,7 @@ class UEditorSettings(BaseSettings):
         )
 
 
-class UEditonSettings(UEditonSettingsBase):
+class UEditionSettings(UEditonSettingsBase):
     """The uEdition settings."""
 
     @classmethod
@@ -468,6 +492,6 @@ def get_ueditor_settings() -> UEditorSettings:
     return UEditorSettings()
 
 
-def get_uedition_settings() -> UEditonSettings:
+def get_uedition_settings() -> UEditionSettings:
     """Load the current UEditionSettings."""
-    return UEditonSettings()
+    return UEditionSettings()

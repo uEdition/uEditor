@@ -13,7 +13,8 @@ from fastapi.responses import Response
 from uedition_editor.api.auth import get_current_user
 from uedition_editor.api.util import BranchContextManager, BranchNotFoundError
 from uedition_editor.settings import (
-    UEditonSettings,
+    TEINode,
+    UEditionSettings,
     UEditorSettings,
     get_uedition_settings,
     get_ueditor_settings,
@@ -23,7 +24,7 @@ from uedition_editor.settings import (
 router = APIRouter(prefix="/configs")
 
 
-@router.get("/uedition", response_model=UEditonSettings)
+@router.get("/uedition", response_model=UEditionSettings)
 async def uedition_config(
     branch_id: str,
     current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
@@ -31,7 +32,17 @@ async def uedition_config(
     """Fetch the uEdition configuration."""
     try:
         async with BranchContextManager(branch_id):
-            return get_uedition_settings().model_dump()
+            settings = get_uedition_settings()
+            if "tei" in settings.sphinx_config:
+                if "blocks" in settings.sphinx_config["tei"]:
+                    settings.sphinx_config["tei"]["blocks"] = [
+                        TEINode(**block).model_dump() for block in settings.sphinx_config["tei"]["blocks"]
+                    ]
+                if "marks" in settings.sphinx_config["tei"]:
+                    settings.sphinx_config["tei"]["marks"] = [
+                        TEINode(**mark).model_dump() for mark in settings.sphinx_config["tei"]["marks"]
+                    ]
+            return settings.model_dump()
     except BranchNotFoundError as bnfe:
         raise HTTPException(404) from bnfe
 

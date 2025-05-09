@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2024-present Mark Hall <mark.hall@work.room3b.eu>
 #
 # SPDX-License-Identifier: MIT
-"""About this package."""
+"""Shared state for the uEditor."""
 
-__version__ = "2.0.0b5"
+local_branches = []
+remote_branches = []

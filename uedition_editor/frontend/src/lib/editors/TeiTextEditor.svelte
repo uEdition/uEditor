@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { Combobox, Toolbar, Separator, type Selected } from "bits-ui";
-  import { mdiChevronDown, mdiChevronUp } from "@mdi/js";
+  import { Combobox, Toolbar, Separator, type Selected, Button } from "bits-ui";
+  import { deepCopy } from "deep-copy-ts";
+  import { mdiChevronDown, mdiChevronUp, mdiPencil } from "@mdi/js";
   import { onMount, getContext, createEventDispatcher } from "svelte";
   import { Editor, Node, Mark } from "@tiptap/core";
   import { Document } from "@tiptap/extension-document";
@@ -15,19 +16,37 @@
   export let sectionsDict: {
     [name: string]: TEIMetadataSection | TEITextSection | TEITextlistSection;
   } = {};
+  export let editTextListEntry: (textlist: string, textlistId: string) => void;
 
   const dispatch = createEventDispatcher();
   const uEditorConfig = getContext(
     "uEditorConfig",
   ) as CreateQueryResult<UEditorSettings>;
+  const uEditionConfig = getContext(
+    "uEditionConfig",
+  ) as CreateQueryResult<UEditionSettings>;
   let editorElement: HTMLElement | null = null;
   let editor: Editor | null = null;
   let updateDebounce = -1;
 
   onMount(() => {
-    if (editorElement !== null && $uEditorConfig.isSuccess) {
+    if (
+      editorElement !== null &&
+      $uEditorConfig.isSuccess &&
+      $uEditionConfig.isSuccess
+    ) {
       const extensions: (Node | Mark)[] = [Document, Text];
-      for (let blockConfig of $uEditorConfig.data.tei.blocks) {
+      let configuredBlocks = deepCopy($uEditorConfig.data.tei.blocks);
+      if (
+        $uEditionConfig.data.sphinx_config &&
+        $uEditionConfig.data.sphinx_config.tei &&
+        $uEditionConfig.data.sphinx_config.tei.blocks
+      ) {
+        configuredBlocks = configuredBlocks.concat(
+          deepCopy($uEditionConfig.data.sphinx_config.tei.blocks),
+        );
+      }
+      for (let blockConfig of configuredBlocks) {
         extensions.push(
           Node.create({
             name: blockConfig.name,
@@ -58,7 +77,17 @@
           }),
         );
       }
-      for (let markConfig of $uEditorConfig.data.tei.marks) {
+      let configuredMarks = deepCopy($uEditorConfig.data.tei.marks);
+      if (
+        $uEditionConfig.data.sphinx_config &&
+        $uEditionConfig.data.sphinx_config.tei &&
+        $uEditionConfig.data.sphinx_config.tei.marks
+      ) {
+        configuredMarks = configuredMarks.concat(
+          deepCopy($uEditionConfig.data.sphinx_config.tei.marks),
+        );
+      }
+      for (let markConfig of configuredMarks) {
         extensions.push(
           Mark.create({
             name: markConfig.name,
@@ -162,7 +191,10 @@
             [action.name]: (evOrSelected as Selected<string>).value,
           })
           .run();
-      } else if (action.type === "input-mark-attribute") {
+      } else if (
+        action.type === "input-mark-attribute" ||
+        action.type === "select-mark-attribute"
+      ) {
         editor
           .chain()
           .focus()
@@ -199,7 +231,11 @@
       const tmp = (
         sectionsDict[item.section] as TEITextlistSection
       ).content.filter((text) => {
-        return text.attrs["id"] === editor?.getAttributes(item.mark)[item.name];
+        return (
+          text.attrs["id"] === editor?.getAttributes(item.mark)[item.name] ||
+          text.attrs["id"] ===
+            editor?.getAttributes(item.mark)[item.name].substring(1)
+        );
       });
       if (tmp.length === 1) {
         return {
@@ -285,41 +321,64 @@
                       />
                     </label>
                   {:else if item.type === "select-cross-reference-attribute"}
-                    <Combobox.Root
-                      selected={crossReferenceSelectedItem(item)}
-                      items={crossReferenceItems(item)}
-                      onSelectedChange={(value) => {
-                        runAction(editor, item, value);
-                      }}
-                    >
-                      <div class="relative">
-                        <Combobox.Input
-                          placeholder="Select the text to edit"
-                          aria-label="Select the text to edit"
-                          class="relative pr-6 z-10 bg-transparent"
-                        />
-                        <div class="absolute top-1/2 right-0 -translate-y-1/2">
-                          <Icon
-                            path={mdiChevronDown}
-                            class="w-6 h-6 combobox-expand"
-                          />
-                          <Icon
-                            path={mdiChevronUp}
-                            class="w-6 h-6 combobox-collapse"
-                          />
-                        </div>
-                      </div>
-                      <Combobox.Content>
-                        {#if sectionsDict[item.section].type.type === "textlist"}
-                          {#each crossReferenceItems(item) as entry}
-                            <Combobox.Item
-                              value={entry.value}
-                              label={entry.label}>{entry.label}</Combobox.Item
+                    <div class="flex flex-row flex-wrap">
+                      {#key editor}
+                        <Combobox.Root
+                          selected={crossReferenceSelectedItem(item)}
+                          items={crossReferenceItems(item)}
+                          onSelectedChange={(value) => {
+                            runAction(editor, item, value);
+                          }}
+                        >
+                          <div class="relative">
+                            <Combobox.Input
+                              placeholder="Select the text to edit"
+                              aria-label="Select the text to edit"
+                              class="relative pr-6 z-10 bg-transparent"
+                            />
+                            <div
+                              class="absolute top-1/2 right-0 -translate-y-1/2"
                             >
-                          {/each}
-                        {/if}
-                      </Combobox.Content>
-                    </Combobox.Root>
+                              <Icon
+                                path={mdiChevronDown}
+                                class="w-6 h-6 combobox-expand"
+                              />
+                              <Icon
+                                path={mdiChevronUp}
+                                class="w-6 h-6 combobox-collapse"
+                              />
+                            </div>
+                          </div>
+                          <Combobox.Content>
+                            {#if sectionsDict[item.section].type.type === "textlist"}
+                              {#each crossReferenceItems(item) as entry}
+                                <Combobox.Item
+                                  value={entry.value}
+                                  label={entry.label}
+                                  >{entry.label}</Combobox.Item
+                                >
+                              {/each}
+                            {/if}
+                          </Combobox.Content>
+                        </Combobox.Root>
+                      {/key}
+                      <Toolbar.Root class="flex-wrap">
+                        <Toolbar.Button
+                          on:click={() => {
+                            editTextListEntry(
+                              item.section,
+                              editor?.getAttributes(item.mark)[item.name],
+                            );
+                          }}
+                          title="Edit the selected entry"
+                        >
+                          <Icon
+                            path={mdiPencil}
+                            label="Edit the selected entry"
+                          />
+                        </Toolbar.Button>
+                      </Toolbar.Root>
+                    </div>
                   {:else if item.type === "input-mark-attribute"}
                     <label>
                       <span data-form-field-label>{item.title}</span>
@@ -332,6 +391,24 @@
                         }}
                       />
                     </label>
+                  {:else if item.type === "select-mark-attribute"}
+                    {#key editor}
+                      <label>
+                        <span class="sr-only">{item.title}</span>
+                        <select
+                          value={editor.getAttributes(item.mark)[item.name]}
+                          on:change={(ev) => {
+                            runAction(editor, item, ev);
+                          }}
+                          data-combobox-input=""
+                          class="bg-white"
+                        >
+                          {#each item.values as value, idx}
+                            <option value={value.value}>{value.title}</option>
+                          {/each}
+                        </select>
+                      </label>
+                    {/key}
                   {/if}
                 {/each}
               </div>

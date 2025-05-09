@@ -12,19 +12,26 @@ import shutil
 from typing import Annotated
 
 import pygit2
-from fastapi import APIRouter, Depends, Header, UploadFile
+from fastapi import APIRouter, Depends, Header, Response, UploadFile
 from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from lxml import etree
 
 from uedition_editor.api.auth import get_current_user
-from uedition_editor.api.util import BranchContextManager, BranchNotFoundError, commit_and_push
+from uedition_editor.api.util import (
+    BranchContextManager,
+    BranchNotFoundError,
+    commit_and_push,
+)
 from uedition_editor.settings import (
     TEIMetadataSection,
+    TEINode,
     TEINodeAttribute,
     TEISettings,
     TEITextSection,
+    UEditionSettings,
     UEditorSettings,
+    get_uedition_settings,
     get_ueditor_settings,
     init_settings,
 )
@@ -60,21 +67,25 @@ def guess_type(url: str) -> tuple[str | None, str | None]:
         return ("application/unknown", None)
 
 
-def build_file_tree(path: str, strip_len) -> list[dict]:
+def build_file_tree(path: str, strip_len: int, uedition_settings: UEditionSettings) -> list[dict]:
     """Recursively build a tree of directories and files."""
     files = []
     for filename in os.listdir(path):
         full_filename = os.path.join(path, filename)
         if os.path.isdir(full_filename):
-            files.append(
-                {
-                    "name": filename,
-                    "fullpath": full_filename[strip_len:],
-                    "type": "folder",
-                    "content": build_file_tree(full_filename, strip_len),
-                    "mimetype": "application/folder",
-                }
-            )
+            if filename != ".git" and full_filename[strip_len:] not in (
+                uedition_settings.output.path,
+                "_build",
+            ):
+                files.append(
+                    {
+                        "name": filename,
+                        "fullpath": full_filename[strip_len:],
+                        "type": "folder",
+                        "content": build_file_tree(full_filename, strip_len, uedition_settings),
+                        "mimetype": "application/folder",
+                    }
+                )
         elif os.path.isfile(full_filename):
             mimetype = guess_type(filename)
             files.append(
@@ -104,7 +115,7 @@ async def get_files(
                     "fullpath": "",
                     "type": "folder",
                     "mimetype": "application/folder",
-                    "content": build_file_tree(full_path, len(full_path) + 1),
+                    "content": build_file_tree(full_path, len(full_path) + 1, get_uedition_settings()),
                 }
             ]
     except BranchNotFoundError as bnfe:
@@ -220,91 +231,142 @@ def clean_tei_subdoc(node: dict) -> dict:
 
 def parse_tei_file(path: str, settings: UEditorSettings) -> list[dict]:
     """Parse a TEI file into its constituent parts."""
-    doc = etree.parse(path)  # noqa: S320
-    result = []
-    for section in settings.tei.sections:
-        section_root = doc.xpath(section.selector, namespaces=namespaces)
-        if len(section_root) == 0:
-            if section.type == "metadata":
-                result.append(
-                    {
-                        "name": section.name,
-                        "title": section.title,
-                        "type": section.type,
-                        "content": [],
-                    }
-                )
-            elif section.type == "text":
-                result.append(
-                    {
-                        "name": section.name,
-                        "title": section.title,
-                        "type": section.type,
-                        "content": {},
-                    }
-                )
-            elif section.type == "textlist":
-                result.append(
-                    {
-                        "name": section.name,
-                        "title": section.title,
-                        "type": section.type,
-                        "content": [],
-                    }
-                )
-        else:  # noqa: PLR5501
-            if section.type == "metadata":
-                result.append(
-                    {
-                        "name": section.name,
-                        "title": section.title,
-                        "type": section.type,
-                        "content": [parse_metadata_node(node) for node in section_root[0]],
-                    }
-                )
-            elif section.type == "text":
-                result.append(
-                    {
-                        "name": section.name,
-                        "title": section.title,
-                        "type": section.type,
-                        "content": clean_tei_subdoc(parse_tei_subdoc(section_root[0], settings.tei)),
-                    }
-                )
-            elif section.type == "textlist":
-                content = []
-                for node in section_root:
-                    content.append(
+    try:
+        doc = etree.parse(path)  # noqa: S320
+        result = []
+        for section in settings.tei.sections:
+            section_root = doc.xpath(section.selector, namespaces=namespaces)
+            if len(section_root) == 0:
+                if section.type == "metadata":
+                    result.append(
                         {
-                            "attrs": {"id": node.attrib["{http://www.w3.org/XML/1998/namespace}id"]},
-                            "content": clean_tei_subdoc(parse_tei_subdoc(node, settings.tei)),
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": [],
                         }
                     )
-                result.append(
-                    {
-                        "name": section.name,
-                        "title": section.title,
-                        "type": section.type,
-                        "content": content,
-                    }
-                )
-    return result
+                elif section.type == "text":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": {},
+                        }
+                    )
+                elif section.type == "textlist":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": [],
+                        }
+                    )
+            else:  # noqa: PLR5501
+                if section.type == "metadata":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": [parse_metadata_node(node) for node in section_root[0]],
+                        }
+                    )
+                elif section.type == "text":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": clean_tei_subdoc(parse_tei_subdoc(section_root[0], settings.tei)),
+                        }
+                    )
+                elif section.type == "textlist":
+                    content = []
+                    for node in section_root:
+                        content.append(
+                            {
+                                "attrs": {"id": node.attrib["{http://www.w3.org/XML/1998/namespace}id"]},
+                                "content": clean_tei_subdoc(parse_tei_subdoc(node, settings.tei)),
+                            }
+                        )
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": content,
+                        }
+                    )
+        return result
+    except etree.XMLSyntaxError as e:
+        is_empty = False
+        with open(path) as in_f:
+            if in_f.read() == "":
+                is_empty = True
+        if is_empty:
+            result = []
+            for section in settings.tei.sections:
+                if section.type == "metadata":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": [],
+                        }
+                    )
+                elif section.type == "text":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": {},
+                        }
+                    )
+                elif section.type == "textlist":
+                    result.append(
+                        {
+                            "name": section.name,
+                            "title": section.title,
+                            "type": section.type,
+                            "content": [],
+                        }
+                    )
+            return result
+        else:
+            raise e
 
 
 @router.get("/{path:path}", response_model=None)
 async def get_file(
     branch_id: str,
     path: str,
-    settings: Annotated[UEditorSettings, Depends(get_ueditor_settings)],
     current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
+    response: Response,
 ) -> dict | FileResponse:
     """Fetch a single file from the repo."""
     try:
         async with BranchContextManager(branch_id):
+            ueditor_settings = get_ueditor_settings()
+            uedition_settings = get_uedition_settings()
             full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
             if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
                 if full_path.endswith(".tei"):
-                    return parse_tei_file(full_path, settings)
+                    if "tei" in uedition_settings.sphinx_config:
+                        if "blocks" in uedition_settings.sphinx_config["tei"]:
+                            ueditor_settings.tei.blocks.extend(
+                                [TEINode(**block) for block in uedition_settings.sphinx_config["tei"]["blocks"]]
+                            )
+                        if "marks" in uedition_settings.sphinx_config["tei"]:
+                            ueditor_settings.tei.marks.extend(
+                                [TEINode(**mark) for mark in uedition_settings.sphinx_config["tei"]["marks"]]
+                            )
+                    response.headers["Content-Type"] = "application/json+tei"
+                    return parse_tei_file(full_path, ueditor_settings)
                 else:
                     return FileResponse(full_path, media_type=guess_type(full_path)[0])
             raise HTTPException(404)
@@ -585,8 +647,9 @@ def serialise_tei_text(root: dict, data: dict, settings: TEITextSection, tei_set
         parent["children"] = []
     doc = data["content"]
     # TODO: Add docu attributes to the parent node
-    for element in doc["content"]:
-        parent["children"].append(serialise_tei_text_block(element, tei_settings))
+    if "content" in doc:
+        for element in doc["content"]:
+            parent["children"].append(serialise_tei_text_block(element, tei_settings))
 
 
 def serialise_tei_textlist(root: dict, data: dict, settings: TEITextSection, tei_settings: TEISettings) -> None:
@@ -662,11 +725,21 @@ async def update_file(
     """Update the file in the repo."""
     try:
         async with BranchContextManager(branch_id) as repo:
-            settings = get_ueditor_settings()
+            ueditor_settings = get_ueditor_settings()
             full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
             if full_path.startswith(os.path.abspath(init_settings.base_path)) and os.path.isfile(full_path):
                 if full_path.endswith(".tei"):
-                    root = serialise_tei_file(full_path, json.load(content.file), settings)
+                    uedition_settings = get_uedition_settings()
+                    if "tei" in uedition_settings.sphinx_config:
+                        if "blocks" in uedition_settings.sphinx_config["tei"]:
+                            ueditor_settings.tei.blocks.extend(
+                                [TEINode(**block) for block in uedition_settings.sphinx_config["tei"]["blocks"]]
+                            )
+                        if "marks" in uedition_settings.sphinx_config["tei"]:
+                            ueditor_settings.tei.marks.extend(
+                                [TEINode(**mark) for mark in uedition_settings.sphinx_config["tei"]["marks"]]
+                            )
+                    root = serialise_tei_file(full_path, json.load(content.file), ueditor_settings)
                     with open(full_path, "wb") as out_f:
                         out_f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
                         out_f.write(

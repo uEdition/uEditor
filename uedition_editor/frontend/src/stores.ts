@@ -31,13 +31,5 @@ export function useCurrentBranch() {
 }
 
 export function useBranches() {
-  return getContext("branches") as CreateQueryResult<Branch[]>;
-}
-
-export function useRemoteBranches() {
-  return getContext("remoteBranches") as CreateQueryResult<Branch[]>;
-}
-
-export function useSyncBranches() {
-  return getContext("syncBranches") as CreateQueryResult<boolean>;
+  return getContext("branches") as CreateQueryResult<Branches>;
 }

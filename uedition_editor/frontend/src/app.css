@@ -165,3 +165,7 @@
     @apply h-full w-full overflow-hidden;
   }
 }
+
+.animate-reverse {
+  animation-direction: reverse;
+}
