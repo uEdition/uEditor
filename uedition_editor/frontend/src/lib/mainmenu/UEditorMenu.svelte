@@ -11,23 +11,17 @@
   import Icon from "../Icon.svelte";
   import { runAction } from "../actions/Index.svelte";
   import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
-  import {
-    useApiStatus,
-    useBranches,
-    useCurrentBranch,
-    useRemoteBranches,
-  } from "../../stores";
+  import { useApiStatus, useBranches, useCurrentBranch } from "../../stores";
 
   const apiStatus = useApiStatus();
   const branches = useBranches();
-  const remoteBranches = useRemoteBranches();
   const currentBranch = useCurrentBranch();
 
   const liveCurrentBranch = derived(
     [branches, currentBranch],
     ([branches, currentBranch]) => {
       if (branches.isSuccess && currentBranch !== null) {
-        for (const branch of branches.data) {
+        for (const branch of branches.data.local) {
           if (branch.id === currentBranch.id) {
             return branch;
           }
@@ -52,7 +46,7 @@
         <Icon path={mdiSourceBranchPlus} class="w-4 h-4"></Icon>
         <span>New Branch</span>
       </Menubar.Item>
-      {#if $remoteBranches.isSuccess && $remoteBranches.data.length > 0}
+      {#if $branches.isSuccess && $branches.data.remote.length > 0}
         <Menubar.Item
           on:click={() => {
             activeDialog.set(Dialogs.UEDITOR_IMPORT_REMOTE_BRANCH);
@@ -95,11 +89,11 @@
           <Menubar.Separator></Menubar.Separator>
         {/if}
       {/if}
-      {#if $branches.isSuccess && $branches.data.length > 0}
+      {#if $branches.isSuccess && $branches.data.local.length > 0}
         <Menubar.RadioGroup
           onValueChange={(value) => {
             if ($branches.isSuccess) {
-              for (let branch of $branches.data) {
+              for (let branch of $branches.data.local) {
                 if (branch.id === value) {
                   currentBranch.set(branch);
                 }
@@ -107,7 +101,7 @@
             }
           }}
         >
-          {#each $branches.data as branch}
+          {#each $branches.data.local as branch}
             <Menubar.RadioItem value={branch.id}>
               {#if $currentBranch !== null && $currentBranch.id === branch.id}
                 <Icon path={mdiCheckCircle} class="w-4 h-4"></Icon>

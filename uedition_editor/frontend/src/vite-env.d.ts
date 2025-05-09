@@ -24,6 +24,11 @@ type Branch = {
   update_from_default?: boolean
 };
 
+type Branches = {
+  local: Branch[];
+  remote: Branch[];
+};
+
 type Config = {};
 
 type UEditionAuthor = {

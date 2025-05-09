@@ -45,18 +45,19 @@ class BranchModel(BaseModel):
     update_from_default: bool = False
 
 
-@router.get("", response_model=list[BranchModel])
+class BranchesModel(BaseModel):
+    """A model combining local and remote branches."""
+
+    local: list[BranchModel]
+    remote: list[BranchModel]
+
+
+@router.get("", response_model=BranchesModel)
 async def branches(
     current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
-    category: str = "local",
 ) -> list:
     """Fetch the available branches."""
-    if category == "local":
-        return local_branches
-    elif category == "remote":
-        return remote_branches
-    else:
-        raise HTTPException(404, "No such branch category found")
+    return {"local": local_branches, "remote": remote_branches}
 
 
 @router.patch("", status_code=204)

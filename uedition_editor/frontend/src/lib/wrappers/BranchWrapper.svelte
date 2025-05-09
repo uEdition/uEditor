@@ -21,7 +21,7 @@
     ([apiStatus, currentUser]) => {
       return {
         queryKey: ["branches"],
-        queryFn: apiQueryHandler<Branch[]>,
+        queryFn: apiQueryHandler<Branches>,
         refetchInterval: 60000,
         enabled:
           apiStatus.isSuccess && apiStatus.data.ready && currentUser.isSuccess,
@@ -31,23 +31,23 @@
   const branches = createQuery(branchesQuery);
   setContext("branches", branches);
 
-  const remoteBranchesQuery = derived(
-    [apiStatus, currentUser],
-    ([apiStatus, currentUser]) => {
-      return {
-        queryKey: ["branches", "?category=remote"],
-        queryFn: apiQueryHandler<Branch[]>,
-        refetchInterval: 60000,
-        enabled:
-          apiStatus.isSuccess &&
-          apiStatus.data.ready &&
-          apiStatus.data.git.enabled &&
-          currentUser.isSuccess,
-      };
-    },
-  );
-  const remoteBranches = createQuery(remoteBranchesQuery);
-  setContext("remoteBranches", remoteBranches);
+  // const remoteBranchesQuery = derived(
+  //   [apiStatus, currentUser],
+  //   ([apiStatus, currentUser]) => {
+  //     return {
+  //       queryKey: ["branches", "?category=remote"],
+  //       queryFn: apiQueryHandler<Branch[]>,
+  //       refetchInterval: 60000,
+  //       enabled:
+  //         apiStatus.isSuccess &&
+  //         apiStatus.data.ready &&
+  //         apiStatus.data.git.enabled &&
+  //         currentUser.isSuccess,
+  //     };
+  //   },
+  // );
+  // const remoteBranches = createQuery(remoteBranchesQuery);
+  // setContext("remoteBranches", remoteBranches);
 
   const currentBranch = writable(null as Branch | null);
   setContext("currentBranch", currentBranch);
@@ -72,7 +72,7 @@
 
   const setInitialBranchUnsubscribe = branches.subscribe((branches) => {
     if (branches.isSuccess) {
-      for (let branch of branches.data) {
+      for (let branch of branches.data.local) {
         if (branch.id === initialBranchId) {
           currentBranch.set(branch);
         }
