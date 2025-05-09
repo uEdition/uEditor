@@ -10,8 +10,9 @@ from fastapi import APIRouter, Depends, Header
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel, Field
 from pygit2 import GitError, Repository, Signature
-from pygit2.enums import FetchPrune, RepositoryOpenFlag
+from pygit2.enums import RepositoryOpenFlag
 
+from uedition_editor import cron
 from uedition_editor.api.auth import get_current_user
 from uedition_editor.api.configs import router as configs_router
 from uedition_editor.api.files import router as files_router
@@ -19,12 +20,15 @@ from uedition_editor.api.util import (
     BranchContextManager,
     RemoteRepositoryCallbacks,
     commit_and_push,
+    de_slugify,
     fetch_and_pull_branch,
     fetch_repo,
     pull_branch,
+    slugify,
     uedition_lock,
 )
 from uedition_editor.settings import init_settings
+from uedition_editor.state import local_branches, remote_branches
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/branches")
@@ -41,59 +45,24 @@ class BranchModel(BaseModel):
     update_from_default: bool = False
 
 
-def slugify(slug: str) -> str:
-    """Turn a title into a slug."""
-    return slug.lower().replace(" ", "-")
-
-
-def de_slugify(slug: str) -> str:
-    """Turn a slug into a useable title."""
-    return slug[0].capitalize() + slug[1:].replace("-", " ")
-
-
 @router.get("", response_model=list[BranchModel])
 async def branches(
     current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
     category: str = "local",
 ) -> list:
     """Fetch the available branches."""
-    if category not in ("local", "remote"):
+    if category == "local":
+        return local_branches
+    elif category == "remote":
+        return remote_branches
+    else:
         raise HTTPException(404, "No such branch category found")
-    async with uedition_lock:
-        try:
-            repo = Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
-            branches = []
-            if category == "local":
-                for branch_name in repo.branches.local:
-                    repo.checkout(repo.branches[branch_name])
-                    diff = repo.diff(
-                        repo.revparse_single(init_settings.git.default_branch),
-                    )
-                    branches.append(
-                        {
-                            "id": branch_name,
-                            "title": de_slugify(branch_name),
-                            "update_from_default": diff.stats.files_changed > 0,
-                        }
-                    )
-            elif category == "remote":
-                if init_settings.git.remote_name in list(repo.remotes.names()):
-                    repo.remotes[init_settings.git.remote_name].fetch(
-                        prune=FetchPrune.PRUNE, callbacks=RemoteRepositoryCallbacks()
-                    )
-                    for branch_name in repo.branches.remote:
-                        if (
-                            repo.branches[branch_name].remote_name == init_settings.git.remote_name
-                            and "HEAD" not in branch_name
-                        ):
-                            branches.append({"id": branch_name, "title": de_slugify(branch_name)})
-            return branches
-        except GitError as ge:
-            logger.error(ge)
-            if category == "local":
-                return [{"id": "-", "title": "Direct Access", "nogit": True}]
-            elif category == "remote":
-                return []
+
+
+@router.patch("", status_code=204)
+async def synchronise_remote() -> None:
+    """Synchronise with the git remote."""
+    await cron.track_branches.func()
 
 
 class CreateBranchModel(BaseModel):

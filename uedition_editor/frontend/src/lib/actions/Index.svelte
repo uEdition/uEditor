@@ -19,6 +19,8 @@
       promise = loadTextFile(action);
     } else if (action.action === "SaveCurrentFile") {
       promise = saveCurrentFile(action);
+    } else if (action.action === "SynchroniseBranches") {
+      promise = synchroniseBranches(action);
     }
     if (promise !== null) {
       promise.then(() => {
@@ -63,6 +65,15 @@
     } else {
       showSaveError.set(true);
     }
+  }
+
+  /**
+   * Synchronise the branches
+   *
+   * @param action The action
+   */
+  async function synchroniseBranches(action: SynchroniseBranchesAction) {
+    await window.fetch("/api/branches", { method: "PATCH" });
   }
 </script>
 

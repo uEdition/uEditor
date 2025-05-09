@@ -255,7 +255,12 @@ type SaveCurrentFileAction = {
   status?: string;
 };
 
-type Action = LoadTextFileAction | SaveCurrentFileAction;
+type SynchroniseBranchesAction = {
+  action: "SynchroniseBranches";
+  status?: string;
+}
+
+type Action = LoadTextFileAction | SaveCurrentFileAction | SynchroniseBranchesAction;
 
 type TipTapAttribtes = { [key: string]: string };
 

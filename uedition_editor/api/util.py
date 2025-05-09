@@ -118,3 +118,13 @@ def commit_and_push(
         if remote in repo.remotes.names():
             logger.debug(f"Pushing changes to {remote}")
             repo.remotes[remote].push([f"refs/heads/{branch}"], callbacks=RemoteRepositoryCallbacks())
+
+
+def slugify(slug: str) -> str:
+    """Turn a title into a slug."""
+    return slug.lower().replace(" ", "-")
+
+
+def de_slugify(slug: str) -> str:
+    """Turn a slug into a useable title."""
+    return slug[0].capitalize() + slug[1:].replace("-", " ")
