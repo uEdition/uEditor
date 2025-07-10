@@ -97,6 +97,7 @@ async def create_branch(
                 repo.branches.local.create(branch_id, commit)
                 repo.checkout(repo.branches[branch_id])
                 repo.branches[branch_id].upstream = repo.branches[f"{init_settings.git.remote_name}/{branch_id}"]
+                await cron.insecure_track_branches()
                 return {"id": branch_id, "title": de_slugify(data.title)}
             else:
                 for remote_branch_id in repo.branches.remote:
@@ -115,6 +116,7 @@ async def create_branch(
                     )
                     fetch_repo(repo, init_settings.git.remote_name)
                     repo.branches[branch_id].upstream = repo.branches[f"{init_settings.git.remote_name}/{branch_id}"]
+                await cron.insecure_track_branches()
                 return {"id": branch_id, "title": data.title}
         except GitError as ge:
             logger.error(ge)
@@ -165,3 +167,4 @@ async def delete_branch(
                 )
         if branch_id in repo.branches:
             repo.branches.delete(branch_id)
+        await cron.insecure_track_branches()
