@@ -20,7 +20,7 @@ async def insecure_track_branches():
     """
     Track the status of all git branches.
 
-    Use only when the uedition_lock is already completed.
+    Use only when the uedition_lock is already aquired.
     """
     remote_branches.clear()
     local_branches.clear()
@@ -37,9 +37,10 @@ async def insecure_track_branches():
             if init_settings.git.remote_name in list(repo.remotes.names()):
                 if repo.branches[branch_name].upstream is not None:
                     pull_branch(repo, branch_name)
-            diff = repo.diff(
-                repo.revparse_single(init_settings.git.default_branch),
+            merge_base = repo.merge_base(
+                repo.revparse_single(init_settings.git.default_branch).id, repo.revparse_single(branch_name).id
             )
+            diff = repo.diff(merge_base, repo.revparse_single(init_settings.git.default_branch))
             local_branches.append(
                 {
                     "id": branch_name,
