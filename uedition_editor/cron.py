@@ -16,6 +16,13 @@ from uedition_editor.state import local_branches, remote_branches
 logger = logging.getLogger(__name__)
 
 
+def format_remote_branch_title(title: str) -> str:
+    """Format the remote branch name as a title."""
+    if "/" in title:
+        return de_slugify(title[title.find("/") + 1 :])
+    return title
+
+
 async def insecure_track_branches():
     """
     Track the status of all git branches.
@@ -50,7 +57,7 @@ async def insecure_track_branches():
             )
         for branch_name in repo.branches.remote:
             if repo.branches[branch_name].remote_name == init_settings.git.remote_name and "HEAD" not in branch_name:
-                remote_branches.append({"id": branch_name, "title": de_slugify(branch_name)})
+                remote_branches.append({"id": branch_name, "title": format_remote_branch_title(branch_name)})
         logger.debug("Tracking complete")
     except GitError as ge:
         logger.error(ge)
