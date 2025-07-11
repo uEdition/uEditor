@@ -7,15 +7,18 @@
     mdiSourceBranchSync,
   } from "@mdi/js";
   import { derived } from "svelte/store";
+  import { useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
   import { runAction } from "../actions/Index.svelte";
   import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
   import { useApiStatus, useBranches, useCurrentBranch } from "../../stores";
+  import { title } from "../../util";
 
   const apiStatus = useApiStatus();
   const branches = useBranches();
   const currentBranch = useCurrentBranch();
+  const queryClient = useQueryClient();
 
   const liveCurrentBranch = derived(
     [branches, currentBranch],
@@ -58,7 +61,12 @@
       {/if}
       <Menubar.Item
         on:click={() => {
-          runAction({ action: "SynchroniseBranches" });
+          runAction({
+            action: "SynchroniseBranches",
+            callback: () => {
+              queryClient.invalidateQueries({ queryKey: ["branches"] });
+            },
+          });
         }}
       >
         <Icon class="w-4 h-4" />
@@ -73,7 +81,11 @@
             }}
           >
             <Icon path={mdiSourceBranchSync} class="w-4 h-4" />
-            <span>Merge from {$apiStatus.data.git.default_branch}</span>
+            <span
+              >Merge Updates from {title(
+                $apiStatus.data.git.default_branch,
+              )}</span
+            >
           </Menubar.Item>
           <Menubar.Separator></Menubar.Separator>
         {/if}
