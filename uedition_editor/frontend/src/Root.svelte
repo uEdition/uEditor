@@ -9,7 +9,7 @@
   import FileNavigation from "./lib/FileNavigation.svelte";
   import MainMenu from "./lib/mainmenu/Index.svelte";
   import Toolbar from "./lib/Toolbar.svelte";
-  import { currentFile } from "./stores";
+  import { currentFile, useApiStatus } from "./stores";
 
   const uEditionConfig = getContext(
     "uEditionConfig",
@@ -18,6 +18,7 @@
     "uEditorConfig",
   ) as CreateQueryResult<UEditorSettings>;
   const currentBranch = getContext("currentBranch") as Readable<Branch | null>;
+  const apiStatus = useApiStatus();
 
   const appTitle = derived(uEditionConfig, (config) => {
     if (
@@ -65,7 +66,14 @@
   {:else}
     <div class="flex-1"></div>
   {/if}
-  <footer class="flex flex-row px-2 py-1 border-t border-slate-300 text-sm">
+  <footer
+    class="flex flex-row space-x-4 px-2 py-1 border-t border-slate-300 text-sm items-center"
+  >
+    {#if $apiStatus.data?.git.protect_default_branch && $apiStatus.data?.git.default_branch === $currentBranch?.id}
+      <div class="text-red-500">
+        This branch is protected and cannot be edited directly
+      </div>
+    {/if}
     <div class="font-mono font-bold">
       {#if $currentFile}{$currentFile.fullpath}{/if}
     </div>

@@ -8,10 +8,12 @@
   } from "@mdi/js";
   import { onDestroy, onMount } from "svelte";
 
-  import { currentFile } from "../../stores";
+  import { currentFile, useApiStatus, useCurrentBranch } from "../../stores";
   import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
   import Icon from "../Icon.svelte";
 
+  const apiStatus = useApiStatus();
+  const currentBranch = useCurrentBranch();
   let focusElement: HTMLHeadingElement | null = null;
 
   onMount(() => {
@@ -35,53 +37,59 @@
       ? $currentFile?.fullpath
       : "/"}
   </h2>
-  <div class="flex flex-col w-60 space-y-2">
-    <button
-      data-button
-      on:click={() => {
-        activeDialog.set(Dialogs.FOLDER_CREATE);
-      }}
-    >
-      <Icon path={mdiFolderPlusOutline} class="w4 h-4" />
-      <span>Create a new Folder</span>
-    </button>
-    <button
-      data-button
-      on:click={() => {
-        activeDialog.set(Dialogs.FILE_CREATE);
-      }}
-    >
-      <Icon path={mdiFileDocumentPlusOutline} class="w4 h-4" />
-      <span>Create a new File</span>
-    </button>
-    <button
-      data-button
-      on:click={() => {
-        activeDialog.set(Dialogs.FILE_UPLOAD);
-      }}
-    >
-      <Icon path={mdiFileUploadOutline} class="w4 h-4" />
-      <span>Upload Files</span>
-    </button>
-    {#if $currentFile?.fullpath}
+  {#if !$apiStatus.data?.git.protect_default_branch || $apiStatus.data?.git.default_branch !== $currentBranch?.id}
+    <div class="flex flex-col w-60 space-y-2">
       <button
         data-button
         on:click={() => {
-          activeDialog.set(Dialogs.FOLDER_RENAME);
+          activeDialog.set(Dialogs.FOLDER_CREATE);
         }}
       >
-        <Icon path={mdiFolderEditOutline} class="w-4 h-4"></Icon>
-        <span>Rename</span>
+        <Icon path={mdiFolderPlusOutline} class="w4 h-4" />
+        <span>Create a new Folder</span>
       </button>
       <button
         data-button
         on:click={() => {
-          activeDialog.set(Dialogs.FOLDER_DELETE);
+          activeDialog.set(Dialogs.FILE_CREATE);
         }}
       >
-        <Icon path={mdiFolderRemoveOutline} class="w-4 h-4"></Icon>
-        <span>Delete this Folder</span>
+        <Icon path={mdiFileDocumentPlusOutline} class="w4 h-4" />
+        <span>Create a new File</span>
       </button>
-    {/if}
-  </div>
+      <button
+        data-button
+        on:click={() => {
+          activeDialog.set(Dialogs.FILE_UPLOAD);
+        }}
+      >
+        <Icon path={mdiFileUploadOutline} class="w4 h-4" />
+        <span>Upload Files</span>
+      </button>
+      {#if $currentFile?.fullpath}
+        <button
+          data-button
+          on:click={() => {
+            activeDialog.set(Dialogs.FOLDER_RENAME);
+          }}
+        >
+          <Icon path={mdiFolderEditOutline} class="w-4 h-4"></Icon>
+          <span>Rename</span>
+        </button>
+        <button
+          data-button
+          on:click={() => {
+            activeDialog.set(Dialogs.FOLDER_DELETE);
+          }}
+        >
+          <Icon path={mdiFolderRemoveOutline} class="w-4 h-4"></Icon>
+          <span>Delete this Folder</span>
+        </button>
+      {/if}
+    </div>
+  {:else}
+    <div class="flex-1 relative px-2 py-1 text-gray-700">
+      This branch is protected and no changes can be made.
+    </div>
+  {/if}
 </div>

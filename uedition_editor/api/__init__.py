@@ -34,6 +34,7 @@ class APIStatusGit(BaseModel):
 
     enabled: bool
     default_branch: str | None = None
+    protect_default_branch: bool | None = None
 
 
 class APIStatus(BaseModel):
@@ -61,6 +62,7 @@ def api() -> dict:
         Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
         api_status["git"]["enabled"] = True
         api_status["git"]["default_branch"] = init_settings.git.default_branch
+        api_status["git"]["protect_default_branch"] = init_settings.git.protect_default_branch
     except GitError:
         pass
     return api_status
