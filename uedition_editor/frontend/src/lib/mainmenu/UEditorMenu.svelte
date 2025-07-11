@@ -7,6 +7,7 @@
     mdiSourceBranchSync,
   } from "@mdi/js";
   import { derived } from "svelte/store";
+  import { useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
   import { runAction } from "../actions/Index.svelte";
@@ -17,6 +18,7 @@
   const apiStatus = useApiStatus();
   const branches = useBranches();
   const currentBranch = useCurrentBranch();
+  const queryClient = useQueryClient();
 
   const liveCurrentBranch = derived(
     [branches, currentBranch],
@@ -59,7 +61,12 @@
       {/if}
       <Menubar.Item
         on:click={() => {
-          runAction({ action: "SynchroniseBranches" });
+          runAction({
+            action: "SynchroniseBranches",
+            callback: () => {
+              queryClient.invalidateQueries({ queryKey: ["branches"] });
+            },
+          });
         }}
       >
         <Icon class="w-4 h-4" />

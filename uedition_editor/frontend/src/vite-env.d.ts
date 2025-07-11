@@ -263,6 +263,7 @@ type SaveCurrentFileAction = {
 type SynchroniseBranchesAction = {
   action: "SynchroniseBranches";
   status?: string;
+  callback?: () => void;
 }
 
 type Action = LoadTextFileAction | SaveCurrentFileAction | SynchroniseBranchesAction;
