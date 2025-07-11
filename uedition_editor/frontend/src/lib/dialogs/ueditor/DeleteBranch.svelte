@@ -13,6 +13,7 @@
   let open = false;
   let confirmBranchTitle = "";
   let errorMessage = "";
+  let deleteLocal = false;
 
   function openDialog(open: boolean) {
     if (open) {
@@ -28,6 +29,7 @@
           method: "DELETE",
           headers: {
             Accept: "application/json",
+            "X-UEDITOR-DELETE-LOCAL-ONLY": deleteLocal ? "true" : "false",
           },
         },
       );
@@ -64,12 +66,16 @@
       >. This cannot be undone. To confirm the action, please enter the name of
       the branch to delete.
     </p>
-    <label>
+    <label class="block mb-4">
       <span data-form-field-label>Confirm branch name</span>
       <input bind:value={confirmBranchTitle} type="text" data-form-field-text />
       {#if errorMessage}
         <span data-form-field-error>{errorMessage}</span>
       {/if}
+    </label>
+    <label class="block text-sm">
+      <input bind:checked={deleteLocal} type="checkbox" /> Only delete the local
+      branch
     </label>
     <div data-dialog-buttons>
       {#if $deleteBranch.isPending}

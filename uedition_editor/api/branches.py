@@ -154,6 +154,7 @@ async def merge_from_default(
 async def delete_branch(
     branch_id: str,
     current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
+    local_delete: Annotated[bool, Header(alias="x-ueditor-delete-local-only")] = False,  # noqa:FBT002
 ) -> None:
     """Delete the given branch locally and remotely."""
     async with BranchContextManager(branch_id) as repo:
@@ -161,7 +162,7 @@ async def delete_branch(
         if init_settings.git.default_branch == branch_id:
             raise HTTPException(422, detail=[{"msg": "you cannot delete the default branch"}])
         repo.checkout(repo.branches[init_settings.git.default_branch])
-        if init_settings.git.remote_name in list(repo.remotes.names()):
+        if init_settings.git.remote_name in list(repo.remotes.names()) and not local_delete:
             if repo.branches[branch_id].upstream is not None:
                 repo.remotes[init_settings.git.remote_name].push(
                     [f":refs/heads/{branch_id}"], callbacks=RemoteRepositoryCallbacks()
