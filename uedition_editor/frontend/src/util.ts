@@ -128,3 +128,13 @@ export function deleteApplicationParameter(name: string) {
     window.location.hash = params.toString();
   }
 }
+
+/**
+ * Ensure the first letter is in upper case.
+ *
+ * @param text The text to process.
+ * @returns The text with the first letter set to upper case.
+ */
+export function title(text: string) {
+  return text[0].toUpperCase() + text.substring(1);
+}

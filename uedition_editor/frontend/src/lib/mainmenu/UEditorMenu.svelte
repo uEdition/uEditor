@@ -12,6 +12,7 @@
   import { runAction } from "../actions/Index.svelte";
   import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
   import { useApiStatus, useBranches, useCurrentBranch } from "../../stores";
+  import { title } from "../../util";
 
   const apiStatus = useApiStatus();
   const branches = useBranches();
@@ -73,7 +74,11 @@
             }}
           >
             <Icon path={mdiSourceBranchSync} class="w-4 h-4" />
-            <span>Merge from {$apiStatus.data.git.default_branch}</span>
+            <span
+              >Merge Updates from {title(
+                $apiStatus.data.git.default_branch,
+              )}</span
+            >
           </Menubar.Item>
           <Menubar.Separator></Menubar.Separator>
         {/if}

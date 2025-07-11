@@ -6,6 +6,7 @@
   import Base from "../Base.svelte";
   import Icon from "../../Icon.svelte";
   import { useApiStatus, useCurrentBranch } from "../../../stores";
+  import { title } from "../../../util";
   import { Dialogs, activeDialog } from "../Index.svelte";
 
   const queryClient = useQueryClient();
@@ -54,8 +55,8 @@
   <form data-dialog-content-area on:submit={startMergeBranchFromDefault}>
     <p class="mb-4">
       Please confirm you wish to merge all changes from the default branch <span
-        class="inline-block mx-1 px-2 border boder-fuchsia-700 rounded font-bold"
-        >{$apiStatus.data.git.default_branch}</span
+        class="inline-block mx-1 px-2 border border-fuchsia-700 rounded font-bold"
+        >{title($apiStatus.data.git.default_branch)}</span
       >
       into the current branch<span
         class="inline-block mx-1 px-2 border border-fuchsia-700 rounded font-bold"
