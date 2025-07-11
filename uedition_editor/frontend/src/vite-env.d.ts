@@ -6,6 +6,7 @@ type APIStatus = {
   git: {
     enabled: boolean;
     default_branch: string | null;
+    protect_default_branch: boolean | null;
   };
   auth: {
     provider: "no-auth" | "email" | "email-password" | "github";

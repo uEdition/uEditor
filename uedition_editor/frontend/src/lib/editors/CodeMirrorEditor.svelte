@@ -12,6 +12,7 @@
     currentFile,
     currentFileContent,
     currentFileModified,
+    useApiStatus,
     useCurrentBranch,
   } from "../../stores";
   import { runAction } from "../actions/Index.svelte";
@@ -21,6 +22,7 @@
   let lang: LanguageSupport | null = null;
   const queryClient = useQueryClient();
   const currentBranch = useCurrentBranch();
+  const apiStatus = useApiStatus();
 
   const currentFileUnsubscribe = currentFile.subscribe((currentFile) => {
     if (currentFile) {
@@ -50,30 +52,35 @@
   const currentFileContentUnsubscribe = currentFileContent.subscribe(
     (content) => {
       value = content;
-    }
+    },
   );
 
   function shortCutTracker(ev: KeyboardEvent) {
     if ($currentFile !== null && $currentFileContent !== null) {
       if (ev.key === "s" && (ev.ctrlKey || ev.metaKey)) {
         ev.preventDefault();
-        runAction({
-          action: "SaveCurrentFile",
-          branch: $currentBranch as Branch,
-          filename: $currentFile.fullpath,
-          data: $currentFileContent,
-          callback() {
-            currentFileModified.set(false);
-            if (
-              $currentFile.name === "uEdition.yml" ||
-              $currentFile.name === "uEdition.yaml" ||
-              $currentFile.name === "uEditor.yml" ||
-              $currentFile.name === "uEditor.yaml"
-            ) {
-              queryClient.invalidateQueries({ queryKey: ["configs"] });
-            }
-          },
-        });
+        if (
+          !$apiStatus.data?.git.protect_default_branch ||
+          $apiStatus.data?.git.default_branch !== $currentBranch?.id
+        ) {
+          runAction({
+            action: "SaveCurrentFile",
+            branch: $currentBranch as Branch,
+            filename: $currentFile.fullpath,
+            data: $currentFileContent,
+            callback() {
+              currentFileModified.set(false);
+              if (
+                $currentFile.name === "uEdition.yml" ||
+                $currentFile.name === "uEdition.yaml" ||
+                $currentFile.name === "uEditor.yml" ||
+                $currentFile.name === "uEditor.yaml"
+              ) {
+                queryClient.invalidateQueries({ queryKey: ["configs"] });
+              }
+            },
+          });
+        }
       }
     }
   }

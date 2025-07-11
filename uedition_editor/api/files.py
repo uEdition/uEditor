@@ -384,6 +384,16 @@ async def create_file(
 ) -> None:
     """Create a new file in the repo."""
     try:
+        if init_settings.git.protect_default_branch and init_settings.git.default_branch == branch_id:
+            raise HTTPException(
+                422,
+                detail=[
+                    {
+                        "loc": ["path", "path"],
+                        "msg": "this branch is protected",
+                    }
+                ],
+            )
         async with BranchContextManager(branch_id) as repo:
             if new_type in ("file", "folder"):
                 full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
@@ -724,6 +734,16 @@ async def update_file(
 ) -> None:
     """Update the file in the repo."""
     try:
+        if init_settings.git.protect_default_branch and init_settings.git.default_branch == branch_id:
+            raise HTTPException(
+                422,
+                detail=[
+                    {
+                        "loc": ["path", "path"],
+                        "msg": "this branch is protected",
+                    }
+                ],
+            )
         async with BranchContextManager(branch_id) as repo:
             ueditor_settings = get_ueditor_settings()
             full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
@@ -783,6 +803,16 @@ async def delete_file(
 ) -> None:
     """Delete a file in the repo."""
     try:
+        if init_settings.git.protect_default_branch and init_settings.git.default_branch == branch_id:
+            raise HTTPException(
+                422,
+                detail=[
+                    {
+                        "loc": ["path", "path"],
+                        "msg": "this branch is protected",
+                    }
+                ],
+            )
         async with BranchContextManager(branch_id) as repo:
             full_path = os.path.abspath(os.path.join(init_settings.base_path, *path.split("/")))
             if full_path.startswith(os.path.abspath(init_settings.base_path)):

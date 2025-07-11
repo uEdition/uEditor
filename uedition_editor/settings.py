@@ -74,6 +74,7 @@ class GitSettings(BaseModel):
 
     remote_name: str = "origin"
     default_branch: str = "main"
+    protect_default_branch: bool = False
 
 
 class InitSettings(BaseSettings):

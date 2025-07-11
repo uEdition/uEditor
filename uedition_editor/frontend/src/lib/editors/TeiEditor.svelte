@@ -10,6 +10,7 @@
     currentFile,
     currentFileContent,
     currentFileModified,
+    useApiStatus,
     useCurrentBranch,
   } from "../../stores";
   import LoadingIndicator from "../LoadingIndicator.svelte";
@@ -28,6 +29,7 @@
     "uEditorConfig",
   ) as CreateQueryResult<UEditorSettings>;
   const currentBranch = useCurrentBranch();
+  const apiStatus = useApiStatus();
 
   const teiDocument = derived(
     [uEditorConfig, currentFile],
@@ -113,15 +115,20 @@
     if ($currentFile !== null && $currentFileContent !== null) {
       if (ev.key === "s" && (ev.ctrlKey || ev.metaKey)) {
         ev.preventDefault();
-        runAction({
-          action: "SaveCurrentFile",
-          branch: $currentBranch,
-          filename: $currentFile.fullpath,
-          data: $currentFileContent,
-          callback() {
-            currentFileModified.set(false);
-          },
-        });
+        if (
+          !$apiStatus.data?.git.protect_default_branch ||
+          $apiStatus.data?.git.default_branch !== $currentBranch?.id
+        ) {
+          runAction({
+            action: "SaveCurrentFile",
+            branch: $currentBranch,
+            filename: $currentFile.fullpath,
+            data: $currentFileContent,
+            callback() {
+              currentFileModified.set(false);
+            },
+          });
+        }
       }
     }
   }
