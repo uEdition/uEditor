@@ -74,6 +74,9 @@
    */
   async function synchroniseBranches(action: SynchroniseBranchesAction) {
     await window.fetch("/api/branches", { method: "PATCH" });
+    if (action.callback) {
+      action.callback();
+    }
   }
 </script>
 

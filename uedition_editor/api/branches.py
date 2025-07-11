@@ -147,6 +147,7 @@ async def merge_from_default(
                 Signature(current_user["name"], current_user["sub"]),
                 extra_parents=[default_branch_head.id],
             )
+        await cron.insecure_track_branches()
 
 
 @router.delete("/{branch_id}", status_code=204)
