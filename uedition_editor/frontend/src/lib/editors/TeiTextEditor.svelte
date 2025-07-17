@@ -10,6 +10,7 @@
 
   import Icon from "../Icon.svelte";
   import { textForFirstNodeOfTipTapDocument } from "../../util";
+  import { useConfiguredTEIBlocks, useConfiguredTEIMarks } from "../../stores";
 
   export let section: TEITextSection | null = null;
   export let sections: TEIDocument;
@@ -25,6 +26,8 @@
   const uEditionConfig = getContext(
     "uEditionConfig",
   ) as CreateQueryResult<UEditionSettings>;
+  const configuredBlocks = useConfiguredTEIBlocks();
+  const configuredMarks = useConfiguredTEIMarks();
   let editorElement: HTMLElement | null = null;
   let editor: Editor | null = null;
   let updateDebounce = -1;
@@ -36,17 +39,7 @@
       $uEditionConfig.isSuccess
     ) {
       const extensions: (Node | Mark)[] = [Document, Text];
-      let configuredBlocks = deepCopy($uEditorConfig.data.tei.blocks);
-      if (
-        $uEditionConfig.data.sphinx_config &&
-        $uEditionConfig.data.sphinx_config.tei &&
-        $uEditionConfig.data.sphinx_config.tei.blocks
-      ) {
-        configuredBlocks = configuredBlocks.concat(
-          deepCopy($uEditionConfig.data.sphinx_config.tei.blocks),
-        );
-      }
-      for (let blockConfig of configuredBlocks) {
+      for (let blockConfig of $configuredBlocks) {
         extensions.push(
           Node.create({
             name: blockConfig.name,
@@ -77,17 +70,7 @@
           }),
         );
       }
-      let configuredMarks = deepCopy($uEditorConfig.data.tei.marks);
-      if (
-        $uEditionConfig.data.sphinx_config &&
-        $uEditionConfig.data.sphinx_config.tei &&
-        $uEditionConfig.data.sphinx_config.tei.marks
-      ) {
-        configuredMarks = configuredMarks.concat(
-          deepCopy($uEditionConfig.data.sphinx_config.tei.marks),
-        );
-      }
-      for (let markConfig of configuredMarks) {
+      for (let markConfig of $configuredMarks) {
         extensions.push(
           Mark.create({
             name: markConfig.name,

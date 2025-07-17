@@ -1,13 +1,14 @@
 <script lang="ts">
   import { Combobox, Toolbar, Dialog } from "bits-ui";
   import { mdiChevronDown, mdiChevronUp, mdiPlus, mdiTrashCan } from "@mdi/js";
-  import { createEventDispatcher, getContext } from "svelte";
+  import { createEventDispatcher, getContext, tick } from "svelte";
   import type { CreateQueryResult } from "@tanstack/svelte-query";
   import { v1 as uuidv1 } from "uuid";
 
   import Icon from "../Icon.svelte";
   import TeiTextEditor from "./TeiTextEditor.svelte";
   import { textForFirstNodeOfTipTapDocument } from "../../util";
+  import { useConfiguredTEIBlocks, useUEditorConfig } from "../../stores";
 
   export let section: TEITextlistSection | null = null;
   export let sections: TEIDocument;
@@ -15,9 +16,8 @@
   export let editTextListEntry: (textlist: string, textlistId: string) => void;
 
   const dispatch = createEventDispatcher();
-  const uEditorConfig = getContext(
-    "uEditorConfig",
-  ) as CreateQueryResult<UEditorSettings>;
+  const uEditorConfig = useUEditorConfig();
+  const configuredTEIBlocks = useConfiguredTEIBlocks();
   let selected: { value: unknown; label?: string } = { value: null };
   let texts = [] as TEITextlistDocument[];
   let selectedDocument: TEITextSection | null = null;
@@ -92,24 +92,25 @@
    * The text's structure is taken from the first block configured.
    */
   function addText() {
-    if (
-      $uEditorConfig.isSuccess &&
-      $uEditorConfig.data?.tei.blocks.length > 0
-    ) {
-      texts.push({
+    if ($configuredTEIBlocks.length > 0) {
+      const newText = {
         attrs: { id: section?.name + "-" + uuidv1() },
         content: {
           type: "doc",
           content: [
             {
-              type: $uEditorConfig.data.tei.blocks[0].name as string,
+              type: $configuredTEIBlocks[0].name as string,
               attrs: {},
               content: [{ type: "text", marks: [], text: "New" }],
             },
           ],
         },
-      });
+      } as TEITextlistDocument;
+      texts.push(newText);
       dispatch("update", texts);
+      tick().then(() => {
+        selectedEntryId = newText.attrs.id;
+      });
     }
   }
 
