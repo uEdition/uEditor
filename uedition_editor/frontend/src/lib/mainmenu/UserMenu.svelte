@@ -4,11 +4,18 @@
   import { useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
-  import { useApiStatus, useCurrentUser } from "../../stores";
+  import {
+    useApiStatus,
+    useAuthStatus,
+    useCurrentUser,
+    useHasLoggedOut,
+  } from "../../stores";
 
   const currentUser = useCurrentUser();
   const apiStatus = useApiStatus();
   const queryClient = useQueryClient();
+  const authStatus = useAuthStatus();
+  const hasLoggedOut = useHasLoggedOut();
 
   async function logout() {
     const response = await window.fetch("/api/auth/login", {
@@ -17,11 +24,12 @@
     if (response.ok) {
       queryClient.cancelQueries();
       queryClient.invalidateQueries({ queryKey: ["auth"] });
+      hasLoggedOut.set(true);
     }
   }
 </script>
 
-{#if $apiStatus.isSuccess && $apiStatus.data.auth.provider !== "no-auth"}
+{#if $apiStatus.isSuccess && $apiStatus.data.auth.provider !== "no-auth" && $authStatus === "authenticated"}
   <Menubar.Menu>
     <Menubar.Trigger>{$currentUser.data?.name}</Menubar.Trigger>
     <Menubar.Content>

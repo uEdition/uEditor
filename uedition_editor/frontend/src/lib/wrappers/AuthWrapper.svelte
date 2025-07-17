@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Dialog } from "bits-ui";
   import { setContext } from "svelte";
-  import { derived } from "svelte/store";
+  import { derived, writable } from "svelte/store";
   import { fade } from "svelte/transition";
   import {
     createMutation,
@@ -52,8 +52,9 @@
         }
       }
       return apiStatus.status;
-    }
+    },
   );
+  setContext("authStatus", authStatus);
 
   let authEmail = "";
   let authPassword = "";
@@ -77,6 +78,9 @@
       }
     },
   });
+
+  const hasLoggedOut = writable(false);
+  setContext("hasLoggedOut", hasLoggedOut);
 </script>
 
 <slot></slot>
@@ -99,7 +103,7 @@
 </Dialog.Root>
 
 <Dialog.Root
-  open={$authStatus === "error"}
+  open={!$hasLoggedOut && $authStatus === "error"}
   closeOnEscape={false}
   closeOnOutsideClick={false}
 >
@@ -156,6 +160,31 @@
           </div>
         </div>
       {/if}
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>
+
+<Dialog.Root
+  open={$hasLoggedOut}
+  onOpenChange={(open) => {
+    if (!open) {
+      hasLoggedOut.set(false);
+    }
+  }}
+>
+  <Dialog.Trigger class="hidden" />
+  <Dialog.Portal>
+    <Dialog.Overlay transition={fade} class="z-40" />
+    <Dialog.Content class="flex flex-col overflow-hidden z-50">
+      <Dialog.Title>Logged out</Dialog.Title>
+      <div data-dialog-content-area>
+        <p class="mb-4">
+          You have logged out. You can now close the browser tab or window.
+        </p>
+        <div data-dialog-buttons>
+          <Dialog.Close data-button>Close</Dialog.Close>
+        </div>
+      </div>
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>

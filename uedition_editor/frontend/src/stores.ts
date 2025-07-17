@@ -1,5 +1,5 @@
 import { getContext } from "svelte";
-import { writable, type Writable } from "svelte/store";
+import { writable, type Writable, type Readable } from "svelte/store";
 import { type CreateQueryResult } from "@tanstack/svelte-query";
 
 import { setApplicationParameter } from "./util";
@@ -31,5 +31,13 @@ export function useCurrentBranch() {
 }
 
 export function useBranches() {
-  return getContext("branches") as CreateQueryResult<Branches>;
+  return getContext("branches") as CreateQueryResult<"Branches">;
+}
+
+export function useAuthStatus() {
+  return getContext("authStatus") as Readable<"authenticating" | "authenticated" | "error" | "pending">;
+}
+
+export function useHasLoggedOut() {
+  return getContext("hasLoggedOut") as Writable<boolean>;
 }
