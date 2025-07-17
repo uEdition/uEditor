@@ -37,3 +37,7 @@ export function useBranches() {
 export function useAuthStatus() {
   return getContext("authStatus") as Readable<"authenticating" | "authenticated" | "error" | "pending">;
 }
+
+export function useHasLoggedOut() {
+  return getContext("hasLoggedOut") as Writable<boolean>;
+}
