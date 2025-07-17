@@ -21,7 +21,7 @@
   }
 </script>
 
-{#if $apiStatus.isSuccess && $apiStatus.data.auth.provider !== "no-auth"}
+{#if $apiStatus.isSuccess && $apiStatus.data.auth.provider !== "no-auth" && $currentUser.data}
   <Menubar.Menu>
     <Menubar.Trigger>{$currentUser.data?.name}</Menubar.Trigger>
     <Menubar.Content>
