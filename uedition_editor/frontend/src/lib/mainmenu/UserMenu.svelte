@@ -4,11 +4,12 @@
   import { useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
-  import { useApiStatus, useCurrentUser } from "../../stores";
+  import { useApiStatus, useAuthStatus, useCurrentUser } from "../../stores";
 
   const currentUser = useCurrentUser();
   const apiStatus = useApiStatus();
   const queryClient = useQueryClient();
+  const authStatus = useAuthStatus();
 
   async function logout() {
     const response = await window.fetch("/api/auth/login", {
@@ -21,7 +22,7 @@
   }
 </script>
 
-{#if $apiStatus.isSuccess && $apiStatus.data.auth.provider !== "no-auth" && $currentUser.data}
+{#if $apiStatus.isSuccess && $apiStatus.data.auth.provider !== "no-auth" && $authStatus === "authenticated"}
   <Menubar.Menu>
     <Menubar.Trigger>{$currentUser.data?.name}</Menubar.Trigger>
     <Menubar.Content>

@@ -52,8 +52,9 @@
         }
       }
       return apiStatus.status;
-    }
+    },
   );
+  setContext("authStatus", authStatus);
 
   let authEmail = "";
   let authPassword = "";
