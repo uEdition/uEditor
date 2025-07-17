@@ -41,3 +41,10 @@ export function useAuthStatus() {
 export function useHasLoggedOut() {
   return getContext("hasLoggedOut") as Writable<boolean>;
 }
+
+export function useConfiguredTEIBlocks() {
+  return getContext("configuredTEIBlocks") as Readable<UEditorTEINode[]>;
+}
+export function useConfiguredTEIMarks() {
+  return getContext("configuredTEIMarks") as Readable<UEditorTEINode[]>;
+}
