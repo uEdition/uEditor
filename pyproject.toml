@@ -97,6 +97,7 @@ style = [
   "ruff check --fix --exit-non-zero-on-fix {args:.}",
   "ruff format --check {args:.}",
 ]
+update-version = "hatch run python update_version.py"
 
 [tool.ruff]
 target-version = "py37"

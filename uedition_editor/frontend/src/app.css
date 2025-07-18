@@ -80,6 +80,10 @@
     @apply bg-rose-700;
   }
 
+  [data-update-dialog] {
+    @apply left-4 bottom-4 top-auto transform-none max-w-96;
+  }
+
   /**
    * File tree components
    */
