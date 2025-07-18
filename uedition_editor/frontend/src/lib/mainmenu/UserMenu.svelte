@@ -23,7 +23,7 @@
     });
     if (response.ok) {
       queryClient.cancelQueries();
-      queryClient.invalidateQueries({ queryKey: ["auth"] });
+      queryClient.invalidateQueries();
       hasLoggedOut.set(true);
     }
   }
