@@ -5,6 +5,7 @@
   import { createQuery } from "@tanstack/svelte-query";
 
   import { apiQueryHandler } from "../../util";
+  import { version } from "../../about";
 
   const apiStatus = createQuery({
     queryKey: [""],
@@ -16,6 +17,26 @@
 
 {#if $apiStatus.isSuccess}
   <slot></slot>
+  {#if $apiStatus.data.version !== version}
+    <Dialog.Root open={true} closeOnEscape={false} closeOnOutsideClick={false}>
+      <Dialog.Trigger class="hidden" />
+      <Dialog.Portal>
+        <Dialog.Content
+          class="flex flex-col overflow-hidden"
+          data-update-dialog
+        >
+          <Dialog.Title>μEditor update required</Dialog.Title>
+          <div data-dialog-content-area>
+            The μEditor has been updated and you need to reload the μEditor in
+            order to benefit from the latest updates.
+            <div data-dialog-buttons>
+              <a href="/" data-button>Reload</a>
+            </div>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  {/if}
 {/if}
 
 <Dialog.Root
@@ -28,7 +49,7 @@
     <Dialog.Overlay transition={fade} />
     <Dialog.Content
       data-dialog-role="error"
-      class="flex flex-col overflow-hidden"
+      class="flex flex-col overflow-hidden left-10"
     >
       <Dialog.Title>μEditor not ready</Dialog.Title>
       <div data-dialog-content-area>

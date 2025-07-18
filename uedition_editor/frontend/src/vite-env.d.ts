@@ -11,6 +11,7 @@ type APIStatus = {
   auth: {
     provider: "no-auth" | "email" | "email-password" | "github";
   };
+  version: string;
 };
 
 type CurrentUser = {

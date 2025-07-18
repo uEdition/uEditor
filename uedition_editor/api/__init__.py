@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from pygit2 import GitError, Repository
 from pygit2.enums import RepositoryOpenFlag
 
+from uedition_editor.__about__ import __version__
 from uedition_editor.api.auth import router as auth_router
 from uedition_editor.api.branches import router as branches_router
 from uedition_editor.settings import init_settings
@@ -46,6 +47,8 @@ class APIStatus(BaseModel):
     """Indicate the Git status."""
     auth: APIStatusAuth
     """Indicate the authentication system status."""
+    version: str
+    """The backend API version."""
 
 
 @router.get("", response_model=APIStatus)
@@ -57,6 +60,7 @@ def api() -> dict:
             "enabled": False,
         },
         "auth": {"provider": init_settings.auth.provider},
+        "version": __version__,
     }
     try:
         Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
