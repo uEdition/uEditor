@@ -146,10 +146,10 @@ def parse_tei_attributes(attributes: etree._Attrib, settings: list[TEINodeAttrib
     result = {}
     for conf in settings:
         if conf.name in attributes:
-            if conf.type == "id-ref" and attributes[conf.name].startswith("#"):
-                result[conf.name] = attributes[conf.name][1:]
-            else:
-                result[conf.name] = attributes[conf.name]
+            result[conf.name] = attributes[conf.name]
+            if conf.type == "id-ref":
+                while result[conf.name].startswith("#"):
+                    result[conf.name] = result[conf.name][1:]
         else:
             result[conf.name] = conf.default
     return result
