@@ -129,6 +129,7 @@ async def merge_from_default(
     current_user: Annotated[dict, Depends(get_current_user)],
 ) -> None:
     """Merge all changes from the default branch."""
+    branch_id = branch_id.replace("%2F", "/")
     async with BranchContextManager(branch_id) as repo:
         repo.checkout(repo.branches[init_settings.git.default_branch])
         if init_settings.git.remote_name in list(repo.remotes.names()):
@@ -157,6 +158,7 @@ async def delete_branch(
     local_delete: Annotated[bool, Header(alias="x-ueditor-delete-local-only")] = False,  # noqa:FBT002
 ) -> None:
     """Delete the given branch locally and remotely."""
+    branch_id = branch_id.replace("%2F", "/")
     async with BranchContextManager(branch_id) as repo:
         fetch_and_pull_branch(repo, init_settings.git.remote_name, branch_id)
         if init_settings.git.default_branch == branch_id:

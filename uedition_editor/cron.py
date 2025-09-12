@@ -50,7 +50,7 @@ async def insecure_track_branches():
             diff = repo.diff(merge_base, repo.revparse_single(init_settings.git.default_branch))
             local_branches.append(
                 {
-                    "id": branch_name,
+                    "id": branch_name.replace("/", "%252F"),
                     "title": de_slugify(branch_name),
                     "update_from_default": diff.stats.files_changed > 0,
                 }
