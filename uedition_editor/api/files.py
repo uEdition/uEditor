@@ -106,6 +106,7 @@ async def get_files(
     current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
 ) -> list[dict]:
     """Fetch the full tree of files."""
+    branch_id = branch_id.replace("%2F", "/")
     try:
         async with BranchContextManager(branch_id):
             full_path = os.path.abspath(init_settings.base_path)
@@ -349,6 +350,7 @@ async def get_file(
     response: Response,
 ) -> dict | FileResponse:
     """Fetch a single file from the repo."""
+    branch_id = branch_id.replace("%2F", "/")
     try:
         async with BranchContextManager(branch_id):
             ueditor_settings = get_ueditor_settings()
@@ -383,6 +385,7 @@ async def create_file(
     rename_from: Annotated[str | None, Header(alias="X-uEditor-Rename-From")] = None,
 ) -> None:
     """Create a new file in the repo."""
+    branch_id = branch_id.replace("%2F", "/")
     try:
         if init_settings.git.protect_default_branch and init_settings.git.default_branch == branch_id:
             raise HTTPException(
@@ -733,6 +736,7 @@ async def update_file(
     current_user: Annotated[dict, Depends(get_current_user)],
 ) -> None:
     """Update the file in the repo."""
+    branch_id = branch_id.replace("%2F", "/")
     try:
         if init_settings.git.protect_default_branch and init_settings.git.default_branch == branch_id:
             raise HTTPException(
@@ -802,6 +806,7 @@ async def delete_file(
     current_user: Annotated[dict, Depends(get_current_user)],
 ) -> None:
     """Delete a file in the repo."""
+    branch_id = branch_id.replace("%2F", "/")
     try:
         if init_settings.git.protect_default_branch and init_settings.git.default_branch == branch_id:
             raise HTTPException(
