@@ -2,7 +2,7 @@
 
 import re
 
-VERSION = "2.0.0b12"
+VERSION = "2.0.0b13"
 
 
 def replace_version(filename):

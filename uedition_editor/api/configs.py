@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MIT
 """The uEditor API for accessing configurations."""
 
+import logging
 import os
 from typing import Annotated
 
@@ -22,6 +23,7 @@ from uedition_editor.settings import (
 )
 
 router = APIRouter(prefix="/configs")
+logger = logging.getLogger(__name__)
 
 
 @router.get("/uedition", response_model=UEditionSettings)
@@ -30,6 +32,7 @@ async def uedition_config(
     current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
 ) -> dict:
     """Fetch the uEdition configuration."""
+    branch_id = branch_id.replace("%2F", "/")
     try:
         async with BranchContextManager(branch_id):
             settings = get_uedition_settings()
@@ -53,6 +56,7 @@ async def tei_config(
     current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
 ) -> dict:
     """Fetch the uEditor configuration."""
+    branch_id = branch_id.replace("%2F", "/")
     try:
         async with BranchContextManager(branch_id):
             return get_ueditor_settings().model_dump()
@@ -66,6 +70,7 @@ async def ui_stylesheet(
     current_user: Annotated[dict, Depends(get_current_user)],  # noqa:ARG001
 ) -> str:
     """Fetch the configured CSS stylesheets."""
+    branch_id = branch_id.replace("%2F", "/")
     try:
         async with BranchContextManager(branch_id):
             tmp = []
