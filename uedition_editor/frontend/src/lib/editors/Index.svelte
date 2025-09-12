@@ -27,6 +27,8 @@
         return "Tei";
       } else if (currentFile.mimetype.startsWith("image/")) {
         return "Image";
+      } else if (currentFile.mimetype === "application/pdf") {
+        return "Pdf";
       }
     }
     return null;
@@ -44,6 +46,8 @@
         promise = import("./TeiEditor.svelte");
       } else if (currentEditorType === "Image") {
         promise = import("./ImageEditor.svelte");
+      } else if (currentEditorType === "Pdf") {
+        promise = import("./PdfEditor.svelte");
       }
       if (promise) {
         loading = true;
