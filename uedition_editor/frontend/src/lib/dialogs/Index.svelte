@@ -16,6 +16,7 @@
     FILE_CREATE,
     FILE_DELETE,
     FILE_RENAME,
+    FILE_REPLACE,
     FILE_UPLOAD,
   }
 
@@ -33,6 +34,7 @@
   import FileCreate from "./file/Create.svelte";
   import FileDelete from "./file/Delete.svelte";
   import FileRename from "./file/Rename.svelte";
+  import FileReplace from "./file/Replace.svelte";
   import FileUpload from "./file/Upload.svelte";
 </script>
 
@@ -56,6 +58,8 @@
   <FileDelete />
 {:else if $activeDialog === Dialogs.FILE_RENAME}
   <FileRename />
+{:else if $activeDialog === Dialogs.FILE_REPLACE}
+  <FileReplace />
 {:else if $activeDialog === Dialogs.FILE_UPLOAD}
   <FileUpload />
 {/if}
