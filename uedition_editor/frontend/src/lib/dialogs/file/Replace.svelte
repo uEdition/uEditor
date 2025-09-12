@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Dialog } from "bits-ui";
   import { mdiCheck, mdiCloseThick, mdiSync, mdiTimerSandEmpty } from "@mdi/js";
+  import { tick } from "svelte";
   import { useQueryClient } from "@tanstack/svelte-query";
 
   import { currentFile, useCurrentBranch } from "../../../stores";
@@ -88,48 +89,34 @@
       }
       upload[1] = UploadStatus.ACTIVE;
       filesToUpload = filesToUpload;
+      const formData = new FormData();
+      formData.append("content", upload[0]);
       const response = await fetch(
         "/api/branches/" +
           $currentBranch?.id +
           "/files/" +
-          $currentFile?.fullpath +
-          "/" +
-          upload[0].name,
+          $currentFile?.fullpath,
         {
-          method: "POST",
-          headers: { "X-uEditor-New-Type": "file" },
+          method: "PUT",
+          body: formData,
         },
       );
       if (response.ok) {
-        const formData = new FormData();
-        formData.append("content", upload[0]);
-        const response = await fetch(
-          "/api/branches/" +
-            $currentBranch?.id +
-            "/files/" +
-            $currentFile?.fullpath +
-            "/" +
-            upload[0].name,
-          {
-            method: "PUT",
-            body: formData,
-          },
-        );
-        if (response.ok) {
-          upload[1] = UploadStatus.SUCCESS;
-        } else {
-          upload[1] = UploadStatus.FAILED;
-        }
-        filesToUpload = filesToUpload;
+        upload[1] = UploadStatus.SUCCESS;
       } else {
         upload[1] = UploadStatus.FAILED;
-        filesToUpload = filesToUpload;
       }
+      filesToUpload = filesToUpload;
     }
     queryClient.invalidateQueries({
       queryKey: ["branches", $currentBranch?.id, "files/"],
     });
+    const tmpCurrent = $currentFile;
+    currentFile.set(null);
+    await tick();
+    currentFile.set(tmpCurrent);
     uploadComplete = true;
+    activeDialog.set(Dialogs.NONE);
   }
 </script>
 
