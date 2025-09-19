@@ -1,9 +1,9 @@
 <script lang="ts">
   import { Combobox, Toolbar, Separator, type Selected, Button } from "bits-ui";
-  import { deepCopy } from "deep-copy-ts";
   import { mdiChevronDown, mdiChevronUp, mdiPencil } from "@mdi/js";
   import { onMount, getContext, createEventDispatcher } from "svelte";
-  import { Editor, Node, Mark } from "@tiptap/core";
+  import { Editor, Node, Mark, Extension } from "@tiptap/core";
+  import BubbleMenu from "@tiptap/extension-bubble-menu";
   import { Document } from "@tiptap/extension-document";
   import { Text } from "@tiptap/extension-text";
   import type { CreateQueryResult } from "@tanstack/svelte-query";
@@ -29,16 +29,22 @@
   const configuredBlocks = useConfiguredTEIBlocks();
   const configuredMarks = useConfiguredTEIMarks();
   let editorElement: HTMLElement | null = null;
+  let bubbleMenuElement: HTMLElement | null = null;
   let editor: Editor | null = null;
   let updateDebounce = -1;
 
   onMount(() => {
     if (
       editorElement !== null &&
+      bubbleMenuElement !== null &&
       $uEditorConfig.isSuccess &&
       $uEditionConfig.isSuccess
     ) {
-      const extensions: (Node | Mark)[] = [Document, Text];
+      const extensions: (Node | Mark | Extension)[] = [
+        Document,
+        Text,
+        BubbleMenu.configure({ element: bubbleMenuElement }),
+      ];
       for (let blockConfig of $configuredBlocks) {
         extensions.push(
           Node.create({
@@ -233,6 +239,174 @@
 
 <div class="flex flex-row w-full h-full overflow-hidden">
   <div class="flex-1 overflow-auto px-3 py-2" bind:this={editorElement}></div>
+  <div bind:this={bubbleMenuElement} data-tei-bubble-menu="">
+    {#if section && section.type.bubble && editor}
+      {#each section.type.bubble as bubbleBlock}
+        {#if !bubbleBlock.condition || editor.isActive(bubbleBlock.condition.node)}
+          <section class="mb-2">
+            <h2 class="font-bold mb-2 sr-only">{bubbleBlock.title}</h2>
+            {#if bubbleBlock.type === "toolbar"}
+              <Toolbar.Root class="flex-wrap">
+                {#each bubbleBlock.items as item}
+                  {#if item.type === "set-block" || item.type === "toggle-wrap-block" || item.type === "set-block-attribute" || item.type === "toggle-mark"}
+                    <Toolbar.Button
+                      aria-pressed={((item.type === "set-block" ||
+                        item.type === "toggle-wrap-block") &&
+                        editor.isActive(item.block)) ||
+                        (item.type === "set-block-attribute" &&
+                          editor.isActive(item.block, {
+                            [item.name]: item.value,
+                          })) ||
+                        (item.type === "toggle-mark" &&
+                          editor.isActive(item.mark))}
+                      on:click={(ev) => {
+                        runAction(editor, item, ev);
+                      }}
+                      title={item.title}
+                    >
+                      {#if item.icon}
+                        <Icon path={item.icon} />
+                        <span class="sr-only">{item.title}</span>
+                      {:else}
+                        {item.title}
+                      {/if}
+                    </Toolbar.Button>
+                  {:else if item.type === "separator"}
+                    <Separator.Root class="mx-2 border-r border-gray-300" />
+                  {/if}
+                {/each}
+              </Toolbar.Root>
+            {:else if bubbleBlock.type === "form"}
+              <div class="flex flex-row flex-wrap">
+                {#each bubbleBlock.items as item}
+                  {#if item.type === "select-block-attribute"}
+                    {#key editor}
+                      <label>
+                        <span class="sr-only">{item.title}</span>
+                        <select
+                          value={editor.getAttributes(item.block)[item.name]}
+                          on:change={(ev) => {
+                            runAction(editor, item, ev);
+                          }}
+                          data-combobox-input=""
+                          class="bg-white"
+                        >
+                          {#each item.values as value, idx}
+                            <option value={value.value}>{value.title}</option>
+                          {/each}
+                        </select>
+                      </label>
+                    {/key}
+                  {:else if item.type === "input-block-attribute"}
+                    <label>
+                      <span data-form-field-label>{item.title}</span>
+                      <input
+                        type="text"
+                        value={editor.getAttributes(item.block)[item.name]}
+                        data-form-field-text
+                        on:change={(ev) => {
+                          runAction(editor, item, ev);
+                        }}
+                      />
+                    </label>
+                  {:else if item.type === "select-cross-reference-attribute"}
+                    <div class="flex flex-row flex-wrap">
+                      {#key editor}
+                        <Combobox.Root
+                          selected={crossReferenceSelectedItem(item)}
+                          items={crossReferenceItems(item)}
+                          onSelectedChange={(value) => {
+                            runAction(editor, item, value);
+                          }}
+                        >
+                          <div class="relative">
+                            <Combobox.Input
+                              placeholder="Select the text to edit"
+                              aria-label="Select the text to edit"
+                              class="relative pr-6 z-10 bg-transparent"
+                            />
+                            <div
+                              class="absolute top-1/2 right-0 -translate-y-1/2"
+                            >
+                              <Icon
+                                path={mdiChevronDown}
+                                class="w-6 h-6 combobox-expand"
+                              />
+                              <Icon
+                                path={mdiChevronUp}
+                                class="w-6 h-6 combobox-collapse"
+                              />
+                            </div>
+                          </div>
+                          <Combobox.Content>
+                            {#if sectionsDict[item.section].type.type === "textlist"}
+                              {#each crossReferenceItems(item) as entry}
+                                <Combobox.Item
+                                  value={entry.value}
+                                  label={entry.label}
+                                  >{entry.label}</Combobox.Item
+                                >
+                              {/each}
+                            {/if}
+                          </Combobox.Content>
+                        </Combobox.Root>
+                      {/key}
+                      <Toolbar.Root class="flex-wrap">
+                        <Toolbar.Button
+                          on:click={() => {
+                            editTextListEntry(
+                              item.section,
+                              editor?.getAttributes(item.mark)[item.name],
+                            );
+                          }}
+                          title="Edit the selected entry"
+                        >
+                          <Icon
+                            path={mdiPencil}
+                            label="Edit the selected entry"
+                          />
+                        </Toolbar.Button>
+                      </Toolbar.Root>
+                    </div>
+                  {:else if item.type === "input-mark-attribute"}
+                    <label>
+                      <span data-form-field-label>{item.title}</span>
+                      <input
+                        type="text"
+                        value={editor.getAttributes(item.mark)[item.name]}
+                        data-form-field-text
+                        on:change={(ev) => {
+                          runAction(editor, item, ev);
+                        }}
+                      />
+                    </label>
+                  {:else if item.type === "select-mark-attribute"}
+                    {#key editor}
+                      <label>
+                        <span class="sr-only">{item.title}</span>
+                        <select
+                          value={editor.getAttributes(item.mark)[item.name]}
+                          on:change={(ev) => {
+                            runAction(editor, item, ev);
+                          }}
+                          data-combobox-input=""
+                          class="bg-white"
+                        >
+                          {#each item.values as value, idx}
+                            <option value={value.value}>{value.title}</option>
+                          {/each}
+                        </select>
+                      </label>
+                    {/key}
+                  {/if}
+                {/each}
+              </div>
+            {/if}
+          </section>
+        {/if}
+      {/each}
+    {/if}
+  </div>
   <div class="w-3/12 px-3 py-2 border-l border-gray-300 overflow-auto">
     {#if section && section.type.sidebar && editor}
       {#each section.type.sidebar as sidebarBlock}
