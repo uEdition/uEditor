@@ -407,6 +407,8 @@ class TEITextSection(BaseModel):
     """The XPath selector to retrieve this section."""
     sidebar: list[TEITextToolbarBlock | TEITextFormBlock] | None = None
     """Sidebar configuration for this section."""
+    bubble: list[TEITextToolbarBlock | TEITextFormBlock] | None = None
+    """Bubble menu configuration for this section."""
 
 
 class TEITextListSection(BaseModel):
@@ -422,6 +424,8 @@ class TEITextListSection(BaseModel):
     """The XPath selector to retrieve the texts in this section."""
     sidebar: list[TEITextToolbarBlock | TEITextFormBlock] | None = None
     """Sidebar configuration for this section."""
+    bubble: list[TEITextToolbarBlock | TEITextFormBlock] | None = None
+    """Bubble menu configuration for this section."""
 
 
 class TEISettings(BaseModel):

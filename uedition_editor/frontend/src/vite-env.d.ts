@@ -204,6 +204,7 @@ type UEditorTEITextSection = {
   type: "text";
   selector: string;
   sidebar: (UEditorTEITextFormBlock | TEITextToolbarBlock)[];
+  bubble: (UEditorTEITextFormBlock | TEITextToolbarBlock)[];
 };
 
 type UEditorTEITextListSection = {
@@ -211,7 +212,7 @@ type UEditorTEITextListSection = {
   title: string;
   type: "textlist";
   selector: string;
-  sidebar: (UEditorTEITextFormBlock | TEITextToolbarBlock)[];
+  bubble: (UEditorTEITextFormBlock | TEITextToolbarBlock)[];
 };
 
 type UEditorTEISettings = {
