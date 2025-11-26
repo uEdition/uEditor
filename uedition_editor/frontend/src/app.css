@@ -164,9 +164,15 @@
   /**
    * CodeMirror editor
    */
-  [class~="codemirror-wrapper"],
-  [class~="cm-editor"] {
+  [class~="codemirror-wrapper"], [class~="cm-editor"] {
     @apply h-full w-full overflow-hidden;
+  }
+
+  /**
+   * TEI Editor classes
+   */
+  [data-tei-bubble-menu] {
+    @apply bg-white rounded border border-gray-300 shadow-md;
   }
 }
 
