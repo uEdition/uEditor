@@ -1,27 +1,37 @@
 <script lang="ts">
   import { Dialog } from "bits-ui";
-  import { setContext } from "svelte";
-  import { fade } from "svelte/transition";
   import { createQuery } from "@tanstack/svelte-query";
 
   import { apiQueryHandler } from "../../util";
   import { version } from "../../about";
+  import { appState } from "../../state.svelte";
 
-  const apiStatus = createQuery({
+  let { children } = $props();
+
+  const apiStatus = createQuery(() => ({
     queryKey: [""],
     queryFn: apiQueryHandler<APIStatus>,
     refetchInterval: 60000,
+  }));
+
+  $effect(() => {
+    if (apiStatus.isSuccess) {
+      appState.apiStatus = apiStatus.data;
+    } else {
+      appState.apiStatus = null;
+    }
   });
-  setContext("apiStatus", apiStatus);
 </script>
 
-{#if $apiStatus.isSuccess}
-  <slot></slot>
-  {#if $apiStatus.data.version !== version}
-    <Dialog.Root open={true} closeOnEscape={false} closeOnOutsideClick={false}>
+{#if appState.apiStatus && appState.apiStatus.ready}
+  {@render children()}
+  {#if appState.apiStatus.version !== version}
+    <Dialog.Root open={true}>
       <Dialog.Trigger class="hidden" />
       <Dialog.Portal>
         <Dialog.Content
+          escapeKeydownBehavior="ignore"
+          interactOutsideBehavior="ignore"
           class="flex flex-col overflow-hidden"
           data-update-dialog
         >
@@ -40,14 +50,14 @@
 {/if}
 
 <Dialog.Root
-  open={$apiStatus.isSuccess && !$apiStatus.data.ready}
-  closeOnEscape={false}
-  closeOnOutsideClick={false}
+  open={(apiStatus.isSuccess && !apiStatus.data.ready) || apiStatus.isError}
 >
   <Dialog.Trigger class="hidden" />
   <Dialog.Portal>
-    <Dialog.Overlay transition={fade} />
+    <Dialog.Overlay />
     <Dialog.Content
+      escapeKeydownBehavior="ignore"
+      interactOutsideBehavior="ignore"
       data-dialog-role="error"
       class="flex flex-col overflow-hidden left-10"
     >

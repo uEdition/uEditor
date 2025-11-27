@@ -1,8 +1,5 @@
 <script lang="ts">
   import { Dialog } from "bits-ui";
-  import { setContext } from "svelte";
-  import { derived, writable } from "svelte/store";
-  import { fade } from "svelte/transition";
   import {
     createMutation,
     createQuery,
@@ -10,55 +7,56 @@
   } from "@tanstack/svelte-query";
 
   import { apiQueryHandler } from "../../util";
-  import { useApiStatus } from "../../stores";
+  import { appState } from "../../state.svelte";
+
+  const { children } = $props();
 
   const queryClient = useQueryClient();
-  const apiStatus = useApiStatus();
 
-  const currentUser = createQuery({
+  const currentUser = createQuery(() => ({
     queryKey: ["auth", "user"],
     queryFn: apiQueryHandler<CurrentUser>,
     retry: false,
     refetchInterval: 20000,
-  });
-  setContext("currentUser", currentUser);
+  }));
 
-  const authStatus = derived(
-    [apiStatus, currentUser],
-    ([apiStatus, currentUser]) => {
-      if (apiStatus.isSuccess) {
-        if (currentUser.isSuccess) {
-          return "authenticated";
-        } else if (currentUser.isError) {
-          if (
-            apiStatus.data.auth.provider === "no-auth" ||
-            apiStatus.data.auth.provider === "email"
-          ) {
-            window
-              .fetch("/api/auth/login", {
-                method: "POST",
-              })
-              .then((response) => {
-                if (response.ok) {
-                  queryClient.invalidateQueries({ queryKey: ["auth"] });
-                }
-              });
-            return "authenticating";
-          } else {
-            return "error";
-          }
-        } else {
-          return currentUser.status;
-        }
+  const authStatus = $derived.by(() => {
+    if (currentUser.isSuccess) {
+      return "authenticated";
+    } else if (currentUser.isError) {
+      if (
+        appState.apiStatus?.auth.provider === "no-auth" ||
+        appState.apiStatus?.auth.provider === "email"
+      ) {
+        window
+          .fetch("/api/auth/login", {
+            method: "POST",
+          })
+          .then((response) => {
+            if (response.ok) {
+              queryClient.invalidateQueries({ queryKey: ["auth"] });
+            }
+          });
+        return "authenticating";
+      } else {
+        return "error";
       }
-      return apiStatus.status;
-    },
-  );
-  setContext("authStatus", authStatus);
+    } else {
+      return currentUser.status;
+    }
+  });
 
-  let authEmail = "";
-  let authPassword = "";
-  const emailPasswordLogin = createMutation({
+  $effect(() => {
+    if (currentUser.isSuccess) {
+      appState.currentUser = currentUser.data;
+    } else {
+      appState.currentUser = null;
+    }
+  });
+
+  let authEmail = $state("");
+  let authPassword = $state("");
+  const emailPasswordLogin = createMutation(() => ({
     mutationFn: async ([email, password]: [string, string]) => {
       const response = await window.fetch("/api/auth/login", {
         method: "POST",
@@ -77,23 +75,22 @@
         throw "Authentication failed";
       }
     },
-  });
-
-  const hasLoggedOut = writable(false);
-  setContext("hasLoggedOut", hasLoggedOut);
+  }));
 </script>
 
-<slot></slot>
+{#if authStatus === "authenticated"}
+  {@render children()}
+{/if}
 
-<Dialog.Root
-  open={$authStatus === "pending"}
-  closeOnEscape={false}
-  closeOnOutsideClick={false}
->
+<Dialog.Root open={authStatus === "pending"}>
   <Dialog.Trigger class="hidden" />
   <Dialog.Portal>
-    <Dialog.Overlay transition={fade} class="z-40" />
-    <Dialog.Content class="flex flex-col overflow-hidden z-50">
+    <Dialog.Overlay class="z-40" />
+    <Dialog.Content
+      class="flex flex-col overflow-hidden z-50"
+      escapeKeydownBehavior="ignore"
+      interactOutsideBehavior="ignore"
+    >
       <Dialog.Title>Authenticating</Dialog.Title>
       <div data-dialog-content-area>
         <p>You are being authenticated. Please wait.</p>
@@ -102,30 +99,30 @@
   </Dialog.Portal>
 </Dialog.Root>
 
-<Dialog.Root
-  open={!$hasLoggedOut && $authStatus === "error"}
-  closeOnEscape={false}
-  closeOnOutsideClick={false}
->
+<Dialog.Root open={!appState.ui.hasLoggedOut && authStatus === "error"}>
   <Dialog.Trigger class="hidden" />
   <Dialog.Portal>
-    <Dialog.Overlay transition={fade} class="z-40" />
-    <Dialog.Content class="flex flex-col overflow-hidden z-50">
+    <Dialog.Overlay class="z-40" />
+    <Dialog.Content
+      class="flex flex-col overflow-hidden z-50"
+      escapeKeydownBehavior="ignore"
+      interactOutsideBehavior="ignore"
+    >
       <Dialog.Title>Login</Dialog.Title>
-      {#if $apiStatus.data?.auth.provider === "email-password"}
+      {#if appState.apiStatus?.auth.provider === "email-password"}
         <form
           data-dialog-content-area
-          on:submit={(ev) => {
+          onsubmit={(ev) => {
             ev.preventDefault();
-            if (!$emailPasswordLogin.isPending) {
-              $emailPasswordLogin.mutate([authEmail, authPassword]);
+            if (!emailPasswordLogin.isPending) {
+              emailPasswordLogin.mutate([authEmail, authPassword]);
             }
           }}
         >
           <label>
             <span data-form-field-label>E-Mail</span>
             <input bind:value={authEmail} type="text" data-form-field-text />
-            {#if $emailPasswordLogin.isError}
+            {#if emailPasswordLogin.isError}
               <span data-form-field-error
                 >Incorred e-mail address or password</span
               >
@@ -138,21 +135,21 @@
               type="password"
               data-form-field-text
             />
-            {#if $emailPasswordLogin.isError}
+            {#if emailPasswordLogin.isError}
               <span data-form-field-error
                 >Incorred e-mail address or password</span
               >
             {/if}
           </label>
           <div data-dialog-buttons>
-            {#if $emailPasswordLogin.isPending}
+            {#if emailPasswordLogin.isPending}
               <span data-button class="inline-flex">Logging in...</span>
             {:else}
               <button type="submit" data-button>Login</button>
             {/if}
           </div>
         </form>
-      {:else if $apiStatus.data?.auth.provider === "github"}
+      {:else if appState.apiStatus?.auth.provider === "github"}
         <div data-dialog-content-area>
           <p>Click on the link below to log in via GitHub.</p>
           <div class="my-8 text-center">
@@ -165,16 +162,16 @@
 </Dialog.Root>
 
 <Dialog.Root
-  open={$hasLoggedOut}
-  onOpenChange={(open) => {
-    if (!open) {
-      hasLoggedOut.set(false);
+  open={appState.ui.hasLoggedOut}
+  onOpenChange={(isOpen) => {
+    if (!isOpen) {
+      appState.ui.hasLoggedOut = false;
     }
   }}
 >
   <Dialog.Trigger class="hidden" />
   <Dialog.Portal>
-    <Dialog.Overlay transition={fade} class="z-40" />
+    <Dialog.Overlay class="z-40" />
     <Dialog.Content class="flex flex-col overflow-hidden z-50">
       <Dialog.Title>Logged out</Dialog.Title>
       <div data-dialog-content-area>

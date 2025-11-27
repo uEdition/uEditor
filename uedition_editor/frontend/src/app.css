@@ -1,9 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer components {
-
+@import "tailwindcss";
   /**
    * Button components
    */
@@ -18,7 +13,7 @@
     @apply flex flex-row;
   }
 
-  [data-menu-trigger] {
+  [data-menubar-trigger] {
     @apply px-3 py-1;
   }
 
@@ -26,11 +21,11 @@
     @apply z-50 bg-white shadow-lg;
   }
 
-  [data-menu-item], [data-menu-radio-item] {
+  [data-menubar-item], [data-menubar-radio-item] {
     @apply flex items-center space-x-2 w-full px-3 py-1 cursor-pointer data-[highlighted]:bg-gray-300 border-l border-r last:border-b border-slate-300 aria-selected:font-bold;
   }
 
-  [data-menu-separator] {
+  [data-menubar-separator] {
     @apply border-b border-slate-300;
   }
 
@@ -168,7 +163,6 @@
   [class~="cm-editor"] {
     @apply h-full w-full overflow-hidden;
   }
-}
 
 .animate-reverse {
   animation-direction: reverse;

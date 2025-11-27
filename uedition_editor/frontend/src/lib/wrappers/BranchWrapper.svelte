@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { getContext, onDestroy, setContext } from "svelte";
-  import { derived, writable } from "svelte/store";
-  import { createQuery, type CreateQueryResult } from "@tanstack/svelte-query";
+  import { createQuery } from "@tanstack/svelte-query";
 
   import {
     apiQueryHandler,
@@ -9,82 +7,45 @@
     getApplicationParameter,
     setApplicationParameter,
   } from "../../util";
-  import { useApiStatus, useCurrentUser } from "../../stores";
+  import { appState } from "../../state.svelte";
 
-  const initialBranchId = getApplicationParameter("branch");
+  const { children } = $props();
+  let initialBranchId = getApplicationParameter("branch");
 
-  const apiStatus = useApiStatus();
-  const currentUser = useCurrentUser();
+  const branches = createQuery(() => ({
+    queryKey: ["branches"],
+    queryFn: apiQueryHandler<Branches>,
+    refetchInterval: 60000,
+  }));
 
-  const branchesQuery = derived(
-    [apiStatus, currentUser],
-    ([apiStatus, currentUser]) => {
-      return {
-        queryKey: ["branches"],
-        queryFn: apiQueryHandler<Branches>,
-        refetchInterval: 60000,
-        enabled:
-          apiStatus.isSuccess && apiStatus.data.ready && currentUser.isSuccess,
-      };
-    },
-  );
-  const branches = createQuery(branchesQuery);
-  setContext("branches", branches);
-
-  // const remoteBranchesQuery = derived(
-  //   [apiStatus, currentUser],
-  //   ([apiStatus, currentUser]) => {
-  //     return {
-  //       queryKey: ["branches", "?category=remote"],
-  //       queryFn: apiQueryHandler<Branch[]>,
-  //       refetchInterval: 60000,
-  //       enabled:
-  //         apiStatus.isSuccess &&
-  //         apiStatus.data.ready &&
-  //         apiStatus.data.git.enabled &&
-  //         currentUser.isSuccess,
-  //     };
-  //   },
-  // );
-  // const remoteBranches = createQuery(remoteBranchesQuery);
-  // setContext("remoteBranches", remoteBranches);
-
-  const currentBranch = writable(null as Branch | null);
-  setContext("currentBranch", currentBranch);
-
-  const apiStatusUnsubscribe = apiStatus.subscribe((apiStatus) => {
-    if (
-      apiStatus.isSuccess &&
-      apiStatus.data.ready &&
-      !apiStatus.data.git.enabled
-    ) {
-      currentBranch.set({ id: "-", nogit: true, title: "All files" });
+  $effect(() => {
+    if (!appState.apiStatus?.git.enabled) {
+      appState.currentBranch = { id: "-", nogit: true, title: "All files" };
     }
   });
 
-  const currentBranchUnsubscribe = currentBranch.subscribe((currentBranch) => {
-    if (currentBranch !== null) {
-      setApplicationParameter("branch", currentBranch.id);
+  $effect(() => {
+    if (appState.currentBranch !== null) {
+      setApplicationParameter("branch", appState.currentBranch.id);
     } else {
       deleteApplicationParameter("branch");
     }
   });
 
-  const setInitialBranchUnsubscribe = branches.subscribe((branches) => {
+  $effect(() => {
     if (branches.isSuccess) {
-      for (let branch of branches.data.local) {
-        if (branch.id === initialBranchId) {
-          currentBranch.set(branch);
+      appState.branches = branches.data;
+      if (initialBranchId !== null) {
+        for (let branch of branches.data.local) {
+          if (branch.id === initialBranchId) {
+            appState.currentBranch = branch;
+            initialBranchId = null;
+            break;
+          }
         }
       }
-      setInitialBranchUnsubscribe();
     }
-  });
-
-  onDestroy(() => {
-    currentBranchUnsubscribe();
-    apiStatusUnsubscribe();
   });
 </script>
 
-<slot></slot>
+{@render children()}

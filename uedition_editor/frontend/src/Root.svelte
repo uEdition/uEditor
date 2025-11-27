@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { getContext } from "svelte";
-  import { derived, type Readable } from "svelte/store";
   import type { CreateQueryResult } from "@tanstack/svelte-query";
 
   import Actions from "./lib/actions/Index.svelte";
@@ -9,77 +7,74 @@
   import FileNavigation from "./lib/FileNavigation.svelte";
   import MainMenu from "./lib/mainmenu/Index.svelte";
   import Toolbar from "./lib/Toolbar.svelte";
-  import { currentFile, useApiStatus } from "./stores";
+  import { appState } from "./state.svelte";
 
-  const uEditionConfig = getContext(
-    "uEditionConfig",
-  ) as CreateQueryResult<UEditionSettings>;
-  const uEditorConfig = getContext(
-    "uEditorConfig",
-  ) as CreateQueryResult<UEditorSettings>;
-  const currentBranch = getContext("currentBranch") as Readable<Branch | null>;
-  const apiStatus = useApiStatus();
-
-  const appTitle = derived(uEditionConfig, (config) => {
+  const appTitle = $derived.by(() => {
     if (
-      config.isSuccess &&
-      config.data.languages &&
-      config.data.languages.length > 0 &&
-      config.data.languages[0].code &&
-      config.data.title &&
-      config.data.title[config.data.languages[0].code]
+      appState.uEditionConfig?.languages &&
+      appState.uEditionConfig?.languages.length > 0 &&
+      appState.uEditionConfig?.languages[0].code &&
+      appState.uEditionConfig?.title &&
+      appState.uEditionConfig?.title[appState.uEditionConfig?.languages[0].code]
     ) {
-      return "μEditor - " + config.data.title[config.data.languages[0].code];
+      return (
+        "μEditor - " +
+        appState.uEditionConfig?.title[
+          appState.uEditionConfig?.languages[0].code
+        ]
+      );
+    } else {
+      return "μEditor";
     }
-    return "μEditor";
   });
 
-  const uEditorConfigTimestamp = derived(uEditionConfig, (uEditorConfig) => {
-    return new Date().getTime();
+  const uEditorConfigTimestamp = $derived.by(() => {
+    if (appState.uEditionConfig) {
+      return new Date().getTime();
+    } else {
+      return new Date().getTime();
+    }
   });
 </script>
 
 <svelte:head>
-  <title>{$appTitle}</title>
+  <title>{appTitle}</title>
   <link
     rel="stylesheet"
-    href="/api/branches/{$currentBranch !== null
-      ? $currentBranch.id
-      : '-'}/configs/ui-stylesheet?timestamp={$uEditorConfigTimestamp}"
+    href="/api/branches/{appState.currentBranch
+      ?.id}/configs/ui-stylesheet?timestamp={uEditorConfigTimestamp}"
   />
 </svelte:head>
 
 <main class="flex flex-col w-screen h-screen overflow-hidden">
   <MainMenu />
   <Toolbar />
-  {#if $currentBranch !== null && $uEditorConfig.isSuccess}
+  {#if appState.currentBranch !== null}
     <div class="flex flex-row flex-1 overflow-hidden">
-      <FileNavigation />
-      <Editor />
+      <!-- <FileNavigation /> -->
+      <!-- <Editor /> -->
     </div>
-  {:else if $currentBranch === null}
+  {:else}
     <div class="flex-1">
       <p class="px-4 py-2">
         Please select the branch you wish to work on from the μEditor menu.
       </p>
     </div>
-  {:else}
-    <div class="flex-1"></div>
   {/if}
   <footer
     class="flex flex-row space-x-4 px-2 py-1 border-t border-slate-300 text-sm items-center"
   >
-    {#if $apiStatus.data?.git.protect_default_branch && $apiStatus.data?.git.default_branch === $currentBranch?.id}
+    {#if appState.apiStatus?.git.protect_default_branch && appState.apiStatus?.git.default_branch === appState.currentBranch?.id}
       <div class="text-red-500">
         This branch is protected and cannot be edited directly
       </div>
     {/if}
     <div class="font-mono font-bold">
-      {#if $currentFile}{$currentFile.fullpath}{/if}
+      {#if appState.currentFile !== null}{appState.currentFile.fullpath}{/if}
     </div>
     <div class="flex-1"></div>
-    <Actions />
+    <!-- <Actions /> -->
   </footer>
 </main>
 
-<Dialogs />
+<!-- <Dialogs /> -->

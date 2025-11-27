@@ -4,33 +4,29 @@
   import { useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "./Icon.svelte";
-  import {
-    currentFile,
-    currentFileContent,
-    currentFileModified,
-    useApiStatus,
-    useCurrentBranch,
-  } from "../stores";
   import { runAction } from "./actions/Index.svelte";
+  import { appState } from "../state.svelte";
 
   const queryClient = useQueryClient();
-  const currentBranch = useCurrentBranch();
-  const apiStatus = useApiStatus();
 
   function saveCurrentFile() {
-    if ($currentFile !== null && $currentFileContent !== null) {
+    if (
+      appState.currentFile !== null &&
+      appState.currentBranch !== null &&
+      appState.currentFileContent !== null
+    ) {
       runAction({
         action: "SaveCurrentFile",
-        branch: $currentBranch as Branch,
-        filename: $currentFile.fullpath,
-        data: $currentFileContent,
+        branch: appState.currentBranch,
+        filename: appState.currentFile.fullpath,
+        data: appState.currentFileContent,
         callback() {
-          currentFileModified.set(false);
+          appState.ui.currentFileModified = false;
           if (
-            $currentFile.name === "uEdition.yml" ||
-            $currentFile.name === "uEdition.yaml" ||
-            $currentFile.name === "uEditor.yml" ||
-            $currentFile.name === "uEditor.yaml"
+            appState.currentFile?.name === "uEdition.yml" ||
+            appState.currentFile?.name === "uEdition.yaml" ||
+            appState.currentFile?.name === "uEditor.yml" ||
+            appState.currentFile?.name === "uEditor.yaml"
           ) {
             queryClient.invalidateQueries({ queryKey: ["configs"] });
           }
@@ -41,12 +37,13 @@
 </script>
 
 <Toolbar.Root class="border-b border-gray-300">
-  {#if !$apiStatus.data?.git.protect_default_branch || $apiStatus.data?.git.default_branch !== $currentBranch?.id}
+  {#if appState.apiStatus?.git.default_branch !== appState.currentBranch?.id}
     <Toolbar.Button
-      on:click={saveCurrentFile}
+      onclick={saveCurrentFile}
       aria-label="Save"
       title="Save"
-      aria-disabled={$currentFileContent !== null && $currentFileModified
+      aria-disabled={appState.currentFileContent !== null &&
+      appState.ui.currentFileModified === false
         ? null
         : "true"}
     >

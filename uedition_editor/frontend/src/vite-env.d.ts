@@ -1,6 +1,29 @@
 /// <reference types="svelte" />
 /// <reference types="vite/client" />
 
+type ApplicationState = {
+  apiStatus: APIStatus | null;
+  currentUser: CurrentUser | null;
+  currentBranch: Branch | null;
+  currentFile: FileTreeEntry | null;
+  currentFileContent: string | null;
+  branches: Branches | null;
+  uEditionConfig: UEditionSettings | null;
+  uEditorConfig: UEditorSettings | null;
+  tei: ApplicationTEIState;
+  ui: ApplicationUIState;
+};
+
+type ApplicationTEIState = {
+  blocks: UEditorTEINode[],
+  marks: UEditorTEINode[],
+};
+
+type ApplicationUIState = {
+  hasLoggedOut: boolean;
+  currentFileModified: boolean;
+};
+
 type APIStatus = {
   ready: boolean;
   git: {

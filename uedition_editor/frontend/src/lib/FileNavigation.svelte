@@ -29,7 +29,7 @@
           enabled: false,
         };
       }
-    }
+    },
   );
   const fileList = createQuery(fileListQuery);
 
@@ -43,7 +43,7 @@
 
   function recursiveFileSeach(
     entries: FileTreeEntry[],
-    fullpath: string
+    fullpath: string,
   ): FileTreeEntry | null {
     for (let entry of entries) {
       if (entry.fullpath === fullpath) {
@@ -67,7 +67,7 @@
     ) {
       const selectedFileTreeEntry = recursiveFileSeach(
         $fileList.data,
-        selectedElement?.getAttribute("data-file-path") as string
+        selectedElement?.getAttribute("data-file-path") as string,
       );
       currentFile.set(selectedFileTreeEntry);
       // if (selectedFileTreeEntry) {
@@ -85,7 +85,7 @@
       expansion.splice(0, 0, button.getAttribute("data-id") as string);
       button =
         button.parentElement?.parentElement?.parentElement?.querySelector(
-          ":scope > [role=treeitem]"
+          ":scope > [role=treeitem]",
         ) as HTMLElement;
     }
     return expansion;
@@ -99,7 +99,7 @@
         if (path) {
           tick().then(() => {
             const selectedButton = document.querySelector(
-              '[data-file-path="' + path + '"]'
+              '[data-file-path="' + path + '"]',
             ) as HTMLElement;
             if (selectedButton) {
               expanded.set(calculateExpanded(selectedButton));
