@@ -6,126 +6,178 @@
   import { derived } from "svelte/store";
 
   import { runAction } from "../actions/Index.svelte";
-  import {
-    currentFile,
-    currentFileContent,
-    currentFileModified,
-    useApiStatus,
-    useCurrentBranch,
-  } from "../../stores";
   import LoadingIndicator from "../LoadingIndicator.svelte";
   import TeiMetadataEditor from "./TeiMetadataEditor.svelte";
   import TeiTextEditor from "./TeiTextEditor.svelte";
   import TeiTextListEditor from "./TeiTextListEditor.svelte";
+  import { appState } from "../../state.svelte";
 
-  let updatedDocument: TEIDocument = [];
-  let updateDebounce = -1;
-  let initialDocument: TEIDocument = [];
-  let loadingError = false;
-  let selectedTab = "";
-  let textlistSelectedEntry = {} as { [key: string]: string };
+  let teiDocument: TEIDocument | null = $state(null);
+  let loading = $state(false);
+  let loadingError = $state(false);
+  let currentTab = $state("");
 
-  const uEditorConfig = getContext(
-    "uEditorConfig",
-  ) as CreateQueryResult<UEditorSettings>;
-  const currentBranch = useCurrentBranch();
-  const apiStatus = useApiStatus();
-
-  const teiDocument = derived(
-    [uEditorConfig, currentFile],
-    ([uEditorConfig, currentFile], set) => {
-      if (
-        uEditorConfig.isSuccess &&
-        currentFile &&
-        currentFile.name.endsWith(".tei")
-      ) {
-        loadingError = false;
-        initialDocument = [];
-        updatedDocument = [];
-        set(null);
-        currentFileContent.set(null);
-        currentFileModified.set(false);
-        runAction({
-          action: "LoadTextFile",
-          branch: $currentBranch,
-          filename: currentFile.fullpath,
-          callback: (data: string) => {
-            try {
-              updatedDocument = JSON.parse(data);
-              initialDocument = JSON.parse(data);
-              currentFileContent.set(data);
-              currentFileModified.set(false);
-              const tmpDocument = JSON.parse(data);
-              const newSections: TEIDocument = [];
-              for (let section of uEditorConfig.data.tei.sections) {
-                for (let part of tmpDocument) {
-                  if (section.name === part.name) {
-                    part.type = section;
-                    newSections.push(part);
-                    break;
-                  }
+  $effect(() => {
+    if (appState.currentBranch !== null && appState.currentFile !== null) {
+      appState.currentFileContent = null;
+      appState.ui.currentFileModified = false;
+      loading = true;
+      loadingError = false;
+      runAction({
+        action: "LoadTextFile",
+        branch: appState.currentBranch,
+        filename: appState.currentFile.fullpath,
+        callback: (data: string) => {
+          try {
+            appState.currentFileContent = data;
+            const tmpDocument = JSON.parse(data);
+            teiDocument = [];
+            currentTab = "";
+            for (let section of appState.uEditorConfig.tei.sections) {
+              if (currentTab === "") {
+                currentTab = section.name;
+              }
+              for (let part of tmpDocument) {
+                if (section.name === part.name) {
+                  part.type = section;
+                  teiDocument.push(part);
+                  break;
                 }
               }
-              set(newSections);
-              selectedTab = "";
-            } catch (e) {
-              loadingError = true;
-              set(null);
             }
-          },
-        });
-      }
-    },
-    null as null | TEIDocument,
-  );
-
-  const currentFileModifiedUnsubscribe = currentFileModified.subscribe(
-    (currentFileModified) => {
-      if (!currentFileModified && $currentFileContent) {
-        try {
-          initialDocument = JSON.parse($currentFileContent);
-        } catch (e) {}
-      }
-    },
-  );
-
-  function updateDocumentSection(idx: number, ev: CustomEvent) {
-    if (
-      (updatedDocument[idx].type as any as string) === "text" ||
-      (updatedDocument[idx].type as any as string) === "textlist"
-    ) {
-      (updatedDocument[idx] as TEITextSection | TEITextlistSection).content =
-        ev.detail;
-    } else if ((updatedDocument[idx].type as any as string) === "metadata") {
-      (updatedDocument[idx] as TEITextSection | TEITextlistSection).content =
-        ev.detail.content;
+            loading = true;
+          } catch (e) {
+            console.error(e);
+            loadingError = true;
+          }
+        },
+      });
+    } else {
+      teiDocument = null;
     }
-    window.clearTimeout(updateDebounce);
-    updateDebounce = window.setTimeout(() => {
-      if (!deepEql(updatedDocument, initialDocument)) {
-        currentFileContent.set(JSON.stringify(updatedDocument));
-        currentFileModified.set(true);
-      } else {
-        currentFileModified.set(false);
+  });
+
+  $effect(() => {
+    if (teiDocument !== null) {
+      const tmp = JSON.stringify(teiDocument);
+      if (tmp !== appState.currentFileContent) {
+        appState.currentFileContent = tmp;
+        appState.ui.currentFileModified = true;
       }
-    }, 100);
-  }
+    }
+  });
+  // let updatedDocument: TEIDocument = [];
+  // let updateDebounce = -1;
+  // let initialDocument: TEIDocument = [];
+  // let loadingError = false;
+  // let selectedTab = "";
+  // let textlistSelectedEntry = {} as { [key: string]: string };
+
+  // const uEditorConfig = getContext(
+  //   "uEditorConfig",
+  // ) as CreateQueryResult<UEditorSettings>;
+  // const currentBranch = useCurrentBranch();
+  // const apiStatus = useApiStatus();
+
+  // const teiDocument = derived(
+  //   [uEditorConfig, currentFile],
+  //   ([uEditorConfig, currentFile], set) => {
+  //     if (
+  //       uEditorConfig.isSuccess &&
+  //       currentFile &&
+  //       currentFile.name.endsWith(".tei")
+  //     ) {
+  //       loadingError = false;
+  //       initialDocument = [];
+  //       updatedDocument = [];
+  //       set(null);
+  //       currentFileContent.set(null);
+  //       currentFileModified.set(false);
+  //       runAction({
+  //         action: "LoadTextFile",
+  //         branch: $currentBranch,
+  //         filename: currentFile.fullpath,
+  //         callback: (data: string) => {
+  //           try {
+  //             updatedDocument = JSON.parse(data);
+  //             initialDocument = JSON.parse(data);
+  //             currentFileContent.set(data);
+  //             currentFileModified.set(false);
+  //             const tmpDocument = JSON.parse(data);
+  //             const newSections: TEIDocument = [];
+  //             for (let section of uEditorConfig.data.tei.sections) {
+  //               for (let part of tmpDocument) {
+  //                 if (section.name === part.name) {
+  //                   part.type = section;
+  //                   newSections.push(part);
+  //                   break;
+  //                 }
+  //               }
+  //             }
+  //             set(newSections);
+  //             selectedTab = "";
+  //           } catch (e) {
+  //             loadingError = true;
+  //             set(null);
+  //           }
+  //         },
+  //       });
+  //     }
+  //   },
+  //   null as null | TEIDocument,
+  // );
+
+  // const currentFileModifiedUnsubscribe = currentFileModified.subscribe(
+  //   (currentFileModified) => {
+  //     if (!currentFileModified && $currentFileContent) {
+  //       try {
+  //         initialDocument = JSON.parse($currentFileContent);
+  //       } catch (e) {}
+  //     }
+  //   },
+  // );
+
+  // function updateDocumentSection(idx: number, ev: CustomEvent) {
+  //   if (
+  //     (updatedDocument[idx].type as any as string) === "text" ||
+  //     (updatedDocument[idx].type as any as string) === "textlist"
+  //   ) {
+  //     (updatedDocument[idx] as TEITextSection | TEITextlistSection).content =
+  //       ev.detail;
+  //   } else if ((updatedDocument[idx].type as any as string) === "metadata") {
+  //     (updatedDocument[idx] as TEITextSection | TEITextlistSection).content =
+  //       ev.detail.content;
+  //   }
+  //   window.clearTimeout(updateDebounce);
+  //   updateDebounce = window.setTimeout(() => {
+  //     if (!deepEql(updatedDocument, initialDocument)) {
+  //       currentFileContent.set(JSON.stringify(updatedDocument));
+  //       currentFileModified.set(true);
+  //     } else {
+  //       currentFileModified.set(false);
+  //     }
+  //   }, 100);
+  // }
 
   function shortCutTracker(ev: KeyboardEvent) {
-    if ($currentFile !== null && $currentFileContent !== null) {
+    if (
+      appState.currentBranch !== null &&
+      appState.currentFile !== null &&
+      appState.currentFileContent !== null
+    ) {
       if (ev.key === "s" && (ev.ctrlKey || ev.metaKey)) {
         ev.preventDefault();
         if (
-          !$apiStatus.data?.git.protect_default_branch ||
-          $apiStatus.data?.git.default_branch !== $currentBranch?.id
+          !appState.apiStatus?.git.protect_default_branch ||
+          appState.apiStatus?.git.default_branch !== appState.currentBranch?.id
         ) {
           runAction({
             action: "SaveCurrentFile",
-            branch: $currentBranch,
-            filename: $currentFile.fullpath,
-            data: $currentFileContent,
+            branch: appState.currentBranch,
+            filename: appState.currentFile.fullpath,
+            data: appState.currentFileContent,
             callback() {
-              currentFileModified.set(false);
+              appState.ui.currentFileModified = false;
             },
           });
         }
@@ -133,46 +185,41 @@
     }
   }
 
-  function editTextListEntry(textlist: string, textlistEntryId: string) {
-    selectedTab = textlist;
-    textlistSelectedEntry[textlist] = textlistEntryId;
-    textlistSelectedEntry = textlistSelectedEntry;
-  }
+  // function editTextListEntry(textlist: string, textlistEntryId: string) {
+  //   selectedTab = textlist;
+  //   textlistSelectedEntry[textlist] = textlistEntryId;
+  //   textlistSelectedEntry = textlistSelectedEntry;
+  // }
 
-  onDestroy(currentFileModifiedUnsubscribe);
+  // onDestroy(currentFileModifiedUnsubscribe);
 </script>
 
-<h1 class="sr-only">{$currentFile?.name}</h1>
-{#if $teiDocument}
-  <div class="flex-1 flex overflow-hidden" on:keydown={shortCutTracker}>
-    <Tabs.Root bind:value={selectedTab} class="flex-1 flex flex-col">
+<h1 class="sr-only">{appState.currentFile?.name}</h1>
+{#if teiDocument}
+  <div class="flex-1 flex overflow-hidden" onkeydown={shortCutTracker}>
+    <Tabs.Root bind:value={currentTab} class="flex-1 flex flex-col">
       <Tabs.List>
-        {#each $teiDocument as section}
+        {#each teiDocument as section}
           <Tabs.Trigger value={section.type.name}
             >{section.type.title}</Tabs.Trigger
           >
         {/each}
       </Tabs.List>
-      {#each $teiDocument as section, idx}
+      {#each teiDocument as section, idx}
         <Tabs.Content value={section.type.name} class="flex-1 overflow-hidden">
           {#if section.type.type === "metadata"}
-            <TeiMetadataEditor
-              {section}
-              on:update={(ev) => {
-                updateDocumentSection(idx, ev);
-              }}
-            />
+            <TeiMetadataEditor {section}></TeiMetadataEditor>
           {:else if section.type.type === "text"}
-            <TeiTextEditor
+            <!-- <TeiTextEditor
               {section}
               sections={$teiDocument}
               {editTextListEntry}
               on:update={(ev) => {
                 updateDocumentSection(idx, ev);
               }}
-            />
+            /> -->
           {:else if section.type.type === "textlist"}
-            <TeiTextListEditor
+            <!-- <TeiTextListEditor
               {section}
               sections={$teiDocument}
               {editTextListEntry}
@@ -180,7 +227,7 @@
               on:update={(ev) => {
                 updateDocumentSection(idx, ev);
               }}
-            />
+            /> -->
           {/if}
         </Tabs.Content>
       {/each}

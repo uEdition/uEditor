@@ -43,7 +43,7 @@
       aria-label="Save"
       title="Save"
       aria-disabled={appState.currentFileContent !== null &&
-      appState.ui.currentFileModified === false
+      appState.ui.currentFileModified
         ? null
         : "true"}
     >

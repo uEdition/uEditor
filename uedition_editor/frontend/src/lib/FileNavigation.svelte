@@ -1,37 +1,40 @@
 <script lang="ts">
   import { createTreeView } from "@melt-ui/svelte";
-  import { getContext, onDestroy, onMount, setContext, tick } from "svelte";
-  import { type Unsubscriber, type Writable, derived } from "svelte/store";
+  import { onDestroy, setContext, tick } from "svelte";
   import { createQuery } from "@tanstack/svelte-query";
-
-  import { apiQueryHandler, getApplicationParameter } from "../util";
-  import { currentFile, useCurrentBranch, useCurrentUser } from "../stores";
 
   import Tree from "./FileTree.svelte";
   import LoadingIndicator from "./LoadingIndicator.svelte";
+  import {
+    apiQueryHandler,
+    deleteApplicationParameter,
+    getApplicationParameter,
+    setApplicationParameter,
+  } from "../util";
+  import { appState } from "../state.svelte";
 
-  const currentBranch = useCurrentBranch();
-  const currentUser = useCurrentUser();
+  let initialPath = getApplicationParameter("path");
 
-  const fileListQuery = derived(
-    [currentBranch, currentUser],
-    ([currentBranch, currentUser]) => {
-      if (currentBranch) {
-        return {
-          queryKey: ["branches", currentBranch.id, "files/"],
-          queryFn: apiQueryHandler<FileTreeEntry[]>,
-          enabled: currentUser.isSuccess,
-        };
-      } else {
-        return {
-          queryKey: ["branches", "-", "files/"],
-          queryFn: apiQueryHandler<FileTreeEntry[]>,
-          enabled: false,
-        };
-      }
-    },
-  );
-  const fileList = createQuery(fileListQuery);
+  const fileList = createQuery(() => ({
+    queryKey: ["branches", appState.currentBranch?.id, "files/"],
+    queryFn: apiQueryHandler<FileTreeEntry[]>,
+    enabled: appState.currentUser !== null && appState.currentBranch !== null,
+  }));
+
+  $effect(() => {
+    if (fileList.isSuccess && initialPath !== null) {
+      tick().then(() => {
+        const selectedButton = document.querySelector(
+          '[data-file-path="' + initialPath + '"]',
+        ) as HTMLElement;
+        if (selectedButton) {
+          expanded.set(calculateExpanded(selectedButton));
+          selectedItem.set(selectedButton);
+        }
+        initialPath = null;
+      });
+    }
+  });
 
   const ctx = createTreeView({ defaultExpanded: ["file-tree--1-0"] });
   setContext("tree", ctx);
@@ -63,18 +66,20 @@
     if (
       selectedItem !== null &&
       selectedElement?.getAttribute("data-file-path") !== null &&
-      $fileList.isSuccess
+      fileList.isSuccess
     ) {
       const selectedFileTreeEntry = recursiveFileSeach(
-        $fileList.data,
+        fileList.data,
         selectedElement?.getAttribute("data-file-path") as string,
       );
-      currentFile.set(selectedFileTreeEntry);
-      // if (selectedFileTreeEntry) {
-      //   window.location.hash = selectedFileTreeEntry.fullpath;
-      // }
+      appState.currentFile = selectedFileTreeEntry;
+      if (appState.currentFile !== null) {
+        setApplicationParameter("path", appState.currentFile.fullpath);
+      } else {
+        deleteApplicationParameter("path");
+      }
     } else {
-      currentFile.set(null);
+      appState.currentFile = null;
     }
   });
   onDestroy(unsubscribeSelectedItem);
@@ -90,40 +95,17 @@
     }
     return expansion;
   }
-
-  onMount(() => {
-    let fileListUnsubscribe: Unsubscriber | undefined;
-    fileListUnsubscribe = fileList.subscribe((entries) => {
-      if (entries.isSuccess) {
-        const path = getApplicationParameter("path");
-        if (path) {
-          tick().then(() => {
-            const selectedButton = document.querySelector(
-              '[data-file-path="' + path + '"]',
-            ) as HTMLElement;
-            if (selectedButton) {
-              expanded.set(calculateExpanded(selectedButton));
-              selectedItem.set(selectedButton);
-            }
-          });
-        }
-        if (fileListUnsubscribe) {
-          fileListUnsubscribe();
-        }
-      }
-    });
-  });
 </script>
 
 <nav
   aria-label="Files"
   class="relative px-2 py-1 w-3/12 overflow-auto border-r border-gray-300"
 >
-  {#if $fileList.isSuccess}
+  {#if fileList.isSuccess}
     <ol {...$tree}>
-      <Tree treeItems={$fileList.data} />
+      <Tree treeItems={fileList.data} />
     </ol>
-  {:else if $fileList.isLoading}
+  {:else if fileList.isLoading}
     <LoadingIndicator>Loading the file list. Please wait...</LoadingIndicator>
   {/if}
 </nav>

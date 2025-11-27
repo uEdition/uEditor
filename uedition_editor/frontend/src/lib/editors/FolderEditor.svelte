@@ -8,12 +8,10 @@
   } from "@mdi/js";
   import { onDestroy, onMount } from "svelte";
 
-  import { currentFile, useApiStatus, useCurrentBranch } from "../../stores";
   import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
   import Icon from "../Icon.svelte";
+  import { appState } from "../../state.svelte";
 
-  const apiStatus = useApiStatus();
-  const currentBranch = useCurrentBranch();
   let focusElement: HTMLHeadingElement | null = null;
 
   onMount(() => {
@@ -21,27 +19,19 @@
       focusElement.focus();
     }
   });
-
-  onDestroy(
-    currentFile.subscribe(() => {
-      if (focusElement) {
-        focusElement.focus();
-      }
-    }),
-  );
 </script>
 
 <div bind:this={focusElement} class="flex-1 px-2 py-2" tabindex="-1">
   <h2 class="sr-only">
-    Actions for the directory {$currentFile?.fullpath
-      ? $currentFile?.fullpath
+    Actions for the directory {appState.currentFile?.fullpath
+      ? appState.currentFile?.fullpath
       : "/"}
   </h2>
-  {#if !$apiStatus.data?.git.protect_default_branch || $apiStatus.data?.git.default_branch !== $currentBranch?.id}
+  {#if !appState.apiStatus?.git.protect_default_branch || appState.apiStatus?.git.default_branch !== appState.currentBranch?.id}
     <div class="flex flex-col w-60 space-y-2">
       <button
         data-button
-        on:click={() => {
+        onclick={() => {
           activeDialog.set(Dialogs.FOLDER_CREATE);
         }}
       >
@@ -50,7 +40,7 @@
       </button>
       <button
         data-button
-        on:click={() => {
+        onclick={() => {
           activeDialog.set(Dialogs.FILE_CREATE);
         }}
       >
@@ -59,17 +49,17 @@
       </button>
       <button
         data-button
-        on:click={() => {
+        onclick={() => {
           activeDialog.set(Dialogs.FILE_UPLOAD);
         }}
       >
         <Icon path={mdiFileUploadOutline} class="w4 h-4" />
         <span>Upload Files</span>
       </button>
-      {#if $currentFile?.fullpath}
+      {#if appState.currentFile?.fullpath}
         <button
           data-button
-          on:click={() => {
+          onclick={() => {
             activeDialog.set(Dialogs.FOLDER_RENAME);
           }}
         >
@@ -78,7 +68,7 @@
         </button>
         <button
           data-button
-          on:click={() => {
+          onclick={() => {
             activeDialog.set(Dialogs.FOLDER_DELETE);
           }}
         >

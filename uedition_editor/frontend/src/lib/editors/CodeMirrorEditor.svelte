@@ -3,78 +3,66 @@
   import { markdown } from "@codemirror/lang-markdown";
   import { yaml } from "@codemirror/lang-yaml";
   import { json } from "@codemirror/lang-json";
-  import { onDestroy } from "svelte";
   import CodeMirror from "svelte-codemirror-editor";
   import { useQueryClient } from "@tanstack/svelte-query";
 
   import LoadingIndicator from "../LoadingIndicator.svelte";
-  import {
-    currentFile,
-    currentFileContent,
-    currentFileModified,
-    useApiStatus,
-    useCurrentBranch,
-  } from "../../stores";
   import { runAction } from "../actions/Index.svelte";
+  import { appState } from "../../state.svelte";
 
-  let focusElement: HTMLHeadingElement | null = null;
-  let value: string | null = "";
-  let lang: LanguageSupport | null = null;
   const queryClient = useQueryClient();
-  const currentBranch = useCurrentBranch();
-  const apiStatus = useApiStatus();
+  let focusElement: HTMLHeadingElement | null = $state(null);
+  let value: string | null = $state("");
 
-  const currentFileUnsubscribe = currentFile.subscribe((currentFile) => {
-    if (currentFile) {
-      if (currentFile.mimetype === "application/json") {
-        lang = json();
-      } else if (currentFile.mimetype === "application/yaml") {
-        lang = yaml();
-      } else if (currentFile.mimetype === "text/markdown") {
-        lang = markdown();
-      } else {
-        lang = null;
+  let lang: LanguageSupport | null = $derived.by(() => {
+    if (appState.currentFile) {
+      if (appState.currentFile.mimetype === "application/json") {
+        return json();
+      } else if (appState.currentFile.mimetype === "application/yaml") {
+        return yaml();
+      } else if (appState.currentFile.mimetype === "text/markdown") {
+        return markdown();
       }
+    }
+    return null;
+  });
+
+  $effect(() => {
+    if (appState.currentFile) {
       runAction({
         action: "LoadTextFile",
-        branch: $currentBranch as Branch,
-        filename: currentFile.fullpath,
+        branch: appState.currentBranch as Branch,
+        filename: appState.currentFile.fullpath,
         callback: (data: string) => {
           value = data;
-          currentFileContent.set(data);
-          currentFileModified.set(false);
+          appState.currentFileContent = data;
+          appState.ui.currentFileModified = false;
         },
       });
-    } else {
-      lang = null;
     }
   });
-  const currentFileContentUnsubscribe = currentFileContent.subscribe(
-    (content) => {
-      value = content;
-    },
-  );
 
   function shortCutTracker(ev: KeyboardEvent) {
-    if ($currentFile !== null && $currentFileContent !== null) {
+    if (appState.currentFile !== null && appState.currentFileContent !== null) {
       if (ev.key === "s" && (ev.ctrlKey || ev.metaKey)) {
         ev.preventDefault();
         if (
-          !$apiStatus.data?.git.protect_default_branch ||
-          $apiStatus.data?.git.default_branch !== $currentBranch?.id
+          !appState.apiStatus?.git.protect_default_branch ||
+          appState.apiStatus?.git.default_branch !== appState.currentBranch?.id
         ) {
           runAction({
             action: "SaveCurrentFile",
-            branch: $currentBranch as Branch,
-            filename: $currentFile.fullpath,
-            data: $currentFileContent,
+            branch: appState.currentBranch as Branch,
+            filename: appState.currentFile.fullpath,
+            data: appState.currentFileContent,
             callback() {
-              currentFileModified.set(false);
+              appState.ui.currentFileModified = false;
               if (
-                $currentFile.name === "uEdition.yml" ||
-                $currentFile.name === "uEdition.yaml" ||
-                $currentFile.name === "uEditor.yml" ||
-                $currentFile.name === "uEditor.yaml"
+                appState.currentFile !== null &&
+                (appState.currentFile.name === "uEdition.yml" ||
+                  appState.currentFile.name === "uEdition.yaml" ||
+                  appState.currentFile.name === "uEditor.yml" ||
+                  appState.currentFile.name === "uEditor.yaml")
               ) {
                 queryClient.invalidateQueries({ queryKey: ["configs"] });
               }
@@ -85,25 +73,29 @@
     }
   }
 
-  onDestroy(() => {
-    currentFileUnsubscribe();
-    currentFileContentUnsubscribe();
-    value = null;
+  $effect(() => {
+    appState.ui.currentFileModified = appState.currentFileContent !== value;
   });
 
-  $: {
-    if ($currentFileContent !== value) {
-      currentFileModified.set(true);
-    }
-    currentFileContent.set(value);
-  }
+  // onDestroy(() => {
+  //   currentFileUnsubscribe();
+  //   currentFileContentUnsubscribe();
+  //   value = null;
+  // });
+
+  // $: {
+  //   if ($currentFileContent !== value) {
+  //     currentFileModified.set(true);
+  //   }
+  //   currentFileContent.set(value);
+  // }
 </script>
 
 {#if value === null}
   <LoadingIndicator />
 {:else}
   <div
-    on:keydown={shortCutTracker}
+    onkeydown={shortCutTracker}
     bind:this={focusElement}
     class="flex-1 overflow-hidden"
     tabindex="-1"

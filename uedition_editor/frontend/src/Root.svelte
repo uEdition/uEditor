@@ -51,8 +51,8 @@
   <Toolbar />
   {#if appState.currentBranch !== null}
     <div class="flex flex-row flex-1 overflow-hidden">
-      <!-- <FileNavigation /> -->
-      <!-- <Editor /> -->
+      <FileNavigation />
+      <Editor />
     </div>
   {:else}
     <div class="flex-1">

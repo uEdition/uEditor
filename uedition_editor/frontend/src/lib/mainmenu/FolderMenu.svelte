@@ -27,7 +27,7 @@
   <Menubar.Trigger>Folder</Menubar.Trigger>
   <Menubar.Content>
     <Menubar.Item
-      on:click={() => {
+      onclick={() => {
         activeDialog.set(Dialogs.FOLDER_CREATE);
       }}
     >
@@ -35,7 +35,7 @@
       <span>New Folder</span>
     </Menubar.Item>
     <Menubar.Item
-      on:click={() => {
+      onclick={() => {
         activeDialog.set(Dialogs.FILE_CREATE);
       }}
     >
@@ -43,7 +43,7 @@
       <span>New File</span>
     </Menubar.Item>
     <Menubar.Item
-      on:click={() => {
+      onclick={() => {
         activeDialog.set(Dialogs.FILE_UPLOAD);
       }}
     >
@@ -52,7 +52,7 @@
     </Menubar.Item>
     <Menubar.Separator />
     <Menubar.Item
-      on:click={() => {
+      onclick={() => {
         activeDialog.set(Dialogs.FOLDER_RENAME);
       }}
     >
@@ -60,7 +60,7 @@
       <span>Rename</span>
     </Menubar.Item>
     <Menubar.Item
-      on:click={() => {
+      onclick={() => {
         activeDialog.set(Dialogs.FOLDER_DELETE);
       }}
     >
@@ -69,12 +69,3 @@
     </Menubar.Item>
   </Menubar.Content>
 </Menubar.Menu>
-
-{#if action === Action.Delete}
-  <DirectoryDelete
-    on:close={() => {
-      console.log("Resetting action");
-      action = Action.Nothing;
-    }}
-  />
-{/if}

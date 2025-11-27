@@ -10,7 +10,7 @@
   <Menubar.Trigger>File</Menubar.Trigger>
   <Menubar.Content>
     <Menubar.Item
-      on:click={() => {
+      onclick={() => {
         activeDialog.set(Dialogs.FILE_RENAME);
       }}
     >
@@ -18,7 +18,7 @@
       <span>Rename</span>
     </Menubar.Item>
     <Menubar.Item
-      on:click={() => {
+      onclick={() => {
         activeDialog.set(Dialogs.FILE_REPLACE);
       }}
     >
@@ -27,7 +27,7 @@
     </Menubar.Item>
     <Menubar.Separator />
     <Menubar.Item
-      on:click={() => {
+      onclick={() => {
         activeDialog.set(Dialogs.FILE_DELETE);
       }}
     >
