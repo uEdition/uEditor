@@ -281,8 +281,6 @@
   }
 </script>
 
--{selectedNode}-
-
 <div class="flex flex-row w-full h-full overflow-auto">
   <div class="w-1/4 overflow-auto border-r border-gray-300">
     {#if section}
