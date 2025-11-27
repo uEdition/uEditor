@@ -7,6 +7,7 @@ export const appState: ApplicationState = $state({
   branches: null,
   uEditionConfig: null,
   uEditorConfig: null,
+  actions: [],
   tei: {
     blocks: [],
     marks: [],
@@ -14,5 +15,5 @@ export const appState: ApplicationState = $state({
   ui: {
     hasLoggedOut: false,
     currentFileModified: false,
-  }
+  },
 });

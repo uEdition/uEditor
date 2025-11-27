@@ -10,13 +10,14 @@ type ApplicationState = {
   branches: Branches | null;
   uEditionConfig: UEditionSettings | null;
   uEditorConfig: UEditorSettings | null;
+  actions: Action[];
   tei: ApplicationTEIState;
   ui: ApplicationUIState;
 };
 
 type ApplicationTEIState = {
-  blocks: UEditorTEINode[],
-  marks: UEditorTEINode[],
+  blocks: UEditorTEINode[];
+  marks: UEditorTEINode[];
 };
 
 type ApplicationUIState = {
@@ -46,7 +47,7 @@ type Branch = {
   id: string;
   title: string;
   nogit?: boolean;
-  update_from_default?: boolean
+  update_from_default?: boolean;
 };
 
 type Branches = {
@@ -289,9 +290,12 @@ type SynchroniseBranchesAction = {
   action: "SynchroniseBranches";
   status?: string;
   callback?: () => void;
-}
+};
 
-type Action = LoadTextFileAction | SaveCurrentFileAction | SynchroniseBranchesAction;
+type Action =
+  | LoadTextFileAction
+  | SaveCurrentFileAction
+  | SynchroniseBranchesAction;
 
 type TipTapAttribtes = { [key: string]: string };
 

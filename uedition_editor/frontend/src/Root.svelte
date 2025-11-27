@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { CreateQueryResult } from "@tanstack/svelte-query";
 
-  import Actions from "./lib/actions/Index.svelte";
+  import ActivityIndicator from "./lib/actions/ActivityIndicator.svelte";
   import Dialogs from "./lib/dialogs/Index.svelte";
   import Editor from "./lib/editors/Index.svelte";
   import FileNavigation from "./lib/FileNavigation.svelte";
@@ -73,7 +73,7 @@
       {#if appState.currentFile !== null}{appState.currentFile.fullpath}{/if}
     </div>
     <div class="flex-1"></div>
-    <!-- <Actions /> -->
+    <ActivityIndicator />
   </footer>
 </main>
 

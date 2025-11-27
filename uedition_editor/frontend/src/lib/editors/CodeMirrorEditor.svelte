@@ -7,11 +7,13 @@
   import { useQueryClient } from "@tanstack/svelte-query";
 
   import LoadingIndicator from "../LoadingIndicator.svelte";
-  import { runAction } from "../actions/Index.svelte";
+  import { runAction } from "../actions/util.svelte";
   import { appState } from "../../state.svelte";
 
   const queryClient = useQueryClient();
   let focusElement: HTMLHeadingElement | null = $state(null);
+  let fileBranch: Branch | null = $state(null);
+  let filePath: string | null = $state(null);
   let value: string | null = $state("");
 
   let lang: LanguageSupport | null = $derived.by(() => {
@@ -28,17 +30,24 @@
   });
 
   $effect(() => {
-    if (appState.currentFile) {
-      runAction({
-        action: "LoadTextFile",
-        branch: appState.currentBranch as Branch,
-        filename: appState.currentFile.fullpath,
-        callback: (data: string) => {
-          value = data;
-          appState.currentFileContent = data;
-          appState.ui.currentFileModified = false;
-        },
-      });
+    if (appState.currentFile !== null) {
+      if (
+        fileBranch !== appState.currentBranch &&
+        filePath !== appState.currentFile.fullpath
+      ) {
+        fileBranch = appState.currentBranch;
+        filePath = appState.currentFile.fullpath;
+        runAction({
+          action: "LoadTextFile",
+          branch: appState.currentBranch as Branch,
+          filename: appState.currentFile.fullpath,
+          callback: (data: string) => {
+            value = data;
+            appState.currentFileContent = data;
+            appState.ui.currentFileModified = false;
+          },
+        });
+      }
     }
   });
 
