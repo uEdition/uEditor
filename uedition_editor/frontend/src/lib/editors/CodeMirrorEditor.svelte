@@ -32,7 +32,7 @@
   $effect(() => {
     if (appState.currentFile !== null) {
       if (
-        fileBranch !== appState.currentBranch &&
+        fileBranch !== appState.currentBranch ||
         filePath !== appState.currentFile.fullpath
       ) {
         fileBranch = appState.currentBranch;
@@ -113,6 +113,6 @@
       >In the editor the Tab key will indent the text content. To escape the
       editor with the keyboard press the Escape key, followed by the Tab key.</span
     >
-    <CodeMirror bind:value {lang} />
+    <CodeMirror bind:value={appState.currentFileContent} {lang} />
   </div>
 {/if}
