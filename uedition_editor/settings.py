@@ -85,6 +85,7 @@ class InitSettings(BaseSettings):
     session: SessionSettings = SessionSettings()
     git: GitSettings = GitSettings()
     test: bool = False
+    dev: bool = False
 
     @model_validator(mode="after")
     def git_auth_check(self) -> Self:

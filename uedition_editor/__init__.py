@@ -8,8 +8,10 @@ from contextlib import asynccontextmanager
 from copy import deepcopy
 
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.exceptions import HTTPException
+from fastapi.responses import RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
+from httpx import AsyncClient
 from uvicorn.config import LOGGING_CONFIG
 
 from uedition_editor import cron
@@ -41,7 +43,21 @@ async def lifespan(app: FastAPI):  # noqa:ARG001
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(api_router)
-app.mount("/app", StaticFiles(packages=[("uedition_editor", "frontend/dist")], html=True))
+
+if init_settings.dev:
+
+    @app.get("/app/{path:path}")
+    async def ui_dev(path: str):
+        """Proxy the development frontend server."""
+        async with AsyncClient() as client:
+            response = await client.get(f"http://localhost:5173/app/{path}")
+            if response.status_code == 200:  # noqa:PLR2004
+                return Response(content=response.content, media_type=response.headers["Content-Type"])
+            else:
+                raise HTTPException(response.status_code)
+
+else:
+    app.mount("/app", StaticFiles(packages=[("uedition_editor", "frontend/dist")], html=True))
 
 
 @app.get("/", response_class=RedirectResponse)
