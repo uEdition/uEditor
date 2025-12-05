@@ -87,16 +87,23 @@ extra-dependencies = ["coverage[toml]>=6.5", "httpx", "pytest", "ruff==0.9.5"]
 
 [tool.hatch.envs.default.scripts]
 server = "uvicorn --reload --port 8000 uedition_editor:app {args}"
-build-frontend = "cd uedition_editor/frontend && npm install && vite build --watch"
+frontend-server = "cd uedition_editor/frontend && npm install && vite"
+build-frontend = "cd uedition_editor/frontend && npm install && vite build"
+
+# Test commands
 e2e-tests = "cd tests/e2e_tests && UEDITOR__BASE_PATH=./tmp_fixtures UEDITOR__TEST=true UEDITOR__AUTH__PROVIDER=no-auth UEDITOR__AUTH__EMAIL= UEDITOR__AUTH__NAME= npx playwright test"
 test = "UEDITOR__BASE_PATH=./tmp_fixtures UEDITOR__TEST=true UEDITOR__AUTH__PROVIDER=no-auth UEDITOR__AUTH__EMAIL= UEDITOR__AUTH__NAME=  pytest {args:tests}"
 test-cov = "UEDITOR__BASE_PATH=./tmp_fixtures UEDITOR__TEST=true UEDITOR__AUTH__PROVIDER=no-auth UEDITOR__AUTH__EMAIL= UEDITOR__AUTH__NAME=  coverage run -m pytest {args:tests}"
 cov-report = ["- coverage combine", "coverage report"]
 cov = ["test-cov", "cov-report"]
+
+# Style commands
 style = [
   "ruff check --fix --exit-non-zero-on-fix {args:.}",
   "ruff format --check {args:.}",
 ]
+
+# Release commands
 update-version = "hatch run python update_version.py"
 
 [tool.ruff]
