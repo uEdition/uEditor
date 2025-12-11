@@ -9,9 +9,9 @@
   import { useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
-  import { runAction } from "../actions/Index.svelte";
   import { title } from "../../util";
   import { appState, Dialogs } from "../../state.svelte";
+  import { runAction } from "../actions/util.svelte";
 
   const queryClient = useQueryClient();
 </script>
@@ -67,7 +67,7 @@
             <Icon path={mdiSourceBranchSync} class="w-4 h-4" />
             <span
               >Merge Updates from {title(
-                appState.apiStatus?.git.default_branch as string,
+                appState.apiStatus?.git.default_branch as string
               )}</span
             >
           </Menubar.Item>

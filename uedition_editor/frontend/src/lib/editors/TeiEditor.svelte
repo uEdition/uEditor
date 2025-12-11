@@ -1,18 +1,20 @@
 <script lang="ts">
   import { Tabs } from "bits-ui";
 
-  import { runAction } from "../actions/Index.svelte";
   import LoadingIndicator from "../LoadingIndicator.svelte";
   import TeiMetadataEditor from "./TeiMetadataEditor.svelte";
   import TeiTextEditor from "./TeiTextEditor.svelte";
   import TeiTextListEditor from "./TeiTextListEditor.svelte";
   import { appState } from "../../state.svelte";
+  import { runAction } from "../actions/util.svelte";
 
   const editorState: TEIEditorState = $state({
     sections: {},
     loaded: false,
     loading: false,
     loadError: false,
+    loadedBranch: "",
+    loadedFilename: "",
     currentTab: "",
     selectTextlistId: null,
     notifyModified() {
@@ -26,48 +28,60 @@
   });
 
   $effect(() => {
-    if (appState.currentBranch !== null && appState.currentFile !== null) {
-      appState.currentFileContent = null;
-      appState.ui.currentFileModified = false;
-      editorState.loaded = false;
-      editorState.loading = true;
-      editorState.loadError = false;
-      runAction({
-        action: "LoadTextFile",
-        branch: appState.currentBranch,
-        filename: appState.currentFile.fullpath,
-        callback: (data: string) => {
-          try {
-            appState.currentFileContent = data;
-            const tmpDocument = JSON.parse(data);
-            editorState.sections = {};
-            editorState.currentTab = "";
-            for (let section of appState.uEditorConfig.tei.sections) {
-              if (editorState.currentTab === "") {
-                editorState.currentTab = section.name;
-              }
-              for (let part of tmpDocument) {
-                if (section.name === part.name) {
-                  part.type = section;
-                  editorState.sections[section.name] = part;
-                  break;
-                }
-              }
-            }
-            editorState.loading = false;
-            editorState.loaded = true;
-          } catch (e) {
-            console.error(e);
-            editorState.loading = false;
-            editorState.loadError = true;
-          }
-        },
-      });
+    if (
+      appState.currentBranch !== null &&
+      appState.currentFile !== null &&
+      !editorState.loading &&
+      editorState.loadedBranch !== appState.currentBranch.id &&
+      editorState.loadedFilename !== appState.currentFile.fullpath
+    ) {
+      loadNewFile();
     } else {
       editorState.sections = {};
       editorState.loaded = false;
     }
   });
+
+  function loadNewFile() {
+    appState.currentFileContent = null;
+    appState.ui.currentFileModified = false;
+    editorState.loadedBranch = appState.currentBranch.id;
+    editorState.loadedFilename = appState.currentFile.fullpath;
+    editorState.loaded = false;
+    editorState.loading = true;
+    editorState.loadError = false;
+    runAction({
+      action: "LoadTextFile",
+      branch: appState.currentBranch,
+      filename: appState.currentFile.fullpath,
+      callback: (data: string) => {
+        try {
+          appState.currentFileContent = data;
+          const tmpDocument = JSON.parse(data);
+          editorState.sections = {};
+          editorState.currentTab = "";
+          for (let section of appState.uEditorConfig.tei.sections) {
+            if (editorState.currentTab === "") {
+              editorState.currentTab = section.name;
+            }
+            for (let part of tmpDocument) {
+              if (section.name === part.name) {
+                part.type = section;
+                editorState.sections[section.name] = part;
+                break;
+              }
+            }
+          }
+          editorState.loading = false;
+          editorState.loaded = true;
+        } catch (e) {
+          console.error(e);
+          editorState.loading = false;
+          editorState.loadError = true;
+        }
+      },
+    });
+  }
 
   function shortCutTracker(ev: KeyboardEvent) {
     if (

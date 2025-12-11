@@ -4,8 +4,8 @@
   import { useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "./Icon.svelte";
-  import { runAction } from "./actions/Index.svelte";
   import { appState } from "../state.svelte";
+  import { runAction } from "./actions/util.svelte";
 
   const queryClient = useQueryClient();
 
