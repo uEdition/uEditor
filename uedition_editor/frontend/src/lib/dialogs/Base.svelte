@@ -1,18 +1,27 @@
 <script lang="ts">
   import { Dialog } from "bits-ui";
-  import { onMount } from "svelte";
+  import { onMount, type Snippet } from "svelte";
 
-  import { activeDialog, Dialogs } from "./Index.svelte";
+  import { appState } from "../../state.svelte";
 
-  export const onOpenChange: ((open: boolean) => void) | null = null;
-  export let open = false;
+  type BaseProps = {
+    open?: boolean;
+    onOpenChange?: ((open: boolean) => void) | undefined;
+    children: Snippet;
+  };
+
+  let {
+    open = $bindable(false),
+    children,
+    onOpenChange = undefined,
+  }: BaseProps = $props();
 
   function localOnOpenChange(open: boolean) {
     if (onOpenChange) {
       onOpenChange(open);
     }
     if (!open) {
-      activeDialog.set(Dialogs.NONE);
+      appState.activeDialog = null;
     }
   }
 
@@ -22,11 +31,10 @@
 </script>
 
 <Dialog.Root bind:open onOpenChange={localOnOpenChange}>
-  <Dialog.Trigger class="hidden" />
   <Dialog.Portal>
     <Dialog.Overlay />
     <Dialog.Content>
-      <slot />
+      {@render children()}
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>

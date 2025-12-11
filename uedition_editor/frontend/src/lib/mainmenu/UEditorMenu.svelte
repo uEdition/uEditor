@@ -10,9 +10,8 @@
 
   import Icon from "../Icon.svelte";
   import { runAction } from "../actions/Index.svelte";
-  import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
   import { title } from "../../util";
-  import { appState } from "../../state.svelte";
+  import { appState, Dialogs } from "../../state.svelte";
 
   const queryClient = useQueryClient();
 </script>
@@ -26,7 +25,7 @@
     {#if appState.apiStatus?.git.enabled}
       <Menubar.Item
         onclick={() => {
-          activeDialog.set(Dialogs.UEDITOR_NEW_BRANCH);
+          appState.activeDialog = Dialogs.UEDITOR_NEW_BRANCH;
         }}
       >
         <Icon path={mdiSourceBranchPlus} class="w-4 h-4"></Icon>
@@ -35,7 +34,7 @@
       {#if appState.branches && appState.branches.remote.length > 0}
         <Menubar.Item
           onclick={() => {
-            activeDialog.set(Dialogs.UEDITOR_IMPORT_REMOTE_BRANCH);
+            appState.activeDialog = Dialogs.UEDITOR_IMPORT_REMOTE_BRANCH;
           }}
         >
           <Icon class="w-4 h-4" />
@@ -62,7 +61,7 @@
         {#if appState.currentBranch.update_from_default}
           <Menubar.Item
             onclick={() => {
-              activeDialog.set(Dialogs.UEDITOR_MERGE_FROM_DEFAULT);
+              appState.activeDialog = Dialogs.UEDITOR_MERGE_FROM_DEFAULT;
             }}
           >
             <Icon path={mdiSourceBranchSync} class="w-4 h-4" />
@@ -77,7 +76,7 @@
         {#if appState.apiStatus?.git.default_branch !== appState.currentBranch.id}
           <Menubar.Item
             onclick={() => {
-              activeDialog.set(Dialogs.UEDITOR_DELETE_BRANCH);
+              appState.activeDialog = Dialogs.UEDITOR_DELETE_BRANCH;
             }}
           >
             <Icon path={mdiSourceBranchRemove} class="w-4 h-4"></Icon>

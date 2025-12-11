@@ -5,14 +5,11 @@
 
   import Base from "../Base.svelte";
   import Icon from "../../Icon.svelte";
-  import { useCurrentBranch } from "../../../stores";
-  import { Dialogs, activeDialog } from "../Index.svelte";
+  import { appState } from "../../../state.svelte";
 
   const queryClient = useQueryClient();
-  const currentBranch = useCurrentBranch();
-  let open = false;
-  let newBranchTitle = "";
-  let errorMessage = "";
+  let newBranchTitle = $state("");
+  let errorMessage = $state("");
 
   function openDialog(open: boolean) {
     if (open) {
@@ -20,7 +17,7 @@
     }
   }
 
-  const createBranch = createMutation({
+  const createBranch = createMutation(() => ({
     mutationFn: async (newBranch: { title: string }) => {
       const response = await window.fetch("/api/branches", {
         method: "POST",
@@ -35,25 +32,25 @@
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ["branches"] });
         const newBranch = (await response.json()) as Branch;
-        currentBranch.set(newBranch);
-        activeDialog.set(Dialogs.NONE);
+        appState.currentBranch = newBranch;
+        appState.activeDialog = null;
       } else {
         errorMessage = (await response.json()).detail[0].msg;
         errorMessage =
           errorMessage[0].toUpperCase() + errorMessage.substring(1);
       }
     },
-  });
+  }));
 
   async function createNewBranch(ev: Event) {
     ev.preventDefault();
-    $createBranch.mutate({ title: newBranchTitle });
+    createBranch.mutate({ title: newBranchTitle });
   }
 </script>
 
-<Base bind:open onOpenChange={openDialog}>
+<Base onOpenChange={openDialog}>
   <Dialog.Title>Create a new branch</Dialog.Title>
-  <form data-dialog-content-area on:submit={createNewBranch}>
+  <form data-dialog-content-area onsubmit={createNewBranch}>
     <label>
       <span data-form-field-label>New branch title</span>
       <input bind:value={newBranchTitle} type="text" data-form-field-text />
@@ -62,14 +59,14 @@
       {/if}
     </label>
     <div data-dialog-buttons>
-      {#if $createBranch.isPending}
+      {#if createBranch.isPending}
         <span data-button class="inline-flex"
           ><Icon path={mdiSync} class="block w-6 h-6 animate-spin" /><span
             >Creating...</span
           ></span
         >
       {:else}
-        <Dialog.Close data-button>Don't create</Dialog.Close>
+        <Dialog.Close type="button" data-button>Don't create</Dialog.Close>
         <button type="submit" data-button>Create</button>
       {/if}
     </div>

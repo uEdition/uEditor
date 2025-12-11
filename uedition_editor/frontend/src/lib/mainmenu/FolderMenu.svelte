@@ -9,18 +9,7 @@
   } from "@mdi/js";
 
   import Icon from "../Icon.svelte";
-  import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
-  import DirectoryDelete from "../dialogs/folder/Delete.svelte";
-
-  enum Action {
-    Nothing = 1,
-    Rename,
-    Move,
-    Copy,
-    Delete,
-  }
-
-  let action: Action = Action.Nothing;
+  import { appState, Dialogs } from "../../state.svelte";
 </script>
 
 <Menubar.Menu>
@@ -28,7 +17,7 @@
   <Menubar.Content>
     <Menubar.Item
       onclick={() => {
-        activeDialog.set(Dialogs.FOLDER_CREATE);
+        appState.activeDialog = Dialogs.FOLDER_CREATE;
       }}
     >
       <Icon path={mdiFolderPlusOutline} class="w4 h-4" />
@@ -36,7 +25,7 @@
     </Menubar.Item>
     <Menubar.Item
       onclick={() => {
-        activeDialog.set(Dialogs.FILE_CREATE);
+        appState.activeDialog = Dialogs.FILE_CREATE;
       }}
     >
       <Icon path={mdiFileDocumentPlusOutline} class="w4 h-4" />
@@ -44,7 +33,7 @@
     </Menubar.Item>
     <Menubar.Item
       onclick={() => {
-        activeDialog.set(Dialogs.FILE_UPLOAD);
+        appState.activeDialog = Dialogs.FILE_UPLOAD;
       }}
     >
       <Icon path={mdiFileUploadOutline} class="w4 h-4" />
@@ -53,7 +42,7 @@
     <Menubar.Separator />
     <Menubar.Item
       onclick={() => {
-        activeDialog.set(Dialogs.FOLDER_RENAME);
+        appState.activeDialog = Dialogs.FOLDER_RENAME;
       }}
     >
       <Icon path={mdiFolderEditOutline} class="w-4 h-4"></Icon>
@@ -61,7 +50,7 @@
     </Menubar.Item>
     <Menubar.Item
       onclick={() => {
-        activeDialog.set(Dialogs.FOLDER_DELETE);
+        appState.activeDialog = Dialogs.FOLDER_DELETE;
       }}
     >
       <Icon path={mdiFolderRemoveOutline} class="w-4 h-4"></Icon>

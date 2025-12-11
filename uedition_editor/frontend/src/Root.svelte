@@ -77,4 +77,4 @@
   </footer>
 </main>
 
-<!-- <Dialogs /> -->
+<Dialogs />

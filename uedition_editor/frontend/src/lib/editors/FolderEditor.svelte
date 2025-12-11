@@ -6,11 +6,10 @@
     mdiFolderPlusOutline,
     mdiFolderRemoveOutline,
   } from "@mdi/js";
-  import { onDestroy, onMount } from "svelte";
+  import { onMount } from "svelte";
 
-  import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
   import Icon from "../Icon.svelte";
-  import { appState } from "../../state.svelte";
+  import { appState, Dialogs } from "../../state.svelte";
 
   let focusElement: HTMLHeadingElement | null = null;
 
@@ -32,7 +31,7 @@
       <button
         data-button
         onclick={() => {
-          activeDialog.set(Dialogs.FOLDER_CREATE);
+          appState.activeDialog = Dialogs.FOLDER_CREATE;
         }}
       >
         <Icon path={mdiFolderPlusOutline} class="w4 h-4" />
@@ -41,7 +40,7 @@
       <button
         data-button
         onclick={() => {
-          activeDialog.set(Dialogs.FILE_CREATE);
+          appState.activeDialog = Dialogs.FILE_CREATE;
         }}
       >
         <Icon path={mdiFileDocumentPlusOutline} class="w4 h-4" />
@@ -50,7 +49,7 @@
       <button
         data-button
         onclick={() => {
-          activeDialog.set(Dialogs.FILE_UPLOAD);
+          appState.activeDialog = Dialogs.FILE_UPLOAD;
         }}
       >
         <Icon path={mdiFileUploadOutline} class="w4 h-4" />
@@ -60,7 +59,7 @@
         <button
           data-button
           onclick={() => {
-            activeDialog.set(Dialogs.FOLDER_RENAME);
+            appState.activeDialog = Dialogs.FOLDER_RENAME;
           }}
         >
           <Icon path={mdiFolderEditOutline} class="w-4 h-4"></Icon>
@@ -69,7 +68,7 @@
         <button
           data-button
           onclick={() => {
-            activeDialog.set(Dialogs.FOLDER_DELETE);
+            appState.activeDialog = Dialogs.FOLDER_DELETE;
           }}
         >
           <Icon path={mdiFolderRemoveOutline} class="w-4 h-4"></Icon>

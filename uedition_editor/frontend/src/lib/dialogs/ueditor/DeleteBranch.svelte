@@ -5,15 +5,12 @@
 
   import Base from "../Base.svelte";
   import Icon from "../../Icon.svelte";
-  import { useCurrentBranch } from "../../../stores";
-  import { Dialogs, activeDialog } from "../Index.svelte";
+  import { appState } from "../../../state.svelte";
 
   const queryClient = useQueryClient();
-  const currentBranch = useCurrentBranch();
-  let open = false;
-  let confirmBranchTitle = "";
-  let errorMessage = "";
-  let deleteLocal = false;
+  let confirmBranchTitle = $state("");
+  let errorMessage = $state("");
+  let deleteLocal = $state(false);
 
   function openDialog(open: boolean) {
     if (open) {
@@ -21,10 +18,10 @@
     }
   }
 
-  const deleteBranch = createMutation({
+  const deleteBranch = createMutation(() => ({
     mutationFn: async () => {
       const response = await window.fetch(
-        "/api/branches/" + $currentBranch?.id,
+        "/api/branches/" + appState.currentBranch?.id,
         {
           method: "DELETE",
           headers: {
@@ -35,34 +32,34 @@
       );
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ["branches"] });
-        currentBranch.set(null);
-        activeDialog.set(Dialogs.NONE);
+        appState.currentBranch = null;
+        appState.activeDialog = null;
       } else {
         errorMessage = (await response.json()).detail[0].msg;
         errorMessage =
           errorMessage[0].toUpperCase() + errorMessage.substring(1);
       }
     },
-  });
+  }));
 
   function startDeleteBranch(ev: Event) {
     ev.preventDefault();
-    if ($currentBranch?.title === confirmBranchTitle) {
+    if (appState.currentBranch?.title === confirmBranchTitle) {
       errorMessage = "";
-      $deleteBranch.mutate();
+      deleteBranch.mutate();
     } else {
       errorMessage = "Please enter the exact name of the branch to delete.";
     }
   }
 </script>
 
-<Base bind:open onOpenChange={openDialog}>
+<Base onOpenChange={openDialog}>
   <Dialog.Title>Delete the branch</Dialog.Title>
-  <form data-dialog-content-area on:submit={startDeleteBranch}>
+  <form data-dialog-content-area onsubmit={startDeleteBranch}>
     <p class="mb-4">
       Please confirm you wish to delete the branch <span
         class="inline-block mx-1 px-2 border border-fuchsia-700 rounded font-bold"
-        >{$currentBranch?.title}</span
+        >{appState.currentBranch?.title}</span
       >. This cannot be undone. To confirm the action, please enter the name of
       the branch to delete.
     </p>
@@ -78,14 +75,14 @@
       branch
     </label>
     <div data-dialog-buttons>
-      {#if $deleteBranch.isPending}
+      {#if deleteBranch.isPending}
         <span data-button class="inline-flex"
           ><Icon path={mdiSync} class="block w-6 h-6 animate-spin" /><span
             >Deleting...</span
           ></span
         >
       {:else}
-        <Dialog.Close data-button>Don't delete</Dialog.Close>
+        <Dialog.Close type="button" data-button>Don't delete</Dialog.Close>
         <button type="submit" data-button>Delete</button>
       {/if}
     </div>

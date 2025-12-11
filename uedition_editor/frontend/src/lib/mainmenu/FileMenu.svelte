@@ -3,7 +3,7 @@
   import { mdiPencil, mdiSync, mdiTrashCanOutline } from "@mdi/js";
 
   import Icon from "../Icon.svelte";
-  import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
+  import { appState, Dialogs } from "../../state.svelte";
 </script>
 
 <Menubar.Menu>
@@ -11,7 +11,7 @@
   <Menubar.Content>
     <Menubar.Item
       onclick={() => {
-        activeDialog.set(Dialogs.FILE_RENAME);
+        appState.activeDialog = Dialogs.FILE_RENAME;
       }}
     >
       <Icon path={mdiPencil} class="w-4 h-4"></Icon>
@@ -19,7 +19,7 @@
     </Menubar.Item>
     <Menubar.Item
       onclick={() => {
-        activeDialog.set(Dialogs.FILE_REPLACE);
+        appState.activeDialog = Dialogs.FILE_REPLACE;
       }}
     >
       <Icon path={mdiSync} class="w-4 h-4"></Icon>
@@ -28,7 +28,7 @@
     <Menubar.Separator />
     <Menubar.Item
       onclick={() => {
-        activeDialog.set(Dialogs.FILE_DELETE);
+        appState.activeDialog = Dialogs.FILE_DELETE;
       }}
     >
       <Icon path={mdiTrashCanOutline} class="w-4 h-4"></Icon>

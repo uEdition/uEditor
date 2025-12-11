@@ -86,18 +86,20 @@
   import { derived } from "svelte/store";
 
   import Icon from "../Icon.svelte";
-  import { useBranches } from "../../stores";
+  import { appState } from "../../state.svelte";
 
-  const branches = useBranches();
-  const backgroundBusyCount = derived([branches], (stores) => {
-    let count = 0;
-    for (const store of stores) {
-      if (store !== null && store.isFetching) {
-        count = count + 1;
-      }
-    }
-    return count;
-  });
+  // const branches = useBranches();
+  // const backgroundBusyCount = derived([branches], (stores) => {
+  //   let count = 0;
+  //   for (const store of stores) {
+  //     if (store !== null && store.isFetching) {
+  //       count = count + 1;
+  //     }
+  //   }
+  //   return count;
+  // });
+  const branches = writable({ isFetching: false });
+  const backgroundBusyCount = writable(0);
 </script>
 
 <Popover.Root>

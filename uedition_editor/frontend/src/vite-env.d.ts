@@ -7,6 +7,7 @@ type ApplicationState = {
   currentBranch: Branch | null;
   currentFile: FileTreeEntry | null;
   currentFileContent: string | null;
+  activeDialog: number | null;
   branches: Branches | null;
   uEditionConfig: UEditionSettings | null;
   uEditorConfig: UEditorSettings | null;
