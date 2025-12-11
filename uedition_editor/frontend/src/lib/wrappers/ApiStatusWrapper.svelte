@@ -21,6 +21,14 @@
       appState.apiStatus = null;
     }
   });
+
+  let uEditorTimestamp = $derived.by(() => {
+    if (appState.apiStatus?.version) {
+      return new Date().getTime();
+    } else {
+      return new Date().getTime();
+    }
+  });
 </script>
 
 {#if appState.apiStatus && appState.apiStatus.ready}
@@ -40,7 +48,7 @@
             The μEditor has been updated and you need to reload the μEditor in
             order to benefit from the latest updates.
             <div data-dialog-buttons>
-              <a href="/" data-button>Reload</a>
+              <a href="/?timestamp={uEditorTimestamp}" data-button>Reload</a>
             </div>
           </div>
         </Dialog.Content>
