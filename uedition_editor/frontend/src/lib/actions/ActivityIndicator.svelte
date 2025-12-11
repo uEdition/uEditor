@@ -1,15 +1,10 @@
 <script lang="ts">
   import { Popover } from "bits-ui";
-  import { useIsFetching } from "@tanstack/svelte-query";
 
   import { appState } from "../../state.svelte";
 
-  const isFetching = useIsFetching();
   const activeActivities = $derived.by(() => {
     const activities = [];
-    if (isFetching.current > 0) {
-      activities.push({ label: "Fetching data" });
-    }
     for (const action of appState.actions) {
       if (action.action === "LoadTextFile") {
         activities.push({ label: "Loading file contents" });
