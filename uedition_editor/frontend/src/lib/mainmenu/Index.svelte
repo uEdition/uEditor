@@ -1,9 +1,10 @@
 <script lang="ts">
   import { Menubar } from "bits-ui";
 
-  import UEditorMenu from "./UEditorMenu.svelte";
   import FileMenu from "./FileMenu.svelte";
   import FolderMenu from "./FolderMenu.svelte";
+  import HelpMenu from "./HelpMenu.svelte";
+  import UEditorMenu from "./UEditorMenu.svelte";
   import UserMenu from "./UserMenu.svelte";
   import { appState } from "../../state.svelte";
 </script>
@@ -19,4 +20,5 @@
   {/if}
   <span class="flex-1"></span>
   <UserMenu />
+  <HelpMenu />
 </Menubar.Root>

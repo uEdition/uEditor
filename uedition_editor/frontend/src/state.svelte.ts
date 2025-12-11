@@ -13,6 +13,8 @@ export enum Dialogs {
   FILE_RENAME,
   FILE_REPLACE,
   FILE_UPLOAD,
+
+  HELP_ABOUT,
 }
 
 export const appState: ApplicationState = $state({
