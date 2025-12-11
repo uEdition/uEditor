@@ -12,6 +12,7 @@
   import FileReplace from "./file/Replace.svelte";
   import FileUpload from "./file/Upload.svelte";
   import { appState, Dialogs } from "../../state.svelte";
+  import HelpAbout from "./help/About.svelte";
 </script>
 
 {#if appState.activeDialog === Dialogs.UEDITOR_NEW_BRANCH}
@@ -38,4 +39,6 @@
   <FileReplace />
 {:else if appState.activeDialog === Dialogs.FILE_UPLOAD}
   <FileUpload />
+{:else if appState.activeDialog === Dialogs.HELP_ABOUT}
+  <HelpAbout />
 {/if}
