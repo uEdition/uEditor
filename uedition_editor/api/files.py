@@ -142,15 +142,18 @@ def parse_metadata_node(node: etree.Element) -> dict:
     return result
 
 
-def parse_tei_attributes(attributes: etree._Attrib, settings: list[TEINodeAttribute]) -> list[dict]:
+def parse_tei_attributes(attributes: etree._Attrib, settings: list[TEINodeAttribute]) -> dict:
     """Parse the attributes of a node, extracting the attribute settings."""
     result = {}
     for conf in settings:
         if conf.name in attributes:
-            result[conf.name] = attributes[conf.name]
-            if conf.type == "id-ref":
-                while result[conf.name].startswith("#"):
-                    result[conf.name] = result[conf.name][1:]
+            if conf.type == "html-attribute":
+                result[conf.target] = attributes[conf.name]
+            else:
+                result[conf.name] = attributes[conf.name]
+                if conf.type == "id-ref":
+                    while result[conf.name].startswith("#"):
+                        result[conf.name] = result[conf.name][1:]
         else:
             result[conf.name] = conf.default
     return result

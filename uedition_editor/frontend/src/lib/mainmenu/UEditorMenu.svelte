@@ -6,116 +6,100 @@
     mdiSourceBranchRemove,
     mdiSourceBranchSync,
   } from "@mdi/js";
-  import { derived } from "svelte/store";
   import { useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
-  import { runAction } from "../actions/Index.svelte";
-  import { activeDialog, Dialogs } from "../dialogs/Index.svelte";
-  import { useApiStatus, useBranches, useCurrentBranch } from "../../stores";
   import { title } from "../../util";
+  import { appState, Dialogs } from "../../state.svelte";
+  import { runAction } from "../actions/util.svelte";
 
-  const apiStatus = useApiStatus();
-  const branches = useBranches();
-  const currentBranch = useCurrentBranch();
   const queryClient = useQueryClient();
-
-  const liveCurrentBranch = derived(
-    [branches, currentBranch],
-    ([branches, currentBranch]) => {
-      if (branches.isSuccess && currentBranch !== null) {
-        for (const branch of branches.data.local) {
-          if (branch.id === currentBranch.id) {
-            return branch;
-          }
-        }
-      }
-      return null;
-    },
-  );
 </script>
 
 <Menubar.Menu>
   <Menubar.Trigger
-    >μEditor{#if $currentBranch !== null}&nbsp;({$currentBranch.title}){/if}</Menubar.Trigger
+    >μEditor{#if appState.currentBranch !== null}&nbsp;({appState.currentBranch
+        .title}){/if}</Menubar.Trigger
   >
   <Menubar.Content>
-    {#if $apiStatus.isSuccess && $apiStatus.data.git.enabled}
+    {#if appState.apiStatus?.git.enabled}
       <Menubar.Item
-        on:click={() => {
-          activeDialog.set(Dialogs.UEDITOR_NEW_BRANCH);
+        onclick={() => {
+          appState.activeDialog = Dialogs.UEDITOR_NEW_BRANCH;
         }}
       >
         <Icon path={mdiSourceBranchPlus} class="w-4 h-4"></Icon>
         <span>New Branch</span>
       </Menubar.Item>
-      {#if $branches.isSuccess && $branches.data.remote.length > 0}
+      {#if appState.branches && appState.branches.remote.length > 0}
         <Menubar.Item
-          on:click={() => {
-            activeDialog.set(Dialogs.UEDITOR_IMPORT_REMOTE_BRANCH);
+          onclick={() => {
+            appState.activeDialog = Dialogs.UEDITOR_IMPORT_REMOTE_BRANCH;
           }}
         >
           <Icon class="w-4 h-4" />
           <span>Import Branch</span>
         </Menubar.Item>
       {/if}
-      <Menubar.Item
-        on:click={() => {
-          runAction({
-            action: "SynchroniseBranches",
-            callback: () => {
-              queryClient.invalidateQueries({ queryKey: ["branches"] });
-            },
-          });
-        }}
-      >
-        <Icon class="w-4 h-4" />
-        <span>Synchronise Branches</span>
-      </Menubar.Item>
+      {#if appState.branches}
+        <Menubar.Item
+          onclick={() => {
+            runAction({
+              action: "SynchroniseBranches",
+              callback: () => {
+                queryClient.invalidateQueries({ queryKey: ["branches"] });
+              },
+            });
+          }}
+        >
+          <Icon class="w-4 h-4" />
+          <span>Synchronise Branches</span>
+        </Menubar.Item>
+      {/if}
       <Menubar.Separator></Menubar.Separator>
-      {#if $liveCurrentBranch !== null}
-        {#if $liveCurrentBranch.update_from_default}
+      {#if appState.currentBranch}
+        {#if appState.currentBranch.update_from_default}
           <Menubar.Item
-            on:click={() => {
-              activeDialog.set(Dialogs.UEDITOR_MERGE_FROM_DEFAULT);
+            onclick={() => {
+              appState.activeDialog = Dialogs.UEDITOR_MERGE_FROM_DEFAULT;
             }}
           >
             <Icon path={mdiSourceBranchSync} class="w-4 h-4" />
             <span
               >Merge Updates from {title(
-                $apiStatus.data.git.default_branch,
+                appState.apiStatus?.git.default_branch as string
               )}</span
             >
           </Menubar.Item>
           <Menubar.Separator></Menubar.Separator>
         {/if}
-        {#if $apiStatus.data.git.default_branch !== $liveCurrentBranch.id}
+        {#if appState.apiStatus?.git.default_branch !== appState.currentBranch.id}
           <Menubar.Item
-            on:click={() => {
-              activeDialog.set(Dialogs.UEDITOR_DELETE_BRANCH);
+            onclick={() => {
+              appState.activeDialog = Dialogs.UEDITOR_DELETE_BRANCH;
             }}
           >
             <Icon path={mdiSourceBranchRemove} class="w-4 h-4"></Icon>
-            <span>Delete Branch {$liveCurrentBranch.title}</span>
+            <span>Delete Branch {appState.currentBranch.title}</span>
           </Menubar.Item>
           <Menubar.Separator></Menubar.Separator>
         {/if}
       {/if}
-      {#if $branches.isSuccess && $branches.data.local.length > 0}
+      {#if appState.branches !== null && appState.branches.local.length > 0}
         <Menubar.RadioGroup
           onValueChange={(value) => {
-            if ($branches.isSuccess) {
-              for (let branch of $branches.data.local) {
+            if (appState.branches !== null) {
+              for (let branch of appState.branches.local) {
                 if (branch.id === value) {
-                  currentBranch.set(branch);
+                  appState.currentBranch = branch;
                 }
               }
             }
           }}
         >
-          {#each $branches.data.local as branch}
+          {#each appState.branches.local as branch}
             <Menubar.RadioItem value={branch.id}>
-              {#if $currentBranch !== null && $currentBranch.id === branch.id}
+              {#if appState.currentBranch !== null && appState.currentBranch.id === branch.id}
                 <Icon path={mdiCheckCircle} class="w-4 h-4"></Icon>
               {:else}
                 <Icon class="w-4 h-4"></Icon>

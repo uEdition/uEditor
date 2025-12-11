@@ -3,14 +3,11 @@
   import { useQueryClient } from "@tanstack/svelte-query";
 
   import Base from "../Base.svelte";
-  import { currentFile, useCurrentBranch } from "../../../stores";
-  import { Dialogs, activeDialog } from "../Index.svelte";
+  import { appState } from "../../../state.svelte";
 
   const queryClient = useQueryClient();
-  const currentBranch = useCurrentBranch();
-  let open = false;
-  let newFileName = "";
-  let errorMessage = "";
+  let newFileName = $state("");
+  let errorMessage = $state("");
 
   async function createNewFile(ev: Event) {
     ev.preventDefault();
@@ -19,22 +16,21 @@
     } else {
       const response = await fetch(
         "/api/branches/" +
-          $currentBranch?.id +
+          appState.currentBranch?.id +
           "/files/" +
-          $currentFile?.fullpath +
+          appState.currentFile?.fullpath +
           "/" +
           newFileName,
         {
           method: "POST",
           headers: { "X-uEditor-New-Type": "file" },
-        }
+        },
       );
       if (response.ok) {
-        open = false;
         queryClient.invalidateQueries({
-          queryKey: ["branches", $currentBranch?.id, "files/"],
+          queryKey: ["branches", appState.currentBranch?.id, "files/"],
         });
-        activeDialog.set(Dialogs.NONE);
+        appState.activeDialog = null;
       } else {
         errorMessage = (await response.json()).detail[0].msg;
         errorMessage =
@@ -47,19 +43,17 @@
     if (open) {
       newFileName = "";
       errorMessage = "";
-    } else {
-      activeDialog.set(Dialogs.NONE);
     }
   }
 </script>
 
-<Base bind:open onOpenChange={openDialog}>
+<Base onOpenChange={openDialog}>
   <Dialog.Title
-    >Create a new File in "{$currentFile?.fullpath
-      ? $currentFile?.fullpath
+    >Create a new File in "{appState.currentFile?.fullpath
+      ? appState.currentFile?.fullpath
       : "/"}"</Dialog.Title
   >
-  <form data-dialog-content-area on:submit={createNewFile}>
+  <form data-dialog-content-area onsubmit={createNewFile}>
     <label>
       <span data-form-field-label>New Filename</span>
       <input bind:value={newFileName} type="text" data-form-field-text />
@@ -68,7 +62,7 @@
       {/if}
     </label>
     <div data-dialog-buttons>
-      <Dialog.Close data-button>Don't create</Dialog.Close>
+      <Dialog.Close type="button" data-button>Don't create</Dialog.Close>
       <button type="submit" data-button>Create</button>
     </div>
   </form>

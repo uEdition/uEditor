@@ -8,15 +8,19 @@
     mdiTrashCan,
   } from "@mdi/js";
   import { createTreeView } from "@melt-ui/svelte";
-  import { createEventDispatcher, setContext } from "svelte";
-  import { derived } from "svelte/store";
+  import { onDestroy, setContext } from "svelte";
 
   import Tree from "./TeiMetadataTree.svelte";
   import Icon from "../Icon.svelte";
 
-  export let section: TEIMetadataSection | null = null;
+  type TeiMetadataEditorProps = {
+    sectionName: string;
+    editorState: TEIEditorState;
+  };
 
-  const dispatch = createEventDispatcher();
+  const { sectionName, editorState }: TeiMetadataEditorProps = $props();
+  let selectedNode: TeiMetadataNode | null = $state(null);
+
   const ctx = createTreeView({ defaultExpanded: ["file-tree--1-0"] });
   setContext("tree", ctx);
 
@@ -42,21 +46,25 @@
     }
   }
 
-  const selectedNode = derived(selectedItem, (selectedItem) => {
-    if (selectedItem !== null && section) {
-      const dataId = selectedItem.getAttribute("data-id");
+  const selectedItemUnsubscribe = selectedItem.subscribe((selectedElement) => {
+    if (selectedElement !== null && editorState.sections[sectionName]) {
+      const dataId = selectedElement.getAttribute("data-id");
+      selectedNode = null;
       if (dataId) {
         const node = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           dataId,
         );
         if (node) {
-          return node;
+          selectedNode = node;
         }
       }
+    } else {
+      selectedNode = null;
     }
-    return null;
   });
+
+  onDestroy(selectedItemUnsubscribe);
 
   /**
    * Update the tag name of the node.
@@ -65,17 +73,16 @@
    */
   function updateTag(ev: Event) {
     ev.preventDefault();
-    if ($selectedItem !== null && section) {
+    if ($selectedItem !== null && editorState.sections[sectionName]) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const node = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           dataId,
         );
         if (node) {
           node.type = (ev.target as HTMLInputElement).value;
-          dispatch("update", section);
-          section = section;
+          editorState.notifyModified();
         }
       }
     }
@@ -88,16 +95,16 @@
    */
   function updateText(ev: Event) {
     ev.preventDefault();
-    if ($selectedItem !== null && section) {
+    if ($selectedItem !== null && editorState.sections[sectionName]) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const node = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           dataId,
         );
         if (node) {
           node.text = (ev.target as HTMLInputElement).value;
-          dispatch("update", section);
+          editorState.notifyModified();
         }
       }
     }
@@ -110,7 +117,7 @@
    */
   function addNewNode(ev: Event) {
     ev.preventDefault();
-    if (section) {
+    if (editorState.sections[sectionName]) {
       const newNode = {
         type: "newNode",
         text: "",
@@ -121,18 +128,18 @@
         const dataId = $selectedItem.getAttribute("data-id");
         if (dataId) {
           const node = findNodeByPath(
-            section as unknown as TeiMetadataNode,
+            editorState.sections[sectionName] as unknown as TeiMetadataNode,
             dataId,
           );
           if (node) {
             node.content.push(newNode);
+            editorState.notifyModified();
           }
         }
       } else {
-        section.content.push(newNode);
+        editorState.sections[sectionName].content.push(newNode);
+        editorState.notifyModified();
       }
-      dispatch("update", section);
-      section = section;
     }
   }
 
@@ -143,24 +150,24 @@
    */
   function deleteSelectedNode(ev: Event) {
     ev.preventDefault();
-    if (section && $selectedItem) {
+    if (editorState.sections[sectionName] && $selectedItem) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const idPath = dataId.split("-");
         const parentIdPath = idPath.slice(0, idPath.length - 1);
         const parent = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           parentIdPath.join("-"),
         );
         if (parent) {
           parent.content.splice(Number.parseInt(idPath[idPath.length - 1]), 1);
-          dispatch("update", section);
-          section = section;
         } else {
-          section.content.splice(Number.parseInt(idPath[idPath.length - 1]), 1);
-          dispatch("update", section);
-          section = section;
+          editorState.sections[sectionName].content.splice(
+            Number.parseInt(idPath[idPath.length - 1]),
+            1,
+          );
         }
+        editorState.notifyModified();
       }
     }
   }
@@ -172,13 +179,13 @@
    */
   function moveSelectedNodeUp(ev: Event) {
     ev.preventDefault();
-    if (section && $selectedItem) {
+    if (editorState.sections[sectionName] && $selectedItem) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const idPath = dataId.split("-");
         const parentIdPath = idPath.slice(0, idPath.length - 1);
         const parent = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           parentIdPath.join("-"),
         );
         const selectedIdx = Number.parseInt(idPath[idPath.length - 1]);
@@ -186,15 +193,19 @@
           const removed = parent.content.splice(selectedIdx, 1);
           parent.content.splice(selectedIdx - 1, 0, ...removed);
           selectedItem.set(null);
-          dispatch("update", section);
-          section = section;
         } else if (selectedIdx > 0) {
-          const removed = section.content.splice(selectedIdx, 1);
-          section.content.splice(selectedIdx - 1, 0, ...removed);
+          const removed = editorState.sections[sectionName].content.splice(
+            selectedIdx,
+            1,
+          );
+          editorState.sections[sectionName].content.splice(
+            selectedIdx - 1,
+            0,
+            ...removed,
+          );
           selectedItem.set(null);
-          dispatch("update", section);
-          section = section;
         }
+        editorState.notifyModified();
       }
     }
   }
@@ -206,13 +217,13 @@
    */
   function moveSelectedNodeDown(ev: Event) {
     ev.preventDefault();
-    if (section && $selectedItem) {
+    if (editorState.sections[sectionName] && $selectedItem) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const idPath = dataId.split("-");
         const parentIdPath = idPath.slice(0, idPath.length - 1);
         const parent = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           parentIdPath.join("-"),
         );
         const selectedIdx = Number.parseInt(idPath[idPath.length - 1]);
@@ -220,52 +231,57 @@
           const removed = parent.content.splice(selectedIdx, 1);
           parent.content.splice(selectedIdx + 1, 0, ...removed);
           selectedItem.set(null);
-          dispatch("update", section);
-          section = section;
-        } else if (selectedIdx < section.content.length - 1) {
-          const removed = section.content.splice(selectedIdx, 1);
-          section.content.splice(selectedIdx + 1, 0, ...removed);
+        } else if (
+          selectedIdx <
+          editorState.sections[sectionName].content.length - 1
+        ) {
+          const removed = editorState.sections[sectionName].content.splice(
+            selectedIdx,
+            1,
+          );
+          editorState.sections[sectionName].content.splice(
+            selectedIdx + 1,
+            0,
+            ...removed,
+          );
           selectedItem.set(null);
-          dispatch("update", section);
-          section = section;
         }
+        editorState.notifyModified();
       }
     }
   }
 
   function addAttribute(ev: Event) {
     ev.preventDefault();
-    if ($selectedItem !== null && section) {
+    if ($selectedItem !== null && editorState.sections[sectionName]) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const node = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           dataId,
         );
         if (node) {
           node.attrs.push({ type: "", value: "" });
-          dispatch("update", section);
-          section = section;
           selectedItem.set($selectedItem);
+          editorState.notifyModified();
         }
       }
     }
   }
   function updateAttributeName(ev: Event, idx: number) {
     ev.preventDefault();
-    if ($selectedItem !== null && section) {
+    if ($selectedItem !== null && editorState.sections[sectionName]) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const node = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           dataId,
         );
         if (node) {
           if (idx >= 0 && idx < node.attrs.length) {
             node.attrs[idx].type = (ev.target as HTMLInputElement).value;
-            dispatch("update", section);
-            section = section;
             selectedItem.set($selectedItem);
+            editorState.notifyModified();
           }
         }
       }
@@ -273,19 +289,18 @@
   }
   function updateAttributeValue(ev: Event, idx: number) {
     ev.preventDefault();
-    if ($selectedItem !== null && section) {
+    if ($selectedItem !== null && editorState.sections[sectionName]) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const node = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           dataId,
         );
         if (node) {
           if (idx >= 0 && idx < node.attrs.length) {
             node.attrs[idx].value = (ev.target as HTMLInputElement).value;
-            dispatch("update", section);
-            section = section;
             selectedItem.set($selectedItem);
+            editorState.notifyModified();
           }
         }
       }
@@ -294,43 +309,58 @@
 
   function deleteAttribute(ev: Event, idx: number) {
     ev.preventDefault();
+    if ($selectedItem !== null && editorState.sections[sectionName]) {
+      const dataId = $selectedItem.getAttribute("data-id");
+      if (dataId) {
+        const node = findNodeByPath(
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
+          dataId,
+        );
+        if (node) {
+          if (idx < node.attrs.length) {
+            node.attrs.splice(idx, 1);
+          }
+          editorState.notifyModified();
+        }
+      }
+    }
   }
 </script>
 
 <div class="flex flex-row w-full h-full overflow-auto">
   <div class="w-1/4 overflow-auto border-r border-gray-300">
-    {#if section}
+    {#if editorState.sections[sectionName]}
       <Toolbar.Root class="border-b border-gray-300">
-        <Toolbar.Button title="Add a metadata node" on:click={addNewNode}>
+        <Toolbar.Button title="Add a metadata node" onclick={addNewNode}>
           <Icon path={mdiPlus} />
         </Toolbar.Button>
         <Separator.Root class="border-r border-gray-300 mx-2" />
         <Toolbar.Button
           title="Move the selected metadata node up"
-          aria-disabled={$selectedNode !== null ? null : "true"}
-          on:click={moveSelectedNodeUp}
+          aria-disabled={selectedNode !== null ? null : "true"}
+          onclick={moveSelectedNodeUp}
         >
           <Icon path={mdiChevronUp} />
         </Toolbar.Button>
         <Toolbar.Button
           title="Move the selected metadata node down"
-          aria-disabled={$selectedNode !== null ? null : "true"}
-          on:click={moveSelectedNodeDown}
+          aria-disabled={selectedNode !== null ? null : "true"}
+          onclick={moveSelectedNodeDown}
         >
           <Icon path={mdiChevronDown} />
         </Toolbar.Button>
         <Toolbar.Button
           title="Remove the selected metadata node"
-          aria-disabled={$selectedNode !== null ? null : "true"}
-          on:click={deleteSelectedNode}
+          aria-disabled={selectedNode !== null ? null : "true"}
+          onclick={deleteSelectedNode}
         >
           <Icon path={mdiTrashCan} />
         </Toolbar.Button>
-        <div class="flex-1" />
+        <div class="flex-1"></div>
         <Toolbar.Button
           title="Clear the selection"
-          aria-disabled={$selectedNode !== null ? null : "true"}
-          on:click={() => {
+          aria-disabled={selectedNode !== null ? null : "true"}
+          onclick={() => {
             selectedItem.set(null);
           }}
         >
@@ -338,31 +368,31 @@
         </Toolbar.Button>
       </Toolbar.Root>
       <ol {...$tree}>
-        <Tree treeItems={section.content} />
+        <Tree treeItems={editorState.sections[sectionName].content} />
       </ol>
     {/if}
   </div>
   <div class="flex-1 px-2 py-1">
-    {#if $selectedNode}
+    {#if selectedNode}
       <label class="block mb-2">
         <span data-form-field-label>Tag</span>
         <input
           type="text"
-          value={$selectedNode.type}
+          value={selectedNode.type}
           data-form-field-text
-          on:change={updateTag}
+          onchange={updateTag}
         />
       </label>
       <label class="block mb-2">
         <span data-form-field-label>Text</span>
         <input
           type="text"
-          value={$selectedNode.text}
+          value={selectedNode.text}
           data-form-field-text
-          on:change={updateText}
+          onchange={updateText}
         />
       </label>
-      {#each $selectedNode.attrs as attr, idx}
+      {#each selectedNode.attrs as attr, idx}
         <div class="flex flex-row mb-2">
           <label class="flex-1">
             <span data-form-field-label>Name</span>
@@ -370,7 +400,7 @@
               type="text"
               value={attr.type}
               data-form-field-text
-              on:change={(ev) => {
+              onchange={(ev) => {
                 updateAttributeName(ev, idx);
               }}
             />
@@ -381,7 +411,7 @@
               type="text"
               value={attr.value}
               data-form-field-text
-              on:change={(ev) => {
+              onchange={(ev) => {
                 updateAttributeValue(ev, idx);
               }}
             />
@@ -389,8 +419,8 @@
           <Toolbar.Root class="border-b border-gray-300">
             <Toolbar.Button
               title="Move the selected metadata node up"
-              aria-disabled={$selectedNode !== null ? null : "true"}
-              on:click={(ev) => {
+              aria-disabled={selectedNode !== null ? null : "true"}
+              onclick={(ev) => {
                 deleteAttribute(ev, idx);
               }}
             >
@@ -401,7 +431,7 @@
       {/each}
       <Toolbar.Root>
         <div class="flex-1"></div>
-        <Toolbar.Button title="Add a metadata node" on:click={addAttribute}>
+        <Toolbar.Button title="Add a metadata node" onclick={addAttribute}>
           <Icon path={mdiPlus} />
         </Toolbar.Button>
       </Toolbar.Root>

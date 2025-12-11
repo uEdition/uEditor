@@ -1,13 +1,12 @@
 <script lang="ts">
-  import { useCurrentBranch, currentFile } from "../../stores";
-
-  const currentBranch = useCurrentBranch();
+  import { appState } from "../../state.svelte";
 </script>
 
 <div class="overflow-auto">
-  {#if $currentBranch !== null && $currentFile}
+  {#if appState.currentBranch !== null && appState.currentFile !== null}
     <img
-      src="/api/branches/{$currentBranch.id}/files/{$currentFile.fullpath}"
+      src="/api/branches/{appState.currentBranch.id}/files/{appState.currentFile
+        .fullpath}"
       alt=""
     />
   {/if}

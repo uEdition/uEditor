@@ -1,90 +1,54 @@
 <script lang="ts">
-  import { Combobox, Toolbar, Dialog } from "bits-ui";
-  import { mdiChevronDown, mdiChevronUp, mdiPlus, mdiTrashCan } from "@mdi/js";
-  import { createEventDispatcher, getContext, tick } from "svelte";
-  import type { CreateQueryResult } from "@tanstack/svelte-query";
+  import { Toolbar, Dialog } from "bits-ui";
+  import { mdiPlus, mdiTrashCan } from "@mdi/js";
   import { v1 as uuidv1 } from "uuid";
 
   import Icon from "../Icon.svelte";
   import TeiTextEditor from "./TeiTextEditor.svelte";
   import { textForFirstNodeOfTipTapDocument } from "../../util";
-  import { useConfiguredTEIBlocks, useUEditorConfig } from "../../stores";
+  import { appState } from "../../state.svelte";
 
-  export let section: TEITextlistSection | null = null;
-  export let sections: TEIDocument;
-  export let selectedEntryId: string | null | undefined;
-  export let editTextListEntry: (textlist: string, textlistId: string) => void;
+  type TeiTextListEditorProps = {
+    sectionName: string;
+    sectionConfig: UEditorTEITextListSection;
+    sectionContent: TEITextlistSection;
+    editorState: TEIEditorState;
+    jumpToTextlistDocument: (sectionName: string, documentId: string) => void;
+  };
 
-  const dispatch = createEventDispatcher();
-  const uEditorConfig = useUEditorConfig();
-  const configuredTEIBlocks = useConfiguredTEIBlocks();
-  let selected: { value: unknown; label?: string } = { value: null };
-  let texts = [] as TEITextlistDocument[];
-  let selectedDocument: TEITextSection | null = null;
-  let showDeleteText = false;
+  const {
+    sectionName,
+    sectionConfig,
+    sectionContent,
+    editorState,
+    jumpToTextlistDocument,
+  }: TeiTextListEditorProps = $props();
 
-  $: if (selectedEntryId && section) {
-    const tmp = texts.filter((text) => {
-      return (
-        text.attrs.id === selectedEntryId ||
-        text.attrs.id === selectedEntryId.substring(1)
-      );
-    });
-    if (tmp.length === 1) {
-      selected = {
-        value: tmp[0].attrs.id,
-        label: textForFirstNodeOfTipTapDocument(tmp[0].content),
-      };
-    }
-    selectedEntryId = null;
-  }
+  let selectedTextId: string | null = $state(null);
+  let selectedText: any = $state(null);
+  let showDeleteText: boolean = $state(false);
 
-  $: if (section !== null && section.content) {
-    texts = section.content;
-  } else {
-    texts = [];
-  }
-
-  $: if (selected.value !== null && section && section.content) {
-    const tmp = texts.filter((text) => {
-      return text.attrs.id === selected.value;
-    });
-    if (tmp.length === 1) {
-      selectedDocument = {
-        name: "",
-        title: "",
-        type: {
-          name: "",
-          title: "",
-          type: "text",
-          selector: "",
-          sidebar: section.type.sidebar,
-        },
-        content: tmp[0].content,
-      };
-    } else {
-      selectedDocument = null;
-    }
-  } else {
-    selectedDocument = null;
-  }
-
-  /**
-   * Update the selected document.
-   *
-   * @param ev The combobox event triggering the update.
-   */
-  function updateSelected(ev: CustomEvent) {
-    if (selected.value !== null && section && section.content) {
-      const tmp = texts.filter((text) => {
-        return text.attrs.id === selected.value;
-      });
-      if (tmp.length === 1) {
-        tmp[0].content = ev.detail;
+  $effect(() => {
+    if (selectedTextId !== null) {
+      selectedText = null;
+      for (const text of sectionContent.content) {
+        if (text.attrs["id"] === selectedTextId) {
+          selectedText = text;
+        }
       }
-      dispatch("update", texts);
     }
-  }
+  });
+
+  $effect(() => {
+    if (editorState.selectTextlistId !== null) {
+      for (const text of sectionContent.content) {
+        if (text.attrs["id"] === editorState.selectTextlistId) {
+          selectedTextId = editorState.selectTextlistId;
+          editorState.selectTextlistId = null;
+        }
+      }
+    }
+  });
 
   /**
    * Add a new text to the list of texts.
@@ -92,25 +56,22 @@
    * The text's structure is taken from the first block configured.
    */
   function addText() {
-    if ($configuredTEIBlocks.length > 0) {
+    if (appState.tei.blocks.length > 0) {
       const newText = {
-        attrs: { id: section?.name + "-" + uuidv1() },
+        attrs: { id: sectionName + "-" + uuidv1() },
         content: {
           type: "doc",
           content: [
             {
-              type: $configuredTEIBlocks[0].name as string,
+              type: appState.tei.blocks[0].name as string,
               attrs: {},
               content: [{ type: "text", marks: [], text: "New" }],
             },
           ],
         },
       } as TEITextlistDocument;
-      texts.push(newText);
-      dispatch("update", texts);
-      tick().then(() => {
-        selectedEntryId = newText.attrs.id;
-      });
+      sectionContent.content.push(newText);
+      selectedTextId = newText.attrs.id;
     }
   }
 
@@ -122,19 +83,12 @@
   function deleteText(ev: Event) {
     ev.preventDefault();
     showDeleteText = false;
-    let selectedIdx = -1;
-    for (let idx = 0; idx < texts.length; idx++) {
-      if (selected.value == texts[idx].attrs.id) {
-        selectedIdx = idx;
-        break;
-      }
-    }
-    if (selectedIdx >= 0) {
-      texts.splice(selectedIdx, 1);
-      selected = { value: null };
-      selectedDocument = null;
-      dispatch("update", texts);
-    }
+    sectionContent.content = sectionContent.content.filter((text) => {
+      return text.attrs.id !== selectedTextId;
+    });
+    selectedText = null;
+    selectedTextId = "";
+    editorState.notifyModified();
   }
 </script>
 
@@ -142,64 +96,44 @@
   <div
     class="flex flex-row items-center space-x-4 border-b border-gray-300 px-2 py-1"
   >
-    <Combobox.Root
-      items={texts.map((text) => {
-        return {
-          value: text.attrs["id"],
-          label: textForFirstNodeOfTipTapDocument(text.content),
-        };
-      })}
-      bind:selected
-    >
-      <div class="relative">
-        <Combobox.Input
-          placeholder="Select the text to edit"
-          aria-label="Select the text to edit"
-          class="relative pr-6 z-10 bg-transparent"
-        />
-        <div class="absolute top-1/2 right-0 -translate-y-1/2">
-          <Icon path={mdiChevronDown} class="w-6 h-6 combobox-expand" />
-          <Icon path={mdiChevronUp} class="w-6 h-6 combobox-collapse" />
-        </div>
-      </div>
-      <Combobox.Content>
-        {#each texts as text}
-          <Combobox.Item
-            value={text.attrs["id"]}
-            label={textForFirstNodeOfTipTapDocument(text.content)}
-            >{textForFirstNodeOfTipTapDocument(text.content)}</Combobox.Item
-          >
-        {/each}
-      </Combobox.Content>
-    </Combobox.Root>
+    <select bind:value={selectedTextId} data-combobox-input="">
+      {#each sectionContent.content as text}
+        <option value={text.attrs["id"]}
+          >{textForFirstNodeOfTipTapDocument(text.content)}</option
+        >
+      {/each}
+    </select>
     <Toolbar.Root>
       <Toolbar.Button
-        on:click={addText}
         aria-label="Add a text"
         title="Add a text"
+        onclick={addText}
       >
         <Icon path={mdiPlus} />
       </Toolbar.Button>
       <Toolbar.Button
-        on:click={() => {
-          showDeleteText = true;
-        }}
         aria-label="Delete the current text"
         title="Delete the current text"
-        aria-disabled={selected.value === null ? "true" : null}
+        aria-disabled={selectedTextId === null ? "true" : null}
+        onclick={() => {
+          showDeleteText = true;
+        }}
       >
         <Icon path={mdiTrashCan} />
       </Toolbar.Button>
     </Toolbar.Root>
   </div>
   <div class="flex-1 overflow-hidden">
-    {#if selectedDocument !== null}
-      <TeiTextEditor
-        section={selectedDocument}
-        {sections}
-        {editTextListEntry}
-        on:update={updateSelected}
-      />
+    {#if selectedText !== null}
+      {#key selectedText}
+        <TeiTextEditor
+          {sectionName}
+          {sectionConfig}
+          sectionContent={selectedText}
+          {editorState}
+          {jumpToTextlistDocument}
+        />
+      {/key}
     {/if}
   </div>
 </div>
@@ -210,12 +144,14 @@
     <Dialog.Overlay />
     <Dialog.Content>
       <Dialog.Title>Delete Text</Dialog.Title>
-      <form data-dialog-content-area on:submit={deleteText}>
+      <form data-dialog-content-area onsubmit={deleteText}>
         <p>
-          Please confirm that you wish to delete the text {selected.label}.
+          Please confirm that you wish to delete the text {#if selectedText !== null}{textForFirstNodeOfTipTapDocument(
+              selectedText.content,
+            )}{/if}.
         </p>
         <div data-dialog-buttons>
-          <Dialog.Close data-button>Don't delete</Dialog.Close>
+          <Dialog.Close type="button" data-button>Don't delete</Dialog.Close>
           <button type="submit" data-button>Delete</button>
         </div>
       </form>

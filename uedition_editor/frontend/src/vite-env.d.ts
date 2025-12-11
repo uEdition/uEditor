@@ -1,6 +1,31 @@
 /// <reference types="svelte" />
 /// <reference types="vite/client" />
 
+type ApplicationState = {
+  apiStatus: APIStatus | null;
+  currentUser: CurrentUser | null;
+  currentBranch: Branch | null;
+  currentFile: FileTreeEntry | null;
+  currentFileContent: string | null;
+  activeDialog: number | null;
+  branches: Branches | null;
+  uEditionConfig: UEditionSettings | null;
+  uEditorConfig: UEditorSettings | null;
+  actions: Action[];
+  tei: ApplicationTEIState;
+  ui: ApplicationUIState;
+};
+
+type ApplicationTEIState = {
+  blocks: UEditorTEINode[];
+  marks: UEditorTEINode[];
+};
+
+type ApplicationUIState = {
+  hasLoggedOut: boolean;
+  currentFileModified: boolean;
+};
+
 type APIStatus = {
   ready: boolean;
   git: {
@@ -23,7 +48,7 @@ type Branch = {
   id: string;
   title: string;
   nogit?: boolean;
-  update_from_default?: boolean
+  update_from_default?: boolean;
 };
 
 type Branches = {
@@ -266,9 +291,12 @@ type SynchroniseBranchesAction = {
   action: "SynchroniseBranches";
   status?: string;
   callback?: () => void;
-}
+};
 
-type Action = LoadTextFileAction | SaveCurrentFileAction | SynchroniseBranchesAction;
+type Action =
+  | LoadTextFileAction
+  | SaveCurrentFileAction
+  | SynchroniseBranchesAction;
 
 type TipTapAttribtes = { [key: string]: string };
 
@@ -335,3 +363,17 @@ type TEITextlistSection = {
 };
 
 type TEIDocument = (TEIMetadataSection | TEITextSection | TEITextlistSection)[];
+
+type TEIEditorState = {
+  sections: {
+    [name: string]: TEIMetadataSection | TEITextSection | TEITextlistSection;
+  };
+  loaded: boolean;
+  loading: boolean;
+  loadError: boolean;
+  loadedBranch: string;
+  loadedFilename: string;
+  currentTab: string;
+  selectTextlistId: string | null;
+  notifyModified: () => void;
+};

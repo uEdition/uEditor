@@ -4,10 +4,9 @@
   import { tick } from "svelte";
   import { useQueryClient } from "@tanstack/svelte-query";
 
-  import { currentFile, useCurrentBranch } from "../../../stores";
-  import { Dialogs, activeDialog } from "../Index.svelte";
   import Base from "../Base.svelte";
   import Icon from "../../Icon.svelte";
+  import { appState } from "../../../state.svelte";
 
   enum UploadStatus {
     READY = 0,
@@ -17,24 +16,11 @@
   }
 
   const queryClient = useQueryClient();
-  const currentBranch = useCurrentBranch();
-  let fileElement: HTMLInputElement | null = null;
-  let submitElement: HTMLButtonElement | null = null;
-  let dropFile = false;
-  let open = false;
-  let filesToUpload: [File, UploadStatus][] = [];
-  let uploadComplete = false;
-
-  /**
-   * Event handler for when the dialog opens/closes
-   *
-   * @param open Whether the dialog is open or closed
-   */
-  function openDialog(open: boolean) {
-    if (!open) {
-      activeDialog.set(Dialogs.NONE);
-    }
-  }
+  let fileElement: HTMLInputElement | null = $state(null);
+  let submitElement: HTMLButtonElement | null = $state(null);
+  let dropFile = $state(false);
+  let filesToUpload: [File, UploadStatus][] = $state([]);
+  let uploadComplete = $state(false);
 
   /**
    * Handle the form submission
@@ -93,9 +79,9 @@
       formData.append("content", upload[0]);
       const response = await fetch(
         "/api/branches/" +
-          $currentBranch?.id +
+          appState.currentBranch?.id +
           "/files/" +
-          $currentFile?.fullpath,
+          appState.currentFile?.fullpath,
         {
           method: "PUT",
           body: formData,
@@ -109,31 +95,31 @@
       filesToUpload = filesToUpload;
     }
     queryClient.invalidateQueries({
-      queryKey: ["branches", $currentBranch?.id, "files/"],
+      queryKey: ["branches", appState.currentBranch?.id, "files/"],
     });
-    const tmpCurrent = $currentFile;
-    currentFile.set(null);
+    const tmpCurrent = appState.currentFile;
+    appState.currentFile = null;
     await tick();
-    currentFile.set(tmpCurrent);
+    appState.currentFile = tmpCurrent;
     uploadComplete = true;
-    activeDialog.set(Dialogs.NONE);
+    appState.activeDialog = null;
   }
 </script>
 
-<Base bind:open onOpenChange={openDialog}>
+<Base>
   <Dialog.Title
     >{#if filesToUpload.length > 0}Uploading{:else}Replace{/if}
-    {$currentFile?.fullpath}"</Dialog.Title
+    {appState.currentFile?.fullpath}"</Dialog.Title
   >
   {#if filesToUpload.length === 0}
-    <form data-dialog-content-area on:submit={uploadFile}>
+    <form data-dialog-content-area onsubmit={uploadFile}>
       <label
-        on:drop={uploadDroppedFile}
-        on:dragover={(ev) => {
+        ondrop={uploadDroppedFile}
+        ondragover={(ev) => {
           ev.preventDefault();
           dropFile = true;
         }}
-        on:dragleave={() => {
+        ondragleave={() => {
           dropFile = false;
         }}
         class="flex justify-center items-center h-20 border-fuchsia-700 border-2 {dropFile
@@ -147,7 +133,7 @@
           bind:this={fileElement}
           type="file"
           class="sr-only"
-          on:change={() => {
+          onchange={() => {
             if (submitElement) {
               submitElement.click();
             }
@@ -190,9 +176,9 @@
         {/each}
       </ul>
       <div data-dialog-buttons="">
-        <Dialog.Close data-button
-          >{#if uploadComplete}Close{:else}Cancel upload{/if}</Dialog.Close
-        >
+        {#if uploadComplete}
+          <Dialog.Close data-button>Close</Dialog.Close>
+        {/if}
       </div>
     </div>
   {/if}

@@ -1,89 +1,63 @@
 <script lang="ts">
-  import { setContext } from "svelte";
-  import { derived } from "svelte/store";
   import { createQuery } from "@tanstack/svelte-query";
-
-  import { apiQueryHandler } from "../../util";
-  import { useCurrentBranch } from "../../stores";
   import { deepCopy } from "deep-copy-ts";
 
-  const currentBranch = useCurrentBranch();
+  import { apiQueryHandler } from "../../util";
+  import { appState } from "../../state.svelte";
 
-  const uEditionConfigQuery = derived(currentBranch, (currentBranch) => {
-    if (currentBranch !== null) {
-      return {
-        queryKey: ["branches", currentBranch.id, "configs", "uedition"],
-        queryFn: apiQueryHandler<UEditionSettings>,
-      };
+  const { children } = $props();
+
+  const uEditionConfig = createQuery(() => ({
+    queryKey: ["branches", appState.currentBranch?.id, "configs", "uedition"],
+    queryFn: apiQueryHandler<UEditionSettings>,
+    enabled: appState.currentBranch !== null,
+  }));
+
+  const uEditorConfig = createQuery(() => ({
+    queryKey: ["branches", appState.currentBranch?.id, "configs", "ueditor"],
+    queryFn: apiQueryHandler<UEditorSettings>,
+    enabled: appState.currentBranch !== null,
+  }));
+
+  $effect(() => {
+    if (uEditionConfig.isSuccess) {
+      appState.uEditionConfig = uEditionConfig.data;
     } else {
-      return {
-        queryKey: ["branches", "-", "configs", "uedition"],
-        queryFn: apiQueryHandler<UEditionSettings>,
-        enabled: currentBranch !== null,
-      };
+      appState.uEditionConfig = null;
+    }
+    if (uEditorConfig.isSuccess) {
+      appState.uEditorConfig = uEditorConfig.data;
+    } else {
+      appState.uEditorConfig = null;
+    }
+    if (uEditionConfig.isSuccess && uEditorConfig.isSuccess) {
+      if (
+        uEditionConfig.data.sphinx_config &&
+        uEditionConfig.data.sphinx_config.tei &&
+        uEditionConfig.data.sphinx_config.tei.blocks
+      ) {
+        appState.tei.blocks = deepCopy(
+          uEditionConfig.data.sphinx_config.tei.blocks,
+        ).concat(deepCopy(uEditorConfig.data.tei.blocks));
+      } else {
+        appState.tei.blocks = deepCopy(uEditorConfig.data.tei.blocks);
+      }
+      if (
+        uEditionConfig.data.sphinx_config &&
+        uEditionConfig.data.sphinx_config.tei &&
+        uEditionConfig.data.sphinx_config.tei.marks
+      ) {
+        appState.tei.marks = deepCopy(
+          uEditionConfig.data.sphinx_config.tei.marks,
+        ).concat(deepCopy(uEditorConfig.data.tei.marks));
+      } else {
+        appState.tei.marks = deepCopy(uEditorConfig.data.tei.marks);
+      }
+    } else {
+      appState.tei.blocks = [];
+      appState.tei.marks = [];
     }
   });
-  const uEditionConfig = createQuery(uEditionConfigQuery);
-  setContext("uEditionConfig", uEditionConfig);
-
-  const uEditorConfigQuery = derived(currentBranch, (currentBranch) => {
-    if (currentBranch !== null) {
-      return {
-        queryKey: ["branches", currentBranch.id, "configs", "ueditor"],
-        queryFn: apiQueryHandler<UEditorSettings>,
-      };
-    } else {
-      return {
-        queryKey: ["branches", "-", "configs", "ueditor"],
-        queryFn: apiQueryHandler<UEditorSettings>,
-        enabled: false,
-      };
-    }
-  });
-  const uEditorConfig = createQuery(uEditorConfigQuery);
-  setContext("uEditorConfig", uEditorConfig);
-
-  const configuredTEIBlocks = derived(
-    [uEditionConfig, uEditorConfig],
-    ([uEditionConfig, uEditorConfig]) => {
-      if (uEditionConfig.isSuccess && uEditorConfig.isSuccess) {
-        let configuredBlocks = deepCopy(uEditorConfig.data.tei.blocks);
-        if (
-          uEditionConfig.data.sphinx_config &&
-          uEditionConfig.data.sphinx_config.tei &&
-          uEditionConfig.data.sphinx_config.tei.blocks
-        ) {
-          configuredBlocks = configuredBlocks.concat(
-            deepCopy(uEditionConfig.data.sphinx_config.tei.blocks),
-          );
-        }
-        return configuredBlocks;
-      }
-      return [];
-    },
-  );
-  setContext("configuredTEIBlocks", configuredTEIBlocks);
-
-  const configuredTEIMarks = derived(
-    [uEditionConfig, uEditorConfig],
-    ([uEditionConfig, uEditorConfig]) => {
-      if (uEditionConfig.isSuccess && uEditorConfig.isSuccess) {
-        let configuredMarks = deepCopy(uEditorConfig.data.tei.marks);
-        if (
-          uEditionConfig.data.sphinx_config &&
-          uEditionConfig.data.sphinx_config.tei &&
-          uEditionConfig.data.sphinx_config.tei.marks
-        ) {
-          configuredMarks = configuredMarks.concat(
-            deepCopy(uEditionConfig.data.sphinx_config.tei.marks),
-          );
-        }
-        return configuredMarks;
-      }
-      return [];
-    },
-  );
-  setContext("configuredTEIMarks", configuredTEIMarks);
 </script>
 
-<slot></slot>
+{@render children()}

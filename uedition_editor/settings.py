@@ -85,6 +85,7 @@ class InitSettings(BaseSettings):
     session: SessionSettings = SessionSettings()
     git: GitSettings = GitSettings()
     test: bool = False
+    dev: bool = False
 
     @model_validator(mode="after")
     def git_auth_check(self) -> Self:
@@ -186,6 +187,21 @@ class TEINodeAttribute(BaseModel):
     """The default value to use if none is set."""
 
 
+class TEINodeHTMLAttribute(BaseModel):
+    """Single attribute for a TEINode that is a copz to an HTML attribute."""
+
+    name: str
+    """The name of the attribute."""
+    value: str | None = None
+    """A fixed value to use for the attribute."""
+    type: Literal["html-attribute"]
+    """The type of attribute this is."""
+    default: str = ""
+    """The default value to use if none is set."""
+    target: str | None = None
+    """The target attribute name for html-attributes."""
+
+
 class TEINode(BaseModel):
     """A single node in a TEI document."""
 
@@ -193,7 +209,7 @@ class TEINode(BaseModel):
     """The name to use to address this node."""
     selector: str
     """The selector to identify this node."""
-    attributes: list[TEINodeAttribute] = []
+    attributes: list[TEINodeAttribute | TEINodeHTMLAttribute] = []
     """A list of attributes that are used on this node."""
     tag: Optional[str] = None
     """The HTML tag to use to render the node."""
