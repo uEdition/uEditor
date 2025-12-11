@@ -1,4 +1,5 @@
 @import "tailwindcss";
+
   /**
    * Button components
    */
@@ -37,7 +38,7 @@
   }
 
   [data-toolbar-button] {
-    @apply p-1 border-2 border-transparent rounded text-black hover:border-fuchsia-700 focus:border-fuchsia-700;
+    @apply p-1 border-2 border-transparent rounded text-black hover:border-fuchsia-700 focus:border-fuchsia-700 cursor-pointer;
   }
 
   [data-toolbar-button][aria-disabled="true"] {
@@ -125,35 +126,7 @@
   }
 
   [data-combobox-input] {
-    @apply block px-3 py-2 border transition-colors border-slate-300 focus:border-fuchsia-700 rounded;
-  }
-
-  [data-combobox-input][aria-expanded="true"]+div svg.combobox-expand {
-    @apply hidden;
-  }
-
-  [data-combobox-input][aria-expanded="true"]+div svg.combobox-collapse {
-    @apply block;
-  }
-
-  [data-combobox-input][aria-expanded="false"]+div svg.combobox-expand {
-    @apply block;
-  }
-
-  [data-combobox-input][aria-expanded="false"]+div svg.combobox-collapse {
-    @apply hidden;
-  }
-
-  [data-combobox-content] {
-    @apply z-50 bg-white shadow-lg max-h-[50vh] overflow-y-auto;
-  }
-
-  [data-combobox-item] {
-    @apply w-full px-3 py-1 cursor-pointer data-[highlighted]:bg-gray-300 border-l border-r last:border-b border-slate-300 aria-selected:font-bold;
-  }
-
-  [data-combobox-indicator] {
-    @apply h-full w-px border-l-4 border-l-fuchsia-700;
+    @apply block px-3 py-2 border transition-colors border-slate-300 focus:border-fuchsia-700 rounded-l;
   }
 
   /**

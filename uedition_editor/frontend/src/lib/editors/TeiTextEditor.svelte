@@ -1,45 +1,39 @@
 <script lang="ts">
-  import { Combobox, Toolbar, Separator, type Selected, Button } from "bits-ui";
-  import { deepCopy } from "deep-copy-ts";
-  import { mdiChevronDown, mdiChevronUp, mdiPencil } from "@mdi/js";
-  import { onMount, getContext, createEventDispatcher } from "svelte";
+  import { Toolbar, Separator, type Selected } from "bits-ui";
+  import { mdiPencil } from "@mdi/js";
+  import { onMount } from "svelte";
   import { Editor, Node, Mark } from "@tiptap/core";
   import { Document } from "@tiptap/extension-document";
   import { Text } from "@tiptap/extension-text";
-  import type { CreateQueryResult } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
   import { textForFirstNodeOfTipTapDocument } from "../../util";
-  import { useConfiguredTEIBlocks, useConfiguredTEIMarks } from "../../stores";
+  import { appState } from "../../state.svelte";
 
-  export let section: TEITextSection | null = null;
-  export let sections: TEIDocument;
-  export let sectionsDict: {
-    [name: string]: TEIMetadataSection | TEITextSection | TEITextlistSection;
-  } = {};
-  export let editTextListEntry: (textlist: string, textlistId: string) => void;
+  type TeiTextEditorProps = {
+    sectionName: string;
+    sectionConfig: UEditorTEITextSection;
+    sectionContent: TEITextSection;
+    editorState: TEIEditorState;
+    jumpToTextlistDocument: (sectionName: string, documentId: string) => void;
+  };
 
-  const dispatch = createEventDispatcher();
-  const uEditorConfig = getContext(
-    "uEditorConfig",
-  ) as CreateQueryResult<UEditorSettings>;
-  const uEditionConfig = getContext(
-    "uEditionConfig",
-  ) as CreateQueryResult<UEditionSettings>;
-  const configuredBlocks = useConfiguredTEIBlocks();
-  const configuredMarks = useConfiguredTEIMarks();
-  let editorElement: HTMLElement | null = null;
-  let editor: Editor | null = null;
+  let {
+    sectionName,
+    sectionConfig,
+    sectionContent,
+    editorState,
+    jumpToTextlistDocument,
+  }: TeiTextEditorProps = $props();
+
+  let editorElement: HTMLElement | null = $state(null);
+  let editor: { editor: Editor | null } = $state({ editor: null });
   let updateDebounce = -1;
 
   onMount(() => {
-    if (
-      editorElement !== null &&
-      $uEditorConfig.isSuccess &&
-      $uEditionConfig.isSuccess
-    ) {
+    if (editorElement !== null) {
       const extensions: (Node | Mark)[] = [Document, Text];
-      for (let blockConfig of $configuredBlocks) {
+      for (let blockConfig of appState.tei.blocks) {
         extensions.push(
           Node.create({
             name: blockConfig.name,
@@ -70,7 +64,7 @@
           }),
         );
       }
-      for (let markConfig of $configuredMarks) {
+      for (let markConfig of appState.tei.marks) {
         extensions.push(
           Mark.create({
             name: markConfig.name,
@@ -99,41 +93,23 @@
           }),
         );
       }
-      editor = new Editor({
+      editor.editor = new Editor({
         element: editorElement,
         extensions: extensions,
-        content: section?.content,
-        onTransaction: ({ transaction }) => {
-          editor = editor;
-          if (transaction.docChanged) {
+        content: sectionContent.content,
+        onTransaction: (params) => {
+          editor = { editor: params.editor };
+          if (params.transaction.docChanged) {
             window.clearTimeout(updateDebounce);
             updateDebounce = window.setTimeout(() => {
-              if (editor) {
-                dispatch("update", editor.getJSON());
-              }
+              sectionContent.content = params.editor.getJSON();
+              editorState.notifyModified();
             }, 100);
           }
         },
       });
     }
   });
-
-  function reloadContent() {
-    if (section !== null && editor !== null) {
-      editor.commands.setContent(section.content);
-    }
-  }
-  $: if (section) {
-    reloadContent();
-  }
-
-  $: if (sections) {
-    sectionsDict = Object.fromEntries(
-      sections.map((section) => {
-        return [section.name, section];
-      }),
-    );
-  }
 
   function runAction(
     editor: Editor | null,
@@ -171,7 +147,8 @@
           .focus()
           .extendMarkRange(action.mark)
           .updateAttributes(action.mark, {
-            [action.name]: (evOrSelected as Selected<string>).value,
+            [action.name]: ((evOrSelected as Event).target as HTMLSelectElement)
+              .value,
           })
           .run();
       } else if (
@@ -194,50 +171,44 @@
   function crossReferenceItems(
     item: UEditorTEISelectCrossReferenceMarkAttribute,
   ) {
-    if (sectionsDict[item.section].type.type === "textlist") {
-      return (sectionsDict[item.section] as TEITextlistSection).content.map(
-        (text) => {
-          return {
-            value: text.attrs["id"],
-            label: textForFirstNodeOfTipTapDocument(text.content),
-          };
-        },
-      );
+    if (editorState.sections[item.section].type.type === "textlist") {
+      return (
+        editorState.sections[item.section] as TEITextlistSection
+      ).content.map((text) => {
+        return {
+          value: text.attrs["id"],
+          label: textForFirstNodeOfTipTapDocument(text.content),
+        };
+      });
     }
     return [];
   }
 
-  function crossReferenceSelectedItem(
+  function crossReferenceItemLabel(
     item: UEditorTEISelectCrossReferenceMarkAttribute,
   ) {
-    if (sectionsDict[item.section].type.type === "textlist" && editor) {
-      const tmp = (
-        sectionsDict[item.section] as TEITextlistSection
-      ).content.filter((text) => {
-        return (
-          text.attrs["id"] === editor?.getAttributes(item.mark)[item.name] ||
-          text.attrs["id"] ===
-            editor?.getAttributes(item.mark)[item.name].substring(1)
-        );
-      });
-      if (tmp.length === 1) {
-        return {
-          value: editor.getAttributes(item.mark)[item.name],
-          label: textForFirstNodeOfTipTapDocument(tmp[0].content),
-        };
+    if (editorState.sections[item.section].type.type === "textlist") {
+      for (const text of (
+        editorState.sections[item.section] as TEITextlistSection
+      ).content) {
+        if (
+          text.attrs["id"] == editor.editor?.getAttributes(item.mark)[item.name]
+        ) {
+          return textForFirstNodeOfTipTapDocument(text.content);
+        }
       }
     }
-    return undefined;
+    return "";
   }
 </script>
 
 <div class="flex flex-row w-full h-full overflow-hidden">
   <div class="flex-1 overflow-auto px-3 py-2" bind:this={editorElement}></div>
   <div class="w-3/12 px-3 py-2 border-l border-gray-300 overflow-auto">
-    {#if section && section.type.sidebar && editor}
-      {#each section.type.sidebar as sidebarBlock}
-        {#if !sidebarBlock.condition || editor.isActive(sidebarBlock.condition.node)}
-          <section class="mb-4">
+    {#if editorState.sections[sectionName] && sectionConfig.sidebar && editor.editor}
+      {#each sectionConfig.sidebar as sidebarBlock}
+        {#if !sidebarBlock.condition || editor.editor.isActive(sidebarBlock.condition.node)}
+          <sectionConfig class="mb-4">
             <h2 class="font-bold mb-2">{sidebarBlock.title}</h2>
             {#if sidebarBlock.type === "toolbar"}
               <Toolbar.Root class="flex-wrap">
@@ -246,15 +217,15 @@
                     <Toolbar.Button
                       aria-pressed={((item.type === "set-block" ||
                         item.type === "toggle-wrap-block") &&
-                        editor.isActive(item.block)) ||
+                        editor.editor.isActive(item.block)) ||
                         (item.type === "set-block-attribute" &&
-                          editor.isActive(item.block, {
+                          editor.editor.isActive(item.block, {
                             [item.name]: item.value,
                           })) ||
                         (item.type === "toggle-mark" &&
-                          editor.isActive(item.mark))}
-                      on:click={(ev) => {
-                        runAction(editor, item, ev);
+                          editor.editor.isActive(item.mark))}
+                      onclick={(ev) => {
+                        runAction(editor.editor, item, ev);
                       }}
                       title={item.title}
                     >
@@ -278,9 +249,11 @@
                       <label>
                         <span class="sr-only">{item.title}</span>
                         <select
-                          value={editor.getAttributes(item.block)[item.name]}
-                          on:change={(ev) => {
-                            runAction(editor, item, ev);
+                          value={editor.editor.getAttributes(item.block)[
+                            item.name
+                          ]}
+                          onchange={(ev) => {
+                            runAction(editor.editor, item, ev);
                           }}
                           data-combobox-input=""
                           class="bg-white"
@@ -296,61 +269,39 @@
                       <span data-form-field-label>{item.title}</span>
                       <input
                         type="text"
-                        value={editor.getAttributes(item.block)[item.name]}
+                        value={editor.editor.getAttributes(item.block)[
+                          item.name
+                        ]}
                         data-form-field-text
-                        on:change={(ev) => {
-                          runAction(editor, item, ev);
+                        onchange={(ev) => {
+                          runAction(editor.editor, item, ev);
                         }}
                       />
                     </label>
                   {:else if item.type === "select-cross-reference-attribute"}
                     <div class="flex flex-row flex-wrap">
-                      {#key editor}
-                        <Combobox.Root
-                          selected={crossReferenceSelectedItem(item)}
-                          items={crossReferenceItems(item)}
-                          onSelectedChange={(value) => {
-                            runAction(editor, item, value);
-                          }}
-                        >
-                          <div class="relative">
-                            <Combobox.Input
-                              placeholder="Select the text to edit"
-                              aria-label="Select the text to edit"
-                              class="relative pr-6 z-10 bg-transparent"
-                            />
-                            <div
-                              class="absolute top-1/2 right-0 -translate-y-1/2"
-                            >
-                              <Icon
-                                path={mdiChevronDown}
-                                class="w-6 h-6 combobox-expand"
-                              />
-                              <Icon
-                                path={mdiChevronUp}
-                                class="w-6 h-6 combobox-collapse"
-                              />
-                            </div>
-                          </div>
-                          <Combobox.Content>
-                            {#if sectionsDict[item.section].type.type === "textlist"}
-                              {#each crossReferenceItems(item) as entry}
-                                <Combobox.Item
-                                  value={entry.value}
-                                  label={entry.label}
-                                  >{entry.label}</Combobox.Item
-                                >
-                              {/each}
-                            {/if}
-                          </Combobox.Content>
-                        </Combobox.Root>
-                      {/key}
+                      <select
+                        value={editor.editor.getAttributes(item.mark)[
+                          item.name
+                        ]}
+                        onchange={(ev) => {
+                          runAction(editor.editor, item, ev);
+                        }}
+                        data-combobox-input=""
+                        class="block max-w-48"
+                      >
+                        {#each crossReferenceItems(item) as entry}
+                          <option value={entry.value}>{entry.label}</option>
+                        {/each}
+                      </select>
                       <Toolbar.Root class="flex-wrap">
                         <Toolbar.Button
-                          on:click={() => {
-                            editTextListEntry(
+                          onclick={() => {
+                            jumpToTextlistDocument(
                               item.section,
-                              editor?.getAttributes(item.mark)[item.name],
+                              editor.editor?.getAttributes(item.mark)[
+                                item.name
+                              ],
                             );
                           }}
                           title="Edit the selected entry"
@@ -367,21 +318,25 @@
                       <span data-form-field-label>{item.title}</span>
                       <input
                         type="text"
-                        value={editor.getAttributes(item.mark)[item.name]}
+                        value={editor.editor.getAttributes(item.mark)[
+                          item.name
+                        ]}
                         data-form-field-text
-                        on:change={(ev) => {
-                          runAction(editor, item, ev);
+                        onchange={(ev) => {
+                          runAction(editor.editor, item, ev);
                         }}
                       />
                     </label>
                   {:else if item.type === "select-mark-attribute"}
-                    {#key editor}
+                    {#key editor.editor}
                       <label>
                         <span class="sr-only">{item.title}</span>
                         <select
-                          value={editor.getAttributes(item.mark)[item.name]}
-                          on:change={(ev) => {
-                            runAction(editor, item, ev);
+                          value={editor.editor.getAttributes(item.mark)[
+                            item.name
+                          ]}
+                          onchange={(ev) => {
+                            runAction(editor.editor, item, ev);
                           }}
                           data-combobox-input=""
                           class="bg-white"
@@ -396,7 +351,7 @@
                 {/each}
               </div>
             {/if}
-          </section>
+          </sectionConfig>
         {/if}
       {/each}
     {/if}

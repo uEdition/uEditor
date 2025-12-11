@@ -74,6 +74,7 @@
       );
       appState.currentFile = selectedFileTreeEntry;
       if (appState.currentFile !== null) {
+        appState.currentFileContent = null;
         setApplicationParameter("path", appState.currentFile.fullpath);
       } else {
         deleteApplicationParameter("path");

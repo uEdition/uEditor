@@ -1,9 +1,5 @@
 <script lang="ts">
-  import deepEql from "deep-eql";
-  import type { CreateQueryResult } from "@tanstack/svelte-query";
   import { Tabs } from "bits-ui";
-  import { getContext, onDestroy } from "svelte";
-  import { derived } from "svelte/store";
 
   import { runAction } from "../actions/Index.svelte";
   import LoadingIndicator from "../LoadingIndicator.svelte";
@@ -12,17 +8,30 @@
   import TeiTextListEditor from "./TeiTextListEditor.svelte";
   import { appState } from "../../state.svelte";
 
-  let teiDocument: TEIDocument | null = $state(null);
-  let loading = $state(false);
-  let loadingError = $state(false);
-  let currentTab = $state("");
+  const editorState: TEIEditorState = $state({
+    sections: {},
+    loaded: false,
+    loading: false,
+    loadError: false,
+    currentTab: "",
+    selectTextlistId: null,
+    notifyModified() {
+      const doc = [];
+      for (let section of appState.uEditorConfig.tei.sections) {
+        doc.push(editorState.sections[section.name]);
+      }
+      appState.currentFileContent = JSON.stringify(doc);
+      appState.ui.currentFileModified = true;
+    },
+  });
 
   $effect(() => {
     if (appState.currentBranch !== null && appState.currentFile !== null) {
       appState.currentFileContent = null;
       appState.ui.currentFileModified = false;
-      loading = true;
-      loadingError = false;
+      editorState.loaded = false;
+      editorState.loading = true;
+      editorState.loadError = false;
       runAction({
         action: "LoadTextFile",
         branch: appState.currentBranch,
@@ -31,133 +40,34 @@
           try {
             appState.currentFileContent = data;
             const tmpDocument = JSON.parse(data);
-            teiDocument = [];
-            currentTab = "";
+            editorState.sections = {};
+            editorState.currentTab = "";
             for (let section of appState.uEditorConfig.tei.sections) {
-              if (currentTab === "") {
-                currentTab = section.name;
+              if (editorState.currentTab === "") {
+                editorState.currentTab = section.name;
               }
               for (let part of tmpDocument) {
                 if (section.name === part.name) {
                   part.type = section;
-                  teiDocument.push(part);
+                  editorState.sections[section.name] = part;
                   break;
                 }
               }
             }
-            loading = true;
+            editorState.loading = false;
+            editorState.loaded = true;
           } catch (e) {
             console.error(e);
-            loadingError = true;
+            editorState.loading = false;
+            editorState.loadError = true;
           }
         },
       });
     } else {
-      teiDocument = null;
+      editorState.sections = {};
+      editorState.loaded = false;
     }
   });
-
-  $effect(() => {
-    if (teiDocument !== null) {
-      const tmp = JSON.stringify(teiDocument);
-      if (tmp !== appState.currentFileContent) {
-        appState.currentFileContent = tmp;
-        appState.ui.currentFileModified = true;
-      }
-    }
-  });
-  // let updatedDocument: TEIDocument = [];
-  // let updateDebounce = -1;
-  // let initialDocument: TEIDocument = [];
-  // let loadingError = false;
-  // let selectedTab = "";
-  // let textlistSelectedEntry = {} as { [key: string]: string };
-
-  // const uEditorConfig = getContext(
-  //   "uEditorConfig",
-  // ) as CreateQueryResult<UEditorSettings>;
-  // const currentBranch = useCurrentBranch();
-  // const apiStatus = useApiStatus();
-
-  // const teiDocument = derived(
-  //   [uEditorConfig, currentFile],
-  //   ([uEditorConfig, currentFile], set) => {
-  //     if (
-  //       uEditorConfig.isSuccess &&
-  //       currentFile &&
-  //       currentFile.name.endsWith(".tei")
-  //     ) {
-  //       loadingError = false;
-  //       initialDocument = [];
-  //       updatedDocument = [];
-  //       set(null);
-  //       currentFileContent.set(null);
-  //       currentFileModified.set(false);
-  //       runAction({
-  //         action: "LoadTextFile",
-  //         branch: $currentBranch,
-  //         filename: currentFile.fullpath,
-  //         callback: (data: string) => {
-  //           try {
-  //             updatedDocument = JSON.parse(data);
-  //             initialDocument = JSON.parse(data);
-  //             currentFileContent.set(data);
-  //             currentFileModified.set(false);
-  //             const tmpDocument = JSON.parse(data);
-  //             const newSections: TEIDocument = [];
-  //             for (let section of uEditorConfig.data.tei.sections) {
-  //               for (let part of tmpDocument) {
-  //                 if (section.name === part.name) {
-  //                   part.type = section;
-  //                   newSections.push(part);
-  //                   break;
-  //                 }
-  //               }
-  //             }
-  //             set(newSections);
-  //             selectedTab = "";
-  //           } catch (e) {
-  //             loadingError = true;
-  //             set(null);
-  //           }
-  //         },
-  //       });
-  //     }
-  //   },
-  //   null as null | TEIDocument,
-  // );
-
-  // const currentFileModifiedUnsubscribe = currentFileModified.subscribe(
-  //   (currentFileModified) => {
-  //     if (!currentFileModified && $currentFileContent) {
-  //       try {
-  //         initialDocument = JSON.parse($currentFileContent);
-  //       } catch (e) {}
-  //     }
-  //   },
-  // );
-
-  // function updateDocumentSection(idx: number, ev: CustomEvent) {
-  //   if (
-  //     (updatedDocument[idx].type as any as string) === "text" ||
-  //     (updatedDocument[idx].type as any as string) === "textlist"
-  //   ) {
-  //     (updatedDocument[idx] as TEITextSection | TEITextlistSection).content =
-  //       ev.detail;
-  //   } else if ((updatedDocument[idx].type as any as string) === "metadata") {
-  //     (updatedDocument[idx] as TEITextSection | TEITextlistSection).content =
-  //       ev.detail.content;
-  //   }
-  //   window.clearTimeout(updateDebounce);
-  //   updateDebounce = window.setTimeout(() => {
-  //     if (!deepEql(updatedDocument, initialDocument)) {
-  //       currentFileContent.set(JSON.stringify(updatedDocument));
-  //       currentFileModified.set(true);
-  //     } else {
-  //       currentFileModified.set(false);
-  //     }
-  //   }, 100);
-  // }
 
   function shortCutTracker(ev: KeyboardEvent) {
     if (
@@ -184,56 +94,49 @@
       }
     }
   }
-
-  // function editTextListEntry(textlist: string, textlistEntryId: string) {
-  //   selectedTab = textlist;
-  //   textlistSelectedEntry[textlist] = textlistEntryId;
-  //   textlistSelectedEntry = textlistSelectedEntry;
-  // }
-
-  // onDestroy(currentFileModifiedUnsubscribe);
 </script>
 
 <h1 class="sr-only">{appState.currentFile?.name}</h1>
-{#if teiDocument}
+{#if editorState.loaded}
   <div class="flex-1 flex overflow-hidden" onkeydown={shortCutTracker}>
-    <Tabs.Root bind:value={currentTab} class="flex-1 flex flex-col">
+    <Tabs.Root bind:value={editorState.currentTab} class="flex-1 flex flex-col">
       <Tabs.List>
-        {#each teiDocument as section}
-          <Tabs.Trigger value={section.type.name}
-            >{section.type.title}</Tabs.Trigger
-          >
+        {#each appState.uEditorConfig?.tei.sections as section}
+          <Tabs.Trigger value={section.name}>{section.title}</Tabs.Trigger>
         {/each}
       </Tabs.List>
-      {#each teiDocument as section, idx}
-        <Tabs.Content value={section.type.name} class="flex-1 overflow-hidden">
-          {#if section.type.type === "metadata"}
-            <TeiMetadataEditor {section}></TeiMetadataEditor>
-          {:else if section.type.type === "text"}
-            <!-- <TeiTextEditor
-              {section}
-              sections={$teiDocument}
-              {editTextListEntry}
-              on:update={(ev) => {
-                updateDocumentSection(idx, ev);
+      {#each appState.uEditorConfig?.tei.sections as section}
+        <Tabs.Content value={section.name} class="flex-1 overflow-hidden">
+          {#if section.type === "metadata"}
+            <TeiMetadataEditor sectionName={section.name} {editorState} />
+          {:else if section.type === "text"}
+            <TeiTextEditor
+              sectionName={section.name}
+              sectionConfig={section}
+              sectionContent={editorState.sections[section.name]}
+              {editorState}
+              jumpToTextlistDocument={(targetName, targetId) => {
+                editorState.currentTab = targetName;
+                editorState.selectTextlistId = targetId;
               }}
-            /> -->
-          {:else if section.type.type === "textlist"}
-            <!-- <TeiTextListEditor
-              {section}
-              sections={$teiDocument}
-              {editTextListEntry}
-              selectedEntryId={textlistSelectedEntry[section.name]}
-              on:update={(ev) => {
-                updateDocumentSection(idx, ev);
+            />
+          {:else if section.type === "textlist"}
+            <TeiTextListEditor
+              sectionName={section.name}
+              sectionConfig={section}
+              sectionContent={editorState.sections[section.name]}
+              {editorState}
+              jumpToTextlistDocument={(targetName, targetId) => {
+                editorState.currentTab = targetName;
+                editorState.selectTextlistId = targetId;
               }}
-            /> -->
+            />
           {/if}
         </Tabs.Content>
       {/each}
     </Tabs.Root>
   </div>
-{:else if loadingError}
+{:else if editorState.loadError}
   <p class=" px-4 py-2 text-red-800">
     There was an error loading this TEI file. The most likely cause is a TEI tag
     that is not configured. Please check your server logs for details.

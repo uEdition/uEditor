@@ -14,10 +14,11 @@
   import Icon from "../Icon.svelte";
 
   type TeiMetadataEditorProps = {
-    section: TEIMetadataSection | null;
+    sectionName: string;
+    editorState: TEIEditorState;
   };
 
-  const { section }: TeiMetadataEditorProps = $props();
+  const { sectionName, editorState }: TeiMetadataEditorProps = $props();
   let selectedNode: TeiMetadataNode | null = $state(null);
 
   const ctx = createTreeView({ defaultExpanded: ["file-tree--1-0"] });
@@ -46,12 +47,12 @@
   }
 
   const selectedItemUnsubscribe = selectedItem.subscribe((selectedElement) => {
-    if (selectedElement !== null && section) {
+    if (selectedElement !== null && editorState.sections[sectionName]) {
       const dataId = selectedElement.getAttribute("data-id");
       selectedNode = null;
       if (dataId) {
         const node = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           dataId,
         );
         if (node) {
@@ -72,15 +73,16 @@
    */
   function updateTag(ev: Event) {
     ev.preventDefault();
-    if ($selectedItem !== null && section) {
+    if ($selectedItem !== null && editorState.sections[sectionName]) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const node = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           dataId,
         );
         if (node) {
           node.type = (ev.target as HTMLInputElement).value;
+          editorState.notifyModified();
         }
       }
     }
@@ -93,15 +95,16 @@
    */
   function updateText(ev: Event) {
     ev.preventDefault();
-    if ($selectedItem !== null && section) {
+    if ($selectedItem !== null && editorState.sections[sectionName]) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const node = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           dataId,
         );
         if (node) {
           node.text = (ev.target as HTMLInputElement).value;
+          editorState.notifyModified();
         }
       }
     }
@@ -114,7 +117,7 @@
    */
   function addNewNode(ev: Event) {
     ev.preventDefault();
-    if (section) {
+    if (editorState.sections[sectionName]) {
       const newNode = {
         type: "newNode",
         text: "",
@@ -125,15 +128,17 @@
         const dataId = $selectedItem.getAttribute("data-id");
         if (dataId) {
           const node = findNodeByPath(
-            section as unknown as TeiMetadataNode,
+            editorState.sections[sectionName] as unknown as TeiMetadataNode,
             dataId,
           );
           if (node) {
             node.content.push(newNode);
+            editorState.notifyModified();
           }
         }
       } else {
-        section.content.push(newNode);
+        editorState.sections[sectionName].content.push(newNode);
+        editorState.notifyModified();
       }
     }
   }
@@ -145,20 +150,24 @@
    */
   function deleteSelectedNode(ev: Event) {
     ev.preventDefault();
-    if (section && $selectedItem) {
+    if (editorState.sections[sectionName] && $selectedItem) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const idPath = dataId.split("-");
         const parentIdPath = idPath.slice(0, idPath.length - 1);
         const parent = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           parentIdPath.join("-"),
         );
         if (parent) {
           parent.content.splice(Number.parseInt(idPath[idPath.length - 1]), 1);
         } else {
-          section.content.splice(Number.parseInt(idPath[idPath.length - 1]), 1);
+          editorState.sections[sectionName].content.splice(
+            Number.parseInt(idPath[idPath.length - 1]),
+            1,
+          );
         }
+        editorState.notifyModified();
       }
     }
   }
@@ -170,13 +179,13 @@
    */
   function moveSelectedNodeUp(ev: Event) {
     ev.preventDefault();
-    if (section && $selectedItem) {
+    if (editorState.sections[sectionName] && $selectedItem) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const idPath = dataId.split("-");
         const parentIdPath = idPath.slice(0, idPath.length - 1);
         const parent = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           parentIdPath.join("-"),
         );
         const selectedIdx = Number.parseInt(idPath[idPath.length - 1]);
@@ -185,10 +194,18 @@
           parent.content.splice(selectedIdx - 1, 0, ...removed);
           selectedItem.set(null);
         } else if (selectedIdx > 0) {
-          const removed = section.content.splice(selectedIdx, 1);
-          section.content.splice(selectedIdx - 1, 0, ...removed);
+          const removed = editorState.sections[sectionName].content.splice(
+            selectedIdx,
+            1,
+          );
+          editorState.sections[sectionName].content.splice(
+            selectedIdx - 1,
+            0,
+            ...removed,
+          );
           selectedItem.set(null);
         }
+        editorState.notifyModified();
       }
     }
   }
@@ -200,13 +217,13 @@
    */
   function moveSelectedNodeDown(ev: Event) {
     ev.preventDefault();
-    if (section && $selectedItem) {
+    if (editorState.sections[sectionName] && $selectedItem) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const idPath = dataId.split("-");
         const parentIdPath = idPath.slice(0, idPath.length - 1);
         const parent = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           parentIdPath.join("-"),
         );
         const selectedIdx = Number.parseInt(idPath[idPath.length - 1]);
@@ -214,44 +231,57 @@
           const removed = parent.content.splice(selectedIdx, 1);
           parent.content.splice(selectedIdx + 1, 0, ...removed);
           selectedItem.set(null);
-        } else if (selectedIdx < section.content.length - 1) {
-          const removed = section.content.splice(selectedIdx, 1);
-          section.content.splice(selectedIdx + 1, 0, ...removed);
+        } else if (
+          selectedIdx <
+          editorState.sections[sectionName].content.length - 1
+        ) {
+          const removed = editorState.sections[sectionName].content.splice(
+            selectedIdx,
+            1,
+          );
+          editorState.sections[sectionName].content.splice(
+            selectedIdx + 1,
+            0,
+            ...removed,
+          );
           selectedItem.set(null);
         }
+        editorState.notifyModified();
       }
     }
   }
 
   function addAttribute(ev: Event) {
     ev.preventDefault();
-    if ($selectedItem !== null && section) {
+    if ($selectedItem !== null && editorState.sections[sectionName]) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const node = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           dataId,
         );
         if (node) {
           node.attrs.push({ type: "", value: "" });
           selectedItem.set($selectedItem);
+          editorState.notifyModified();
         }
       }
     }
   }
   function updateAttributeName(ev: Event, idx: number) {
     ev.preventDefault();
-    if ($selectedItem !== null && section) {
+    if ($selectedItem !== null && editorState.sections[sectionName]) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const node = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           dataId,
         );
         if (node) {
           if (idx >= 0 && idx < node.attrs.length) {
             node.attrs[idx].type = (ev.target as HTMLInputElement).value;
             selectedItem.set($selectedItem);
+            editorState.notifyModified();
           }
         }
       }
@@ -259,17 +289,18 @@
   }
   function updateAttributeValue(ev: Event, idx: number) {
     ev.preventDefault();
-    if ($selectedItem !== null && section) {
+    if ($selectedItem !== null && editorState.sections[sectionName]) {
       const dataId = $selectedItem.getAttribute("data-id");
       if (dataId) {
         const node = findNodeByPath(
-          section as unknown as TeiMetadataNode,
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
           dataId,
         );
         if (node) {
           if (idx >= 0 && idx < node.attrs.length) {
             node.attrs[idx].value = (ev.target as HTMLInputElement).value;
             selectedItem.set($selectedItem);
+            editorState.notifyModified();
           }
         }
       }
@@ -278,12 +309,27 @@
 
   function deleteAttribute(ev: Event, idx: number) {
     ev.preventDefault();
+    if ($selectedItem !== null && editorState.sections[sectionName]) {
+      const dataId = $selectedItem.getAttribute("data-id");
+      if (dataId) {
+        const node = findNodeByPath(
+          editorState.sections[sectionName] as unknown as TeiMetadataNode,
+          dataId,
+        );
+        if (node) {
+          if (idx < node.attrs.length) {
+            node.attrs.splice(idx, 1);
+          }
+          editorState.notifyModified();
+        }
+      }
+    }
   }
 </script>
 
 <div class="flex flex-row w-full h-full overflow-auto">
   <div class="w-1/4 overflow-auto border-r border-gray-300">
-    {#if section}
+    {#if editorState.sections[sectionName]}
       <Toolbar.Root class="border-b border-gray-300">
         <Toolbar.Button title="Add a metadata node" onclick={addNewNode}>
           <Icon path={mdiPlus} />
@@ -322,7 +368,7 @@
         </Toolbar.Button>
       </Toolbar.Root>
       <ol {...$tree}>
-        <Tree treeItems={section.content} />
+        <Tree treeItems={editorState.sections[sectionName].content} />
       </ol>
     {/if}
   </div>

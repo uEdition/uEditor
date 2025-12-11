@@ -362,3 +362,13 @@ type TEITextlistSection = {
 };
 
 type TEIDocument = (TEIMetadataSection | TEITextSection | TEITextlistSection)[];
+
+type TEIEditorState = {
+  sections: { [name: string]: TEIMetadataSection | TEITextSection | TEITextlistSection };
+  loaded: boolean;
+  loading: boolean;
+  loadError: boolean;
+  currentTab: string;
+  selectTextlistId: string | null;
+  notifyModified: () => void;
+};

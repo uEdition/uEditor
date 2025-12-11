@@ -185,6 +185,8 @@ class TEINodeAttribute(BaseModel):
     """The type of attribute this is."""
     default: str = ""
     """The default value to use if none is set."""
+    target: str | None = None
+    """The target attribute name for html-attributes."""
 
 
 class TEINode(BaseModel):
