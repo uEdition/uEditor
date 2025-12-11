@@ -28,14 +28,16 @@
   });
 
   $effect(() => {
-    if (
-      appState.currentBranch !== null &&
-      appState.currentFile !== null &&
-      !editorState.loading &&
-      editorState.loadedBranch !== appState.currentBranch.id &&
-      editorState.loadedFilename !== appState.currentFile.fullpath
-    ) {
-      loadNewFile();
+    if (appState.currentBranch !== null && appState.currentFile !== null) {
+      if (
+        !editorState.loading &&
+        editorState.loadedBranch !== appState.currentBranch.id &&
+        editorState.loadedFilename !== appState.currentFile.fullpath
+      ) {
+        editorState.loadedBranch = appState.currentBranch.id;
+        editorState.loadedFilename = appState.currentFile.fullpath;
+        loadNewFile();
+      }
     } else {
       editorState.sections = {};
       editorState.loaded = false;
@@ -45,8 +47,6 @@
   function loadNewFile() {
     appState.currentFileContent = null;
     appState.ui.currentFileModified = false;
-    editorState.loadedBranch = appState.currentBranch.id;
-    editorState.loadedFilename = appState.currentFile.fullpath;
     editorState.loaded = false;
     editorState.loading = true;
     editorState.loadError = false;
