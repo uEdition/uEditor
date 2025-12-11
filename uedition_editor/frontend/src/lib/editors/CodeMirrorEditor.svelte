@@ -30,26 +30,30 @@
   });
 
   $effect(() => {
-    if (appState.currentFile !== null) {
-      if (
-        fileBranch !== appState.currentBranch ||
-        filePath !== appState.currentFile.fullpath
-      ) {
-        fileBranch = appState.currentBranch;
-        filePath = appState.currentFile.fullpath;
-        runAction({
-          action: "LoadTextFile",
-          branch: appState.currentBranch as Branch,
-          filename: appState.currentFile.fullpath,
-          callback: (data: string) => {
-            value = data;
-            appState.currentFileContent = data;
-            appState.ui.currentFileModified = false;
-          },
-        });
-      }
+    if (
+      fileBranch !== appState.currentBranch ||
+      filePath !== appState.currentFile?.fullpath
+    ) {
+      loadFile();
     }
   });
+
+  function loadFile() {
+    if (appState.currentFile !== null) {
+      fileBranch = appState.currentBranch;
+      filePath = appState.currentFile.fullpath;
+      runAction({
+        action: "LoadTextFile",
+        branch: appState.currentBranch as Branch,
+        filename: appState.currentFile.fullpath,
+        callback: (data: string) => {
+          value = data;
+          appState.currentFileContent = data;
+          appState.ui.currentFileModified = false;
+        },
+      });
+    }
+  }
 
   function shortCutTracker(ev: KeyboardEvent) {
     if (appState.currentFile !== null && appState.currentFileContent !== null) {
@@ -81,23 +85,6 @@
       }
     }
   }
-
-  $effect(() => {
-    appState.ui.currentFileModified = appState.currentFileContent !== value;
-  });
-
-  // onDestroy(() => {
-  //   currentFileUnsubscribe();
-  //   currentFileContentUnsubscribe();
-  //   value = null;
-  // });
-
-  // $: {
-  //   if ($currentFileContent !== value) {
-  //     currentFileModified.set(true);
-  //   }
-  //   currentFileContent.set(value);
-  // }
 </script>
 
 {#if value === null}
@@ -113,6 +100,13 @@
       >In the editor the Tab key will indent the text content. To escape the
       editor with the keyboard press the Escape key, followed by the Tab key.</span
     >
-    <CodeMirror bind:value={appState.currentFileContent} {lang} />
+    <CodeMirror
+      bind:value
+      {lang}
+      onchange={(v) => {
+        appState.currentFileContent = v;
+        appState.ui.currentFileModified = true;
+      }}
+    />
   </div>
 {/if}
