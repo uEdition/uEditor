@@ -28,7 +28,7 @@
     }
   });
 
-  const uEditorConfigTimestamp = $derived.by(() => {
+  let uEditorConfigTimestamp = $derived.by(() => {
     if (appState.uEditionConfig) {
       return new Date().getTime();
     } else {

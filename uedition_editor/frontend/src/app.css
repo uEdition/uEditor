@@ -77,7 +77,7 @@
   }
 
   [data-update-dialog] {
-    @apply left-4 bottom-4 top-auto transform-none max-w-96;
+    @apply left-4 bottom-4 top-auto transform-none max-w-96 translate-x-0 translate-y-0;
   }
 
   /**
