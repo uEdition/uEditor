@@ -614,7 +614,8 @@ def serialise_tei_text_block(node: dict, settings: TEISettings) -> dict:
                             mark_node["attrs"][attr_settings.name] = mark_node["text"]
                             del mark_node["text"]
                     if "name" in inner_node:
-                        del inner_node["text"]
+                        if "text" in inner_node:
+                            del inner_node["text"]
                         inner_node["children"] = [mark_node]
                         inner_node = mark_node
                     else:
@@ -681,6 +682,8 @@ def serialise_tei_textlist(root: dict, data: dict, settings: TEITextSection, tei
             child_node["attrs"] = {"{http://www.w3.org/XML/1998/namespace}id": sub_doc["attrs"]["id"]}
         child_node["children"] = []
         parent["children"].append(child_node)
+        if "content" not in sub_doc["content"]:
+            sub_doc["content"]["content"] = []
         for element in sub_doc["content"]["content"]:
             child_node["children"].append(serialise_tei_text_block(element, tei_settings))
 
