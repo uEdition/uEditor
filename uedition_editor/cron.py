@@ -47,12 +47,14 @@ async def insecure_track_branches():
             merge_base = repo.merge_base(
                 repo.revparse_single(init_settings.git.default_branch).id, repo.revparse_single(branch_name).id
             )
-            diff = repo.diff(merge_base, repo.revparse_single(init_settings.git.default_branch))
+            diff_to_default = repo.diff(merge_base, repo.revparse_single(init_settings.git.default_branch))
+            diff_to_branch = repo.diff(merge_base, repo.revparse_single(branch_name))
             local_branches.append(
                 {
                     "id": branch_name.replace("/", "%252F"),
                     "title": de_slugify(branch_name),
-                    "update_from_default": diff.stats.files_changed > 0,
+                    "update_from_default": diff_to_default.stats.files_changed > 0,
+                    "modified_files": [patch.delta.new_file.path for patch in diff_to_branch],
                 }
             )
         for branch_name in repo.branches.remote:

@@ -33,6 +33,18 @@
   });
 
   $effect(() => {
+    if (branches.isSuccess && appState.currentBranch) {
+      for (const branch of branches.data.local) {
+        if (branch.id === appState.currentBranch.id) {
+          appState.currentBranch.update_from_default =
+            branch.update_from_default;
+          appState.currentBranch.modified_files = branch.modified_files;
+        }
+      }
+    }
+  });
+
+  $effect(() => {
     if (branches.isSuccess) {
       appState.branches = branches.data;
       if (initialBranchId !== null) {

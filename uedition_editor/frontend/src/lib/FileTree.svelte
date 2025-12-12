@@ -12,14 +12,28 @@
   import { getContext } from "svelte";
 
   import Icon from "./Icon.svelte";
+  import { appState } from "../state.svelte";
 
-  export let treeItems: FileTreeEntry[];
-  export let level = 1;
+  type FileTreeProps = {
+    treeItems: FileTreeEntry[];
+    level: number;
+  };
+
+  let { treeItems, level = 1 }: FileTreeProps = $props();
 
   const {
     elements: { item, group },
     helpers: { isExpanded, isSelected },
   } = getContext<TreeView>("tree");
+
+  function isModified(path: string, modified_files: string[]) {
+    for (const modified of modified_files) {
+      if (modified.startsWith(path)) {
+        return true;
+      }
+    }
+    return false;
+  }
 </script>
 
 {#each treeItems as { name, type, fullpath, content, mimetype }, i}
@@ -28,7 +42,11 @@
 
   <li role="none">
     <button
-      class="flex items-center gap-1 p-1"
+      class="flex items-center gap-1 p-1 {appState.currentBranch
+        ?.modified_files &&
+      isModified(fullpath, appState.currentBranch.modified_files)
+        ? 'font-bold'
+        : ''}"
       use:melt={$item({
         id: itemId,
         hasChildren,

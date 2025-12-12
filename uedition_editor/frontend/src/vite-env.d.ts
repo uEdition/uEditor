@@ -49,6 +49,7 @@ type Branch = {
   title: string;
   nogit?: boolean;
   update_from_default?: boolean;
+  modified_files?: string[];
 };
 
 type Branches = {

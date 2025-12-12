@@ -43,6 +43,7 @@ class BranchModel(BaseModel):
     title: str
     nogit: bool = False
     update_from_default: bool = False
+    modified_files: list[str] = []
 
 
 class BranchesModel(BaseModel):
