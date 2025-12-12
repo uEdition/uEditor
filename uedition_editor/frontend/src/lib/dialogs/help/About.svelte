@@ -3,6 +3,15 @@
 
   import Base from "../Base.svelte";
   import { appState } from "../../../state.svelte";
+  import { version } from "../../../about";
+
+  let uEditorTimestamp = $derived.by(() => {
+    if (appState.apiStatus?.version) {
+      return new Date().getTime();
+    } else {
+      return new Date().getTime();
+    }
+  });
 </script>
 
 <Base>
@@ -18,7 +27,7 @@
       >. It is fully accessible and compatible will all modern browsers.
     </p>
     <p class="mb-2">
-      Help and documentation can be found on the<a
+      Help and documentation can be found on the <a
         href="https://ueditor.readthedocs.io/en/latest/"
         target="_blank">μEditor ReadTheDocs</a
       > site.
@@ -29,7 +38,13 @@
         target="_blank">μEditor Github Issues</a
       >.
     </p>
-    <p class="mb-2">You are running version {appState.apiStatus?.version}.</p>
+    <p class="mb-2">
+      You are running version {appState.apiStatus
+        ?.version}.{#if appState.apiStatus?.version !== version}
+        The version of the frontend does not match the version of the server.
+        Please <a href="/?timestamp={uEditorTimestamp}">reload the page</a
+        >.{/if}
+    </p>
     {#if appState.apiStatus?.git.enabled}
       <p class="mb-2">Git support is enabled.</p>
     {/if}
