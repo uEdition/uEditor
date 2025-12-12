@@ -1,142 +1,152 @@
 @import "tailwindcss";
 
-  /**
-   * Button components
-   */
-  [data-button] {
-    @apply inline-flex flex-row items-center space-x-2 justify-center px-3 py-1 border-2 transition-colors border-fuchsia-700 bg-white hover:bg-fuchsia-700 hover:text-white focus:bg-fuchsia-700 focus:text-white rounded;
-  }
+/**
+ * Standard tags
+ */
+a {
+  @apply underline;
+}
 
-  /**
-   * Menu components
-   */
-  [data-menubar-root] {
-    @apply flex flex-row;
-  }
+/**
+ * Button components
+ */
+[data-button] {
+  @apply inline-flex flex-row items-center space-x-2 justify-center px-3 py-1 border-2 transition-colors border-fuchsia-700 bg-white hover:bg-fuchsia-700 hover:text-white focus:bg-fuchsia-700 focus:text-white rounded;
+}
 
-  [data-menubar-trigger] {
-    @apply px-3 py-1;
-  }
+/**
+ * Menu components
+ */
+[data-menubar-root] {
+  @apply flex flex-row;
+}
 
-  [data-menu-content] {
-    @apply z-50 bg-white shadow-lg;
-  }
+[data-menubar-trigger] {
+  @apply px-3 py-1;
+}
 
-  [data-menubar-item], [data-menubar-radio-item] {
-    @apply flex items-center space-x-2 w-full px-3 py-1 cursor-pointer data-[highlighted]:bg-gray-300 border-l border-r last:border-b border-slate-300 aria-selected:font-bold;
-  }
+[data-menu-content] {
+  @apply z-50 bg-white shadow-lg;
+}
 
-  [data-menubar-separator] {
-    @apply border-b border-slate-300;
-  }
+[data-menubar-item], [data-menubar-radio-item] {
+  @apply flex items-center space-x-2 w-full px-3 py-1 cursor-pointer data-[highlighted]:bg-gray-300 border-l border-r last:border-b border-slate-300 aria-selected:font-bold;
+}
 
-  /**
-   * Toolbar components
-   */
-  [data-toolbar-root] {
-    @apply flex flex-row px-2 py-1;
-  }
+ [data-menubar-separator] {
+   @apply border-b border-slate-300;
+ }
 
-  [data-toolbar-button] {
-    @apply p-1 border-2 border-transparent rounded text-black hover:border-fuchsia-700 focus:border-fuchsia-700 cursor-pointer;
-  }
+/**
+ * Toolbar components
+ */
+[data-toolbar-root] {
+  @apply flex flex-row px-2 py-1;
+}
 
-  [data-toolbar-button][aria-disabled="true"] {
-    @apply hover:border-transparent focus:border-transparent text-gray-400 cursor-not-allowed;
-  }
+[data-toolbar-button] {
+  @apply p-1 border-2 border-transparent rounded text-black hover:border-fuchsia-700 focus:border-fuchsia-700 cursor-pointer;
+}
 
-  [data-toolbar-button][aria-pressed="true"] {
-    @apply bg-fuchsia-300;
-  }
+[data-toolbar-button][aria-disabled="true"] {
+  @apply hover:border-transparent focus:border-transparent text-gray-400 cursor-not-allowed;
+}
 
-  /**
-   * Dialog components
-   */
-  [data-dialog-overlay] {
-    @apply fixed left-0 top-0 w-screen h-screen z-1000 bg-black/60;
-  }
+[data-toolbar-button][aria-pressed="true"] {
+  @apply bg-fuchsia-300;
+}
 
-  [data-dialog-content] {
-    @apply fixed left-1/2 top-1/2 w-1/3 max-h-96 transform -translate-x-1/2 -translate-y-1/2 z-1001 overflow-hidden bg-white shadow-lg shadow-neutral-900 rounded-t rounded-b-lg;
-  }
+/**
+ * Dialog components
+ */
+[data-dialog-overlay] {
+  @apply fixed left-0 top-0 w-screen h-screen z-1000 bg-black/60;
+}
 
-  [data-dialog-title] {
-    @apply px-3 py-2 bg-fuchsia-800 text-white font-bold;
-  }
+[data-dialog-content] {
+  @apply fixed left-1/2 top-1/2 w-1/3 max-h-96 transform -translate-x-1/2 -translate-y-1/2 z-1001 overflow-hidden bg-white shadow-lg shadow-neutral-900 rounded-t rounded-b-lg;
+}
 
-  [data-dialog-content-area] {
-    @apply flex-1 px-3 py-2 overflow-auto;
-  }
+[data-dialog-title] {
+  @apply px-3 py-2 bg-fuchsia-800 text-white font-bold;
+}
 
-  [data-dialog-buttons] {
-    @apply flex flex-row justify-end space-x-4 mt-4 pt-4 pb-2 border-t border-gray-300;
-  }
+[data-dialog-content-area] {
+  @apply flex-1 px-3 py-2 overflow-auto;
+}
 
-  [data-dialog-role="error"] [data-dialog-title] {
-    @apply bg-rose-700;
-  }
+[data-dialog-buttons] {
+  @apply flex flex-row justify-end space-x-4 mt-4 pt-4 pb-2 border-t border-gray-300;
+}
 
-  [data-update-dialog] {
-    @apply left-4 bottom-4 top-auto transform-none max-w-96 translate-x-0 translate-y-0;
-  }
+[data-dialog-role="error"] [data-dialog-title] {
+  @apply bg-rose-700;
+}
 
-  /**
-   * File tree components
-   */
-  [data-melt-tree-view-group] {
-    @apply pl-4;
-  }
+[data-update-dialog] {
+  @apply left-4 bottom-4 top-auto transform-none max-w-96 translate-x-0 translate-y-0;
+}
 
-  [data-melt-tree-view-item] {
-    @apply border-l-4 border-transparent transition-colors bg-transparent;
-  }
+/**
+ * File tree components
+ */
+[data-melt-tree-view-group] {
+  @apply pl-4;
+}
 
-  [data-melt-tree-view-item][aria-selected="true"] {
-    @apply border-fuchsia-800 bg-gray-300;
-  }
+[data-melt-tree-view-item] {
+  @apply border-l-4 border-transparent transition-colors bg-transparent;
+}
 
-  /**
-   * Tab components
-   */
-  [data-tabs-list] {
-    @apply flex flex-row space-x-4 border-b border-gray-300 px-2 pt-px;
-  }
+[data-melt-tree-view-item][aria-selected="true"] {
+  @apply border-fuchsia-800 bg-gray-300;
+}
 
-  [data-tabs-trigger] {
-    @apply block px-3 py-1 border-transparent border-t-4 transition-colors bg-transparent;
-  }
+/**
+ * Tab components
+ */
+[data-tabs-list] {
+  @apply flex flex-row space-x-4 border-b border-gray-300 px-2 pt-px;
+}
 
-  [data-tabs-trigger][data-state="active"] {
-    @apply border-fuchsia-800 bg-gray-300;
-  }
+[data-tabs-trigger] {
+  @apply block px-3 py-1 border-transparent border-t-4 transition-colors bg-transparent;
+}
 
-  /**
-   * Form components
-   */
-  [data-form-field-label] {
-    @apply block text-sm pl-3;
-  }
+[data-tabs-trigger][data-state="active"] {
+  @apply border-fuchsia-800 bg-gray-300;
+}
 
-  [data-form-field-error] {
-    @apply block text-sm text-rose-700 font-bold pl-3 pt-1;
-  }
+/**
+ * Form components
+ */
+[data-form-field-label] {
+  @apply block text-sm pl-3;
+}
 
-  [data-form-field-text] {
-    @apply block w-full px-3 py-2 border transition-colors border-slate-300 focus:border-fuchsia-700 rounded;
-  }
+[data-form-field-error] {
+  @apply block text-sm text-rose-700 font-bold pl-3 pt-1;
+}
 
-  [data-combobox-input] {
-    @apply block px-3 py-2 border transition-colors border-slate-300 focus:border-fuchsia-700 rounded-l;
-  }
+[data-form-field-text] {
+  @apply block w-full px-3 py-2 border transition-colors border-slate-300 focus:border-fuchsia-700 rounded;
+}
 
-  /**
-   * CodeMirror editor
-   */
-  [class~="codemirror-wrapper"],
-  [class~="cm-editor"] {
-    @apply h-full w-full overflow-hidden;
-  }
+[data-combobox-input] {
+  @apply block px-3 py-2 border transition-colors border-slate-300 focus:border-fuchsia-700 rounded-l;
+}
 
+/**
+ * CodeMirror editor
+ */
+[class~="codemirror-wrapper"],
+[class~="cm-editor"] {
+  @apply h-full w-full overflow-hidden;
+}
+
+/**
+ * Generic classes
+ */
 .animate-reverse {
   animation-direction: reverse;
 }
