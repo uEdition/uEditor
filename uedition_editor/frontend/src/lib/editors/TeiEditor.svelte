@@ -31,8 +31,8 @@
     if (appState.currentBranch !== null && appState.currentFile !== null) {
       if (
         !editorState.loading &&
-        editorState.loadedBranch !== appState.currentBranch.id &&
-        editorState.loadedFilename !== appState.currentFile.fullpath
+        (editorState.loadedBranch !== appState.currentBranch.id ||
+          editorState.loadedFilename !== appState.currentFile.fullpath)
       ) {
         editorState.loadedBranch = appState.currentBranch.id;
         editorState.loadedFilename = appState.currentFile.fullpath;
