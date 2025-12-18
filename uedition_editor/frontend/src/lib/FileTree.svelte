@@ -12,6 +12,7 @@
   import { getContext } from "svelte";
 
   import Icon from "./Icon.svelte";
+  import FileTree from "./FileTree.svelte";
   import { appState } from "../state.svelte";
 
   type FileTreeProps = {
@@ -74,7 +75,7 @@
 
     {#if content}
       <ol use:melt={$group({ id: itemId })}>
-        <svelte:self treeItems={content} level={level + 1} />
+        <FileTree treeItems={content} level={level + 1} />
       </ol>
     {/if}
   </li>
