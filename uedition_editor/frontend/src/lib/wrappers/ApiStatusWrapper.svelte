@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Dialog } from "bits-ui";
+  import { Dialog, Popover } from "bits-ui";
   import { createQuery } from "@tanstack/svelte-query";
 
   import { apiQueryHandler } from "../../util";
@@ -34,26 +34,27 @@
 {#if appState.apiStatus && appState.apiStatus.ready}
   {@render children()}
   {#if appState.apiStatus.version !== version}
-    <Dialog.Root open={true}>
-      <Dialog.Trigger class="hidden" />
-      <Dialog.Portal>
-        <Dialog.Content
+    <Popover.Root open={true}>
+      <Popover.Trigger>&nbsp;</Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          class="flex flex-col overflow-hidden"
+          data-update-popover=""
           escapeKeydownBehavior="ignore"
           interactOutsideBehavior="ignore"
-          class="flex flex-col overflow-hidden"
-          data-update-dialog
+          trapFocus={false}
         >
-          <Dialog.Title>μEditor update required</Dialog.Title>
-          <div data-dialog-content-area>
+          <div data-dialog-title="">μEditor update required</div>
+          <div data-dialog-content-area="">
             The μEditor has been updated and you need to reload the μEditor in
             order to benefit from the latest updates.
             <div data-dialog-buttons>
               <a href="/?timestamp={uEditorTimestamp}" data-button>Reload</a>
             </div>
           </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   {/if}
 {/if}
 

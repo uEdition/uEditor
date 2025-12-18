@@ -83,8 +83,11 @@ a {
   @apply bg-rose-700;
 }
 
-[data-update-dialog] {
-  @apply left-4 bottom-4 top-auto transform-none max-w-96 translate-x-0 translate-y-0;
+/**
+ * Update Popover
+ */
+[data-update-popover] {
+  @apply fixed left-4 bottom-4 w-96 z-50 bg-white shadow-lg shadow-neutral-900 rounded-t rounded-b-lg overflow-hidden;
 }
 
 /**
