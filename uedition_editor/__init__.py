@@ -61,6 +61,9 @@ else:
 
 
 @app.get("/", response_class=RedirectResponse)
-def redirect_to_app():
+def redirect_to_app(timestamp: int | None = None):
     """Redirect to the application UI."""
-    return "/app/"
+    if timestamp is not None:
+        return f"/app/?timestamp={timestamp}"
+    else:
+        return "/app/"
