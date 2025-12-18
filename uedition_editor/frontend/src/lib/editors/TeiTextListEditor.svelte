@@ -45,7 +45,12 @@
         if (text.attrs["id"] === editorState.selectTextlistId) {
           selectedTextId = editorState.selectTextlistId;
           editorState.selectTextlistId = null;
+          break;
         }
+      }
+      if (editorState.selectTextlistId !== null) {
+        addText(editorState.selectTextlistId);
+        editorState.selectTextlistId = null;
       }
     }
   });
@@ -55,10 +60,10 @@
    *
    * The text's structure is taken from the first block configured.
    */
-  function addText() {
+  function addText(newTextId: string | undefined) {
     if (appState.tei.blocks.length > 0) {
       const newText = {
-        attrs: { id: sectionName + "-" + uuidv1() },
+        attrs: { id: newTextId ? newTextId : sectionName + "-" + uuidv1() },
         content: {
           type: "doc",
           content: [
