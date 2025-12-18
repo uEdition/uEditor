@@ -1,10 +1,11 @@
 <script lang="ts">
   import { Toolbar, Separator, type Selected } from "bits-ui";
-  import { mdiPencil } from "@mdi/js";
+  import { mdiPencil, mdiPlus } from "@mdi/js";
   import { onMount } from "svelte";
   import { Editor, Node, Mark } from "@tiptap/core";
   import { Document } from "@tiptap/extension-document";
   import { Text } from "@tiptap/extension-text";
+  import { v1 as uuidv1 } from "uuid";
 
   import Icon from "../Icon.svelte";
   import { textForFirstNodeOfTipTapDocument } from "../../util";
@@ -111,6 +112,13 @@
     }
   });
 
+  /**
+   * Run the specified action.
+   *
+   * @param editor The editor to modify
+   * @param action The action to run
+   * @param evOrSelected The event or selected element that is used as the update source
+   */
   function runAction(
     editor: Editor | null,
     action: UEditorTEIActions,
@@ -142,15 +150,18 @@
           })
           .run();
       } else if (action.type === "select-cross-reference-attribute") {
-        editor
-          .chain()
-          .focus()
-          .extendMarkRange(action.mark)
-          .updateAttributes(action.mark, {
+        let chain = editor.chain().focus().extendMarkRange(action.mark);
+        if (evOrSelected?.target) {
+          chain = chain.updateAttributes(action.mark, {
             [action.name]: ((evOrSelected as Event).target as HTMLSelectElement)
               .value,
-          })
-          .run();
+          });
+        } else if (evOrSelected?.detail) {
+          chain = chain.updateAttributes(action.mark, {
+            [action.name]: (evOrSelected as CustomEvent).detail,
+          });
+        }
+        chain.run();
       } else if (
         action.type === "input-mark-attribute" ||
         action.type === "select-mark-attribute"
@@ -168,6 +179,11 @@
     }
   }
 
+  /**
+   * Return all cross-reference items for an item configuration as value/label pairs.
+   *
+   * @param item The item configuration
+   */
   function crossReferenceItems(
     item: UEditorTEISelectCrossReferenceMarkAttribute,
   ) {
@@ -184,21 +200,23 @@
     return [];
   }
 
-  function crossReferenceItemLabel(
+  /**
+   * Check if the given item exists in the list of cross-reference documents.
+   *
+   * @param editor The current editor for getting attribute values
+   * @param item The item configuration
+   */
+  function crossReferenceItemExists(
+    editor: Editor,
     item: UEditorTEISelectCrossReferenceMarkAttribute,
   ) {
-    if (editorState.sections[item.section].type.type === "textlist") {
-      for (const text of (
-        editorState.sections[item.section] as TEITextlistSection
-      ).content) {
-        if (
-          text.attrs["id"] == editor.editor?.getAttributes(item.mark)[item.name]
-        ) {
-          return textForFirstNodeOfTipTapDocument(text.content);
-        }
+    const refId = editor.getAttributes(item.mark)[item.name];
+    for (const refItem of crossReferenceItems(item)) {
+      if (refItem.value === refId) {
+        return true;
       }
     }
-    return "";
+    return false;
   }
 </script>
 
@@ -295,22 +313,41 @@
                         {/each}
                       </select>
                       <Toolbar.Root class="flex-wrap">
-                        <Toolbar.Button
-                          onclick={() => {
-                            jumpToTextlistDocument(
-                              item.section,
-                              editor.editor?.getAttributes(item.mark)[
-                                item.name
-                              ],
-                            );
-                          }}
-                          title="Edit the selected entry"
-                        >
-                          <Icon
-                            path={mdiPencil}
-                            label="Edit the selected entry"
-                          />
-                        </Toolbar.Button>
+                        {#if crossReferenceItemExists(editor.editor, item)}
+                          <Toolbar.Button
+                            onclick={() => {
+                              jumpToTextlistDocument(
+                                item.section,
+                                editor.editor?.getAttributes(item.mark)[
+                                  item.name
+                                ],
+                              );
+                            }}
+                            title="Edit the selected entry"
+                          >
+                            <Icon
+                              path={mdiPencil}
+                              label="Edit the selected entry"
+                            />
+                          </Toolbar.Button>
+                        {:else}
+                          <Toolbar.Button
+                            onclick={() => {
+                              const newId = item.section + "-" + uuidv1();
+                              runAction(
+                                editor.editor,
+                                item,
+                                new CustomEvent("NewTextListId", {
+                                  detail: newId,
+                                }),
+                              );
+                              jumpToTextlistDocument(item.section, newId);
+                            }}
+                            title="Add an entry"
+                          >
+                            <Icon path={mdiPlus} label="Add an entry" />
+                          </Toolbar.Button>
+                        {/if}
                       </Toolbar.Root>
                     </div>
                   {:else if item.type === "input-mark-attribute"}
