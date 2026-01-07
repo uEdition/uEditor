@@ -54,12 +54,14 @@ export async function fileQueryHandler({ queryKey }: QueryOptions) {
 export function textForTipTapNode(node: TipTapNode): string {
   if (node.type === "text") {
     return (node as TipTapText).text;
-  } else {
+  } else if ((node as TipTapBlock).content) {
     let result: string[] = [];
     for (let child of (node as TipTapBlock).content) {
       result.push(textForTipTapNode(child));
     }
     return result.join("");
+  } else {
+    return "";
   }
 }
 
