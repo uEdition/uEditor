@@ -38,7 +38,7 @@ dependencies = [
   "typer>=0.15.1,<1",
   "uvicorn<1",
   "uvloop<1",
-  "websockets>=15,<16",
+  "websockets>=15,<17",
 ]
 
 [project.urls]
