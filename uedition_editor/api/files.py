@@ -581,10 +581,21 @@ def serialise_tei_metadata(root: dict, data: dict, settings: TEIMetadataSection)
 
 def serialise_tei_text_block(node: dict, settings: TEISettings) -> dict:
     """Serialise a TEI text block."""
+
+    def mark_sort_key(mark: dict):
+        mark_settings = None
+        for tmp in settings.marks:
+            if tmp.name == mark["type"]:
+                mark_settings = tmp
+                break
+        if mark_settings and mark_settings.weight is not None:
+            return (mark_settings.weight, mark["type"])
+        return (100000, mark["type"])
+
     if node["type"] == "text":
         output_node = {}
         if "marks" in node and len(node["marks"]) > 0:
-            node["marks"].sort(key=lambda m: m["type"])
+            node["marks"].sort(key=mark_sort_key)
             inner_node = output_node
             for mark in node["marks"]:
                 mark_settings = None
