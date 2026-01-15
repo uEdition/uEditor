@@ -217,6 +217,8 @@ class TEINode(BaseModel):
     """Where to get the text from."""
     content: Optional[str] = None
     """Allowed child nodes. Only relevant for block nodes."""
+    weight: int | None = None
+    """Weight for sorting the serialisation order. Only used for mark nodes."""
 
 
 class TEIMetadataSection(BaseModel):

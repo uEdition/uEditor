@@ -113,6 +113,7 @@ type UEditorTEINode = {
   tag: string | null;
   text: string | null;
   content: string | null;
+  weight: number | null;
 };
 
 type UEditorTEIMetadataSection = {
