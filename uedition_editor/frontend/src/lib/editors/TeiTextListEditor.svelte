@@ -95,6 +95,30 @@
     selectedTextId = "";
     editorState.notifyModified();
   }
+
+  let sortedTexts = $derived.by(() => {
+    const texts = [];
+    for (const text of sectionContent.content) {
+      texts.push([
+        text.attrs["id"],
+        textForFirstNodeOfTipTapDocument(text.content),
+      ]);
+    }
+    texts.sort(([aId, aText], [bId, bText]) => {
+      if (aText > bText) {
+        return 1;
+      } else if (aText < bText) {
+        return -1;
+      } else if (aId > bId) {
+        return 1;
+      } else if (aId < bId) {
+        return -1;
+      } else {
+        return 0;
+      }
+    });
+    return texts;
+  });
 </script>
 
 <div class="flex flex-col w-full h-full overflow-hidden">
@@ -102,10 +126,8 @@
     class="flex flex-row items-center space-x-4 border-b border-gray-300 px-2 py-1"
   >
     <select bind:value={selectedTextId} data-combobox-input="">
-      {#each sectionContent.content as text}
-        <option value={text.attrs["id"]}
-          >{textForFirstNodeOfTipTapDocument(text.content)}</option
-        >
+      {#each sortedTexts as [tid, text]}
+        <option value={tid}>{text}</option>
       {/each}
     </select>
     <Toolbar.Root>
