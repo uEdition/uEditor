@@ -97,26 +97,29 @@
   }
 
   let sortedTexts = $derived.by(() => {
-    const texts = [];
+    const uEditionSections =
+      appState.uEditionConfig?.sphinx_config.tei.sections;
+    // Default sorter is simply alphabetical
+    let sorter = (
+      [aId, aText]: [string, string],
+      [bId, bText]: [string, string],
+    ) => {
+      if (aText > bText) {
+        return 1;
+      } else if (aText < bText) {
+        return -1;
+      } else {
+        return 0;
+      }
+    };
+    const texts: [string, string][] = [];
     for (const text of sectionContent.content) {
       texts.push([
         text.attrs["id"],
         textForFirstNodeOfTipTapDocument(text.content),
       ]);
     }
-    texts.sort(([aId, aText], [bId, bText]) => {
-      if (aText > bText) {
-        return 1;
-      } else if (aText < bText) {
-        return -1;
-      } else if (aId > bId) {
-        return 1;
-      } else if (aId < bId) {
-        return -1;
-      } else {
-        return 0;
-      }
-    });
+    texts.sort(sorter);
     return texts;
   });
 </script>
