@@ -98,11 +98,11 @@
 
   let sortedTexts = $derived.by(() => {
     const uEditionSections =
-      appState.uEditionConfig?.sphinx_config.tei.sections;
+      appState.uEditionConfig?.sphinx_config?.tei?.sections;
     // Default sorter is simply alphabetical
     let sorter = (
       [aId, aText]: [string, string],
-      [bId, bText]: [string, string],
+      [bId, bText]: [string, string]
     ) => {
       if (aText > bText) {
         return 1;
@@ -112,6 +112,85 @@
         return 0;
       }
     };
+    if (uEditionSections) {
+      for (const section of uEditionSections) {
+        if (
+          section.name == sectionName &&
+          section.sort &&
+          section.sort.selector &&
+          section.sort.order
+        ) {
+          if (section.sort.order === "page,line-page,line") {
+            // Sorter that understands page,line pairs
+            sorter = (
+              [aId, aText]: [string, string],
+              [bId, bText]: [string, string]
+            ) => {
+              const aMatch = aText.match(/([0-9-,]+).*/);
+              const bMatch = bText.match(/([0-9-,]+).*/);
+              let aKey = [0];
+              let bKey = [0];
+              if (aMatch !== null) {
+                aKey = [];
+                aMatch[1].split(",").forEach((v) => {
+                  v.split("-").forEach((v2) => {
+                    aKey.push(parseInt(v2));
+                  });
+                });
+              }
+              if (bMatch !== null) {
+                bKey = [];
+                bMatch[1].split(",").forEach((v) => {
+                  v.split("-").forEach((v2) => {
+                    bKey.push(parseInt(v2));
+                  });
+                });
+              }
+              for (
+                let idx = 0;
+                idx < Math.max(aKey.length, bKey.length);
+                idx++
+              ) {
+                if (idx < aKey.length && idx < bKey.length) {
+                  if (aKey[idx] > bKey[idx]) {
+                    return 1;
+                  } else if (aKey[idx] < bKey[idx]) {
+                    return -1;
+                  }
+                } else if (idx < aKey.length) {
+                  return 1;
+                } else if (idx < bKey.length) {
+                  return -1;
+                }
+              }
+              return 0;
+            };
+          } else if (section.sort.order === "numeric") {
+            // Sort numerically by the first number found
+            sorter = (
+              [aId, aText]: [string, string],
+              [bId, bText]: [string, string]
+            ) => {
+              const aMatch = aText.match(/([0-9]+).*/);
+              const bMatch = bText.match(/([0-9]+).*/);
+              if (
+                aMatch !== null &&
+                (bMatch === null || parseInt(aMatch[1]) > parseInt(bMatch[1]))
+              ) {
+                return 1;
+              } else if (
+                bMatch !== null &&
+                (aMatch === null || parseInt(aMatch[1]) < parseInt(bMatch[1]))
+              ) {
+                return -1;
+              } else {
+                return 0;
+              }
+            };
+          }
+        }
+      }
+    }
     const texts: [string, string][] = [];
     for (const text of sectionContent.content) {
       texts.push([
@@ -177,7 +256,7 @@
       <form data-dialog-content-area onsubmit={deleteText}>
         <p>
           Please confirm that you wish to delete the text {#if selectedText !== null}{textForFirstNodeOfTipTapDocument(
-              selectedText.content,
+              selectedText.content
             )}{/if}.
         </p>
         <div data-dialog-buttons>
