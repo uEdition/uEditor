@@ -102,7 +102,7 @@
     // Default sorter is simply alphabetical
     let sorter = (
       [aId, aText]: [string, string],
-      [bId, bText]: [string, string]
+      [bId, bText]: [string, string],
     ) => {
       if (aText > bText) {
         return 1;
@@ -120,11 +120,11 @@
           section.sort.selector &&
           section.sort.order
         ) {
-          if (section.sort.order === "page,line-page,line") {
+          if (section.sort.order === "page,line") {
             // Sorter that understands page,line pairs
             sorter = (
               [aId, aText]: [string, string],
-              [bId, bText]: [string, string]
+              [bId, bText]: [string, string],
             ) => {
               const aMatch = aText.match(/([0-9-,]+).*/);
               const bMatch = bText.match(/([0-9-,]+).*/);
@@ -169,7 +169,7 @@
             // Sort numerically by the first number found
             sorter = (
               [aId, aText]: [string, string],
-              [bId, bText]: [string, string]
+              [bId, bText]: [string, string],
             ) => {
               const aMatch = aText.match(/([0-9]+).*/);
               const bMatch = bText.match(/([0-9]+).*/);
@@ -256,7 +256,7 @@
       <form data-dialog-content-area onsubmit={deleteText}>
         <p>
           Please confirm that you wish to delete the text {#if selectedText !== null}{textForFirstNodeOfTipTapDocument(
-              selectedText.content
+              selectedText.content,
             )}{/if}.
         </p>
         <div data-dialog-buttons>
