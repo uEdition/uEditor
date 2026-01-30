@@ -8,7 +8,7 @@ RUN apt-get update && \
 
 COPY dist/*.whl /tmp/uedition-editor-source/
 
-RUN pip install /tmp/uedition-editor-source/*.whl
+RUN pip install /tmp/uedition-editor-source/*.whl uvloop
 
 USER ueditor
 
