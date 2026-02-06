@@ -1,5 +1,9 @@
 # Changelog
 
+## DEV
+
+- **Update**: Enable editing .env files
+
 ## 2.1.0 (06.02.2026)
 
 - **New**: Add commands for the git setup
