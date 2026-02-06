@@ -2,7 +2,7 @@
 
 import re
 
-VERSION = "2.0.1"
+VERSION = "2.1.0"
 
 
 def replace_version(filename):
@@ -10,7 +10,7 @@ def replace_version(filename):
     with open(filename) as in_f:
         lines = []
         for line in in_f.readlines():
-            match = re.match(r"(.*)([0-9]+\.[0-9]+\.[0-9]+(?:[ab][0-9]+))(.*)", line)
+            match = re.match(r"(.*)([0-9]+\.[0-9]+\.[0-9]+(?:[ab][0-9]+)?)(.*)", line)
             if match:
                 lines.append(f"{match.group(1)}{VERSION}{match.group(3)}\n")
             else:
