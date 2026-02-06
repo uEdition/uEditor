@@ -13,6 +13,7 @@ from typer import Context, Option, Typer
 from uvicorn import Config, Server
 
 from uedition_editor.__about__ import __version__
+from uedition_editor.api.util import RemoteRepositoryCallbacks
 from uedition_editor.settings import init_settings
 
 app = Typer()
@@ -73,8 +74,24 @@ conf.py
     tree = index.write_tree()
     repo.create_commit("HEAD", Signature(name, email), Signature(name, email), "Initial state", tree, [])
     commit, _ = repo.resolve_refish("HEAD")
-    repo.branches.local.create("main", commit)
-    repo.checkout(repo.branches.local["main"])
+    repo.branches.local.create(init_settings.git.default_branch, commit)
+    repo.checkout(repo.branches.local[init_settings.git.default_branch])
     for branch_name in repo.branches.local:
-        if branch_name != "main":
+        if branch_name != init_settings.git.default_branch:
             repo.branches.local.delete(branch_name)
+
+
+@git_app.command()
+def set_remote(url: Annotated[str, Option(prompt="Git URL")]):
+    """Set the remote URL."""
+    repo = Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
+    for remote in repo.remotes:
+        if remote.name == init_settings.git.remote_name:
+            repo.remotes.delete(init_settings.git.remote_name)
+    repo.remotes.create(init_settings.git.remote_name, url)
+    repo.remotes[init_settings.git.remote_name].push(
+        [f"refs/heads/{init_settings.git.default_branch}"], callbacks=RemoteRepositoryCallbacks()
+    )
+    repo.branches[init_settings.git.default_branch].upstream = repo.branches[
+        f"{init_settings.git.remote_name}/{init_settings.git.default_branch}"
+    ]
