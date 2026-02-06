@@ -1,5 +1,9 @@
 # Änderungsgeschichte
 
+## In Entwicklung
+
+- **Aktualisierung**: Editieren von .env Dateien ermöglichen
+
 ## 2.1.0 (06.02.2026)
 
 - **Neu**: Befehl für die Git Initialisierung hinzugefügt

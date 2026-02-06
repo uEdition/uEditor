@@ -46,6 +46,7 @@ namespaces = {
 
 MIMETYPE_EXTENSIONS = {
     ".gitignore": "application/gitignore",
+    ".env": "text/text",
     ".md": "text/markdown",
     ".toml": "application/toml",
     ".yaml": "application/yaml",
