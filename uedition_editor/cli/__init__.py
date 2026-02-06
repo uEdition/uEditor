@@ -47,7 +47,7 @@ def server(ctx: Context) -> None:
 
 
 @git_app.command()
-def init(name: Annotated[str, Option(prompt="Name")], email: Annotated[str, Option(prompt="E-Mail address")]):
+def init():
     """Initialise the git repository."""
     try:
         Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
@@ -55,10 +55,12 @@ def init(name: Annotated[str, Option(prompt="Name")], email: Annotated[str, Opti
         return
     except GitError:
         pass
+    if init_settings.auth.provider != "email":
+        print("[red]The μEditor has to be configured for email authentication to initialise a git repository.")
     with open(".env", "w") as out_f:
         out_f.write(f"""UEDITOR__AUTH__PROVIDER=email
-UEDITOR__AUTH__NAME={name}
-UEDITOR__AUTH__EMAIL={email}
+UEDITOR__AUTH__NAME={init_settings.auth.name}
+UEDITOR__AUTH__EMAIL={init_settings.auth.email}
 UEDITOR__GIT__DEFAULT_BRANCH=main
 """)
     with open(".gitignore", "w") as out_f:
@@ -72,7 +74,14 @@ conf.py
     index.add_all()
     index.write()
     tree = index.write_tree()
-    repo.create_commit("HEAD", Signature(name, email), Signature(name, email), "Initial state", tree, [])
+    repo.create_commit(
+        "HEAD",
+        Signature(init_settings.auth.name, init_settings.auth.email),
+        Signature(init_settings.auth.name, init_settings.auth.email),
+        "Initial state",
+        tree,
+        [],
+    )
     commit, _ = repo.resolve_refish("HEAD")
     repo.branches.local.create(init_settings.git.default_branch, commit)
     repo.checkout(repo.branches.local[init_settings.git.default_branch])

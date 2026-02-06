@@ -3,6 +3,8 @@
 ## In Entwicklung
 
 - **Aktualisierung**: Editieren von .env Dateien ermöglichen
+- **Aktualisierung**: Bei der git Initialisierung den Namen/E-mail aus den Einstellungen nutzen
+
 
 ## 2.1.0 (06.02.2026)
 
