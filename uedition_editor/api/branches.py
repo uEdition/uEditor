@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Header
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel, Field
 from pygit2 import GitError, Repository, Signature
-from pygit2.enums import RepositoryOpenFlag
+from pygit2.enums import MergeFlag, RepositoryOpenFlag
 
 from uedition_editor import cron
 from uedition_editor.api.auth import get_current_user
@@ -140,7 +140,7 @@ async def merge_from_default(
         default_branch_head = repo.revparse_single(init_settings.git.default_branch)
         diff = repo.diff(default_branch_head)
         if diff.stats.files_changed > 0:
-            repo.merge(default_branch_head.id)
+            repo.merge(default_branch_head.id, flags=MergeFlag.FAIL_ON_CONFLICT | MergeFlag.FIND_RENAMES)
             commit_and_push(
                 repo,
                 init_settings.git.remote_name,
@@ -149,6 +149,29 @@ async def merge_from_default(
                 Signature(current_user["name"], current_user["sub"]),
                 extra_parents=[default_branch_head.id],
             )
+        await cron.insecure_track_branches()
+
+
+@router.post("/{branch_id}/merge-into-default", status_code=204)
+async def merge_into_default(
+    branch_id: str,
+    current_user: Annotated[dict, Depends(get_current_user)],
+) -> None:
+    """Merge all changes into the default branch and delete the current branch."""
+    branch_id = branch_id.replace("%2F", "/")
+    async with BranchContextManager(branch_id) as repo:
+        repo.checkout(repo.branches[branch_id])
+        current_branch_head = repo.revparse_single(branch_id)
+        repo.checkout(repo.branches[init_settings.git.default_branch])
+        repo.merge(current_branch_head.id, flags=MergeFlag.FAIL_ON_CONFLICT | MergeFlag.FIND_RENAMES)
+        commit_and_push(
+            repo,
+            init_settings.git.remote_name,
+            branch_id,
+            de_slugify(branch_id),
+            Signature(current_user["name"], current_user["sub"]),
+        )
+        repo.branches.delete(branch_id)
         await cron.insecure_track_branches()
 
 

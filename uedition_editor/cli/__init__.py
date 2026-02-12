@@ -84,7 +84,8 @@ _static
         [],
     )
     commit, _ = repo.resolve_refish("HEAD")
-    repo.branches.local.create(init_settings.git.default_branch, commit)
+    if init_settings.git.default_branch not in repo.branches.local:
+        repo.branches.local.create(init_settings.git.default_branch, commit)
     repo.checkout(repo.branches.local[init_settings.git.default_branch])
     for branch_name in repo.branches.local:
         if branch_name != init_settings.git.default_branch:
