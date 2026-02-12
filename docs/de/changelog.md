@@ -5,6 +5,7 @@
 - **Aktualisierung**: Editieren von .env Dateien ermöglichen
 - **Aktualisierung**: Bei der git Initialisierung den Namen/E-mail aus den Einstellungen nutzen
 - **Bugfix**: Fehlender Eintrag in der .gitignore Datei
+- **Bugfix**: Fehler beim Erstellen neuer Metadatenknoten behoben
 
 ## 2.1.0 (06.02.2026)
 

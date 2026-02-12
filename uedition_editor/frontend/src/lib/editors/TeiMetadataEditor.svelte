@@ -21,7 +21,7 @@
   const { sectionName, editorState }: TeiMetadataEditorProps = $props();
   let selectedNode: TeiMetadataNode | null = $state(null);
 
-  const ctx = createTreeView({ defaultExpanded: ["file-tree--1-0"] });
+  const ctx = createTreeView({});
   setContext("tree", ctx);
 
   const {
@@ -31,7 +31,7 @@
 
   function findNodeByPath(node: TeiMetadataNode, dataId: string) {
     const idPath = dataId
-      .substring(14)
+      .substring(5)
       .split("-")
       .map((value) => {
         return Number.parseInt(value);
@@ -124,7 +124,6 @@
         attrs: [],
         content: [],
       };
-      let added = false;
       if ($selectedItem) {
         const dataId = $selectedItem.getAttribute("data-id");
         if (dataId) {
@@ -133,13 +132,11 @@
             dataId,
           );
           if (node) {
-            added = true;
             node.content.push(newNode);
             editorState.notifyModified();
           }
         }
-      }
-      if (!added) {
+      } else {
         editorState.sections[sectionName].content.push(newNode);
         editorState.notifyModified();
       }
@@ -371,7 +368,10 @@
         </Toolbar.Button>
       </Toolbar.Root>
       <ol {...$tree}>
-        <Tree treeItems={editorState.sections[sectionName].content} />
+        <Tree
+          treeItems={editorState.sections[sectionName].content}
+          parent="root"
+        />
       </ol>
     {/if}
   </div>
