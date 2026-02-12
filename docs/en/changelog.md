@@ -2,6 +2,7 @@
 
 ## DEV
 
+- **New**: Implemented local Git merges
 - **Update**: Enable editing .env files
 - **Update**: Take the git name/e-mail from the settings
 - **Bugfix**: Missing entry in the .gitignore file
