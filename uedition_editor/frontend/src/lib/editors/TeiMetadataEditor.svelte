@@ -124,6 +124,7 @@
         attrs: [],
         content: [],
       };
+      let added = false;
       if ($selectedItem) {
         const dataId = $selectedItem.getAttribute("data-id");
         if (dataId) {
@@ -132,11 +133,13 @@
             dataId,
           );
           if (node) {
+            added = true;
             node.content.push(newNode);
             editorState.notifyModified();
           }
         }
-      } else {
+      }
+      if (!added) {
         editorState.sections[sectionName].content.push(newNode);
         editorState.notifyModified();
       }
