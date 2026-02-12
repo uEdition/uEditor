@@ -68,6 +68,7 @@ UEDITOR__GIT__DEFAULT_BRANCH=main
 site
 _toc.yml
 conf.py
+_static
 """)
     repo = init_repository(init_settings.base_path)
     index = repo.index
