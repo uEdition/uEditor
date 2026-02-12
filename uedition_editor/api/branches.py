@@ -152,6 +152,30 @@ async def merge_from_default(
         await cron.insecure_track_branches()
 
 
+@router.post("/{branch_id}/merge-into-default", status_code=204)
+async def merge_into_default(
+    branch_id: str,
+    current_user: Annotated[dict, Depends(get_current_user)],
+) -> None:
+    """Merge all changes into the default branch and delete the current branch."""
+    branch_id = branch_id.replace("%2F", "/")
+    async with BranchContextManager(branch_id) as repo:
+        repo.checkout(repo.branches[branch_id])
+        current_branch_head = repo.revparse_single(branch_id)
+        repo.checkout(repo.branches[init_settings.git.default_branch])
+        repo.merge(current_branch_head.id)
+        commit_and_push(
+            repo,
+            init_settings.git.remote_name,
+            branch_id,
+            f"Merged {init_settings.git.default_branch}",
+            Signature(current_user["name"], current_user["sub"]),
+            extra_parents=[current_branch_head.id],
+        )
+        repo.branches.delete(branch_id)
+        await cron.insecure_track_branches()
+
+
 @router.delete("/{branch_id}", status_code=204)
 async def delete_branch(
     branch_id: str,

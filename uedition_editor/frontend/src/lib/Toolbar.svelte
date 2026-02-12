@@ -37,7 +37,7 @@
 </script>
 
 <Toolbar.Root class="border-b border-gray-300">
-  {#if appState.apiStatus?.git.default_branch !== appState.currentBranch?.id}
+  {#if !appState.apiStatus?.git.protect_default_branch || appState.apiStatus?.git.default_branch !== appState.currentBranch?.id}
     <Toolbar.Button
       onclick={saveCurrentFile}
       aria-label="Save"

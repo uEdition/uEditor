@@ -41,7 +41,7 @@
           <span>Import Branch</span>
         </Menubar.Item>
       {/if}
-      {#if appState.branches}
+      {#if appState.apiStatus.git.has_remote && appState.branches}
         <Menubar.Item
           onclick={() => {
             runAction({
@@ -67,13 +67,28 @@
             <Icon path={mdiSourceBranchSync} class="w-4 h-4" />
             <span
               >Merge Updates from {title(
-                appState.apiStatus?.git.default_branch as string
+                appState.apiStatus?.git.default_branch as string,
               )}</span
             >
           </Menubar.Item>
           <Menubar.Separator></Menubar.Separator>
         {/if}
         {#if appState.apiStatus?.git.default_branch !== appState.currentBranch.id}
+          {#if !appState.apiStatus?.git.has_remote}
+            <Menubar.Item
+              onclick={() => {
+                appState.activeDialog = Dialogs.UEDITOR_MERGE_INTO_DEFAULT;
+              }}
+            >
+              <Icon path={mdiSourceBranchRemove} class="w-4 h-4"></Icon>
+              <span
+                >Merge Changes into {title(
+                  appState.apiStatus?.git.default_branch as string,
+                )}</span
+              >
+            </Menubar.Item>
+            <Menubar.Separator></Menubar.Separator>
+          {/if}
           <Menubar.Item
             onclick={() => {
               appState.activeDialog = Dialogs.UEDITOR_DELETE_BRANCH;

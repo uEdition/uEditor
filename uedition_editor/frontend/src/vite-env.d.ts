@@ -30,6 +30,7 @@ type APIStatus = {
   ready: boolean;
   git: {
     enabled: boolean;
+    has_remote: boolean;
     default_branch: string | null;
     protect_default_branch: boolean | null;
   };

@@ -34,6 +34,7 @@ class APIStatusGit(BaseModel):
     """Pydantic model for validating the git API status."""
 
     enabled: bool
+    has_remote: bool
     default_branch: str | None = None
     protect_default_branch: bool | None = None
 
@@ -58,13 +59,16 @@ def api() -> dict:
         "ready": True,
         "git": {
             "enabled": False,
+            "has_remote": False,
+            "protect_default_branch": False,
         },
         "auth": {"provider": init_settings.auth.provider},
         "version": __version__,
     }
     try:
-        Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
+        repo = Repository(init_settings.base_path, flags=RepositoryOpenFlag.NO_SEARCH)
         api_status["git"]["enabled"] = True
+        api_status["git"]["has_remote"] = len(repo.remotes) > 0
         api_status["git"]["default_branch"] = init_settings.git.default_branch
         api_status["git"]["protect_default_branch"] = init_settings.git.protect_default_branch
     except GitError:
