@@ -1,6 +1,6 @@
 # Changelog
 
-## Dev
+## 2.2.1
 
 - **Bugfix**: Fixed an issue with the TEI mimetype
 
