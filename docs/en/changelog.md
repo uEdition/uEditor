@@ -7,6 +7,7 @@
 - **Update**: Take the git name/e-mail from the settings
 - **Bugfix**: Missing entry in the .gitignore file
 - **Bugfix**: Fixed a bug in adding metadata nodes
+- **Bugfix**: Fixed a few small styling errors
 
 ## 2.1.0 (06.02.2026)
 
