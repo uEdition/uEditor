@@ -1,6 +1,6 @@
 # Änderungsgeschichte
 
-## In Entwicklung
+## 2.2.0 (13.02.2026)
 
 - **Neu**: Lokale Git Merges implementiert
 - **Aktualisierung**: Editieren von .env Dateien ermöglichen
