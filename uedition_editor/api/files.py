@@ -48,6 +48,7 @@ MIMETYPE_EXTENSIONS = {
     ".gitignore": "application/gitignore",
     ".env": "text/text",
     ".md": "text/markdown",
+    ".tei": "application/tei+xml",
     ".toml": "application/toml",
     ".yaml": "application/yaml",
     ".yml": "application/yaml",

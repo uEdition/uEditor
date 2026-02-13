@@ -1,5 +1,9 @@
 # Changelog
 
+## Dev
+
+- **Bugfix**: Fixed an issue with the TEI mimetype
+
 ## 2.2.0 (13.02.2026)
 
 - **New**: Implemented local Git merges
