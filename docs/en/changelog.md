@@ -1,6 +1,6 @@
 # Changelog
 
-## DEV
+## 2.2.0 (13.02.2026)
 
 - **New**: Implemented local Git merges
 - **Update**: Enable editing .env files
