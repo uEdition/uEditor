@@ -1,5 +1,7 @@
 # Änderungsgeschichte
 
+## 2.2.4
+
 - **Bugfix**: Weiterer Fehler im Veröffentlichungsworkflow behoben
 
 # 2.2.3
