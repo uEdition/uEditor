@@ -1,6 +1,7 @@
 # Changelog
 
 - **Security fix**: Updated dependency markdown-it
+- **Bugfix**: Fixed an issue with git repository state after a merge
 
 ## 2.2.1
 

@@ -4,6 +4,7 @@ import logging
 from asyncio import Lock
 
 from pygit2 import (
+    Commit,
     CredentialType,
     GitError,
     KeypairFromAgent,
@@ -102,7 +103,7 @@ def commit_and_push(
     commit_msg: str,
     author: Signature,
     extra_parents: list[str] | None = None,
-) -> None:
+) -> None | Commit:
     """Commit changes to the repository and push."""
     if len(repo.status()) > 0:
         logger.debug(f"Committing changes to {', '.join(repo.status().keys())}")
@@ -114,10 +115,12 @@ def commit_and_push(
         index.add_all()
         index.write()
         tree = index.write_tree()
-        repo.create_commit(ref, author, author, commit_msg, tree, parents)
+        new_commit = repo.create_commit(ref, author, author, commit_msg, tree, parents)
         if remote in repo.remotes.names():
             logger.debug(f"Pushing changes to {remote}")
             repo.remotes[remote].push([f"refs/heads/{branch}"], callbacks=RemoteRepositoryCallbacks())
+        return new_commit
+    return None
 
 
 def slugify(slug: str) -> str:
