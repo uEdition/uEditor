@@ -1,5 +1,7 @@
 # Changelog
 
+## 2.2.3
+
 - **Bugfix**: Fix release workflow
 
 ## 2.2.2
