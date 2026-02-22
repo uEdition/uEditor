@@ -1,5 +1,7 @@
 # Changelog
 
+- **Security fix**: Updated dependency markdown-it
+
 ## 2.2.1
 
 - **Bugfix**: Fixed an issue with the TEI mimetype

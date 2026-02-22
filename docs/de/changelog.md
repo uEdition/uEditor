@@ -1,5 +1,7 @@
 # Änderungsgeschichte
 
+- **Sicherheitsupdate**: Softwareabhängigkeit markdown-it aktualisiert
+
 ## 2.2.1
 
 - **Bugfix**: Fehlende TEI Erkennung
