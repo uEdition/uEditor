@@ -30,6 +30,7 @@ jobs:
 
       - name: Install Base Dependencies
         run: |
+          sudo apt-get update
           sudo apt-get install -y python3-venv
           sudo apt-get remove -y python3-packaging
           sudo pip install hatch
@@ -90,11 +91,11 @@ jobs:
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
-            image: uedition/uedition-editor
-            tags: ${{ steps.strip-prefix.outputs.result }}
-            containerfiles: |
-              ./Containerfile
-            platforms: linux/arm64/v8,linux/amd64
+          image: uedition/uedition-editor
+          tags: ${{ steps.strip-prefix.outputs.result }}
+          containerfiles: |
+            ./Containerfile
+          platforms: linux/arm64/v8,linux/amd64
 
       - name: Push the container image to ghcr.io
         uses: redhat-actions/push-to-registry@v2

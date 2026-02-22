@@ -1,5 +1,7 @@
 # Änderungsgeschichte
 
+- **Bugfix**: Fehler im Veröffentlichungsworkflow behoben
+
 # 2.2.2
 
 - **Sicherheitsupdate**: Softwareabhängigkeit markdown-it aktualisiert

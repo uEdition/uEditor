@@ -1,5 +1,7 @@
 # Changelog
 
+- **Bugfix**: Fix release workflow
+
 ## 2.2.2
 
 - **Security fix**: Updated dependency markdown-it
