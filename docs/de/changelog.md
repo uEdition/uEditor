@@ -1,6 +1,7 @@
 # Änderungsgeschichte
 
 - **Sicherheitsupdate**: Softwareabhängigkeit markdown-it aktualisiert
+  . **Bugfix**: Fehler im Zustand des Git Repository nach einem Merge behoben
 
 ## 2.2.1
 
