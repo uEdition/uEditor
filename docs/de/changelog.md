@@ -4,11 +4,11 @@
 
 - **Bugfix**: Weiterer Fehler im Veröffentlichungsworkflow behoben
 
-# 2.2.3
+## 2.2.3
 
 - **Bugfix**: Fehler im Veröffentlichungsworkflow behoben
 
-# 2.2.2
+## 2.2.2
 
 - **Sicherheitsupdate**: Softwareabhängigkeit markdown-it aktualisiert
 - **Bugfix**: Fehler im Zustand des Git Repository nach einem Merge behoben
