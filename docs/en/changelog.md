@@ -1,5 +1,7 @@
 # Changelog
 
+- **Bugfix**: Removed version limit for the uEdition
+
 ## 2.2.4
 
 - **Bugfix**: Fix release workflow again
