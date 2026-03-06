@@ -1,5 +1,7 @@
 # Changelog
 
+## 2.2.5
+
 - **Bugfix**: Removed version limit for the uEdition
 
 ## 2.2.4
