@@ -1,5 +1,7 @@
 # Änderungsgeschichte
 
+## 2.2.5
+
 - **Bugfix**: Versionsbeschränkung für die uEdition aufgehoben
 
 ## 2.2.4
