@@ -1,5 +1,7 @@
 # Änderungsgeschichte
 
+- **Bugfix**: Versionsbeschränkung für die uEdition aufgehoben
+
 ## 2.2.4
 
 - **Bugfix**: Weiterer Fehler im Veröffentlichungsworkflow behoben
