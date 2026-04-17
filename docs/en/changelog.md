@@ -1,5 +1,9 @@
 # Changelog
 
+## In development
+
+- **Bugfix**: Correctly handle wrapping blocks with specific nesting requirements
+
 ## 2.2.5
 
 - **Bugfix**: Removed version limit for the uEdition
