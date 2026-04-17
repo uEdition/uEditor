@@ -134,6 +134,7 @@ type UEditorTEIMenuItemSetBlock = {
 type UEditorTEIMenuItemToggleWrapBlock = {
   type: "toggle-wrap-block";
   block: string;
+  wrapped_block: string | null;
   title: string;
   icon: string | null;
 };

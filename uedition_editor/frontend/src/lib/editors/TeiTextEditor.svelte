@@ -128,7 +128,16 @@
       if (action.type === "set-block") {
         editor.chain().focus().setNode(action.block).run();
       } else if (action.type === "toggle-wrap-block") {
-        editor.chain().focus().toggleWrap(action.block).run();
+        if (action.wrapped_block) {
+          editor
+            .chain()
+            .focus()
+            .toggleNode("paragraph", action.wrapped_block)
+            .toggleWrap(action.block)
+            .run();
+        } else {
+          editor.chain().focus().toggleWrap(action.block).run();
+        }
       } else if (action.type === "set-block-attribute") {
         editor
           .chain()
