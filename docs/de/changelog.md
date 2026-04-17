@@ -1,6 +1,6 @@
 # Änderungsgeschichte
 
-## In Entwicklung
+## 2.2.6
 
 - **Bugfix**: Einzufassende Blöcke mit spezifischen Inhaltsblöcken korrekt verarbeiten
 
