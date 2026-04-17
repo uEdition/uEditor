@@ -261,6 +261,8 @@ class TEIMenuItemToggleWrapBlock(BaseModel):
     """The menu item type."""
     block: str
     """The block to toggle wrapping."""
+    wrapped_block: Optional[str] = None
+    """The optional block to use for the wrapped block."""
     title: str
     """The title for the button."""
     icon: Optional[str] = None

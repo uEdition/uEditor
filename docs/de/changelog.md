@@ -1,5 +1,9 @@
 # Änderungsgeschichte
 
+## In Entwicklung
+
+- **Bugfix**: Einzufassende Blöcke mit spezifischen Inhaltsblöcken korrekt verarbeiten
+
 ## 2.2.5
 
 - **Bugfix**: Versionsbeschränkung für die uEdition aufgehoben
