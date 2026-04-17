@@ -1,6 +1,6 @@
 # Changelog
 
-## In development
+## 2.2.6
 
 - **Bugfix**: Correctly handle wrapping blocks with specific nesting requirements
 
