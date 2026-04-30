@@ -34,7 +34,7 @@
     "svelte-codemirror-editor": "^2.1.0",
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.3",
-    "uuid": "^10.0.0",
+    "uuid": "^14.0.0",
     "vite": "^7.3.2"
   }
 }
