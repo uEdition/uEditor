@@ -27,7 +27,7 @@ dependencies = [
   "httptools",
   "httpx>=0.28.1",
   "lxml>=6.1.0",
-  "pydantic[email]>=2.13.2",
+  "pydantic[email]>=2.13.3",
   "pydantic_settings>=2.14.0",
   "pygit2>=1.19.2",
   "python-multipart>=0.0.27",
