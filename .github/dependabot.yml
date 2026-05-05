@@ -8,6 +8,16 @@ updates:
 
   # Check for updates of all Python packages
   - package-ecosystem: "pip"
+    directories:
+      - "/"
+      - "uedition_editor/frontend"
+    schedule:
+      interval: "weekly"
+    versioning-strategy: "widen"
+
+  # Check for updates of all Node packages
+  - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
+    versioning-strategy: "widen"
