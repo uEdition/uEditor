@@ -90,7 +90,7 @@ jobs:
 
       - name: Build the container image
         id: build-image
-        uses: redhat-actions/buildah-build@v2
+        uses: redhat-actions/buildah-build@v3
         with:
           image: uedition/uedition-editor
           tags: ${{ steps.strip-prefix.outputs.result }}
