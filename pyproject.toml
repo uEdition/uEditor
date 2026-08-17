@@ -36,7 +36,7 @@ dependencies = [
   "PyYaml>=6.0.3",
   "pyyaml_include>=2.2",
   "uEdition",
-  "typer>=0.26.7",
+  "typer>=0.27.1",
   "uvicorn<1",
   "websockets>=16.0",
 ]
