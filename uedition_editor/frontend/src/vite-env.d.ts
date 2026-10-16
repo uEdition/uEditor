@@ -14,6 +14,7 @@ type ApplicationState = {
   actions: Action[];
   tei: ApplicationTEIState;
   ui: ApplicationUIState;
+  preview: string | null;
 };
 
 type ApplicationTEIState = {

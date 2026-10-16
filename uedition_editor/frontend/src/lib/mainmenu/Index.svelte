@@ -4,6 +4,7 @@
   import FileMenu from "./FileMenu.svelte";
   import FolderMenu from "./FolderMenu.svelte";
   import HelpMenu from "./HelpMenu.svelte";
+  import PreviewMenu from "./PreviewMenu.svelte";
   import UEditorMenu from "./UEditorMenu.svelte";
   import UserMenu from "./UserMenu.svelte";
   import { appState } from "../../state.svelte";
@@ -17,6 +18,9 @@
     {:else if appState.currentFile.type === "folder"}
       <FolderMenu />
     {/if}
+  {/if}
+  {#if appState.currentBranch !== null}
+    <PreviewMenu />
   {/if}
   <span class="flex-1"></span>
   <UserMenu />

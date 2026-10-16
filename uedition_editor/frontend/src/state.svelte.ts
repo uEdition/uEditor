@@ -37,4 +37,5 @@ export const appState: ApplicationState = $state({
     hasLoggedOut: false,
     currentFileModified: false,
   },
+  preview: null,
 });

@@ -23,6 +23,7 @@ classifiers = [
 ]
 dependencies = [
   "aiocron>=2.1",
+  "aioshutil",
   "fastapi",
   "httptools",
   "httpx>=0.28.1",

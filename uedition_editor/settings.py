@@ -81,6 +81,7 @@ class InitSettings(BaseSettings):
     """The initialisation settings."""
 
     base_path: str = "./"
+    preview_path: str | None = None
     auth: NoAuth | EmailAuth | EmailPasswordAuth | GithubOAuth2 = NoAuth()
     session: SessionSettings = SessionSettings()
     git: GitSettings = GitSettings()

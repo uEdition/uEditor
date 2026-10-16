@@ -6,6 +6,7 @@
   import AuthWrapper from "./lib/wrappers/AuthWrapper.svelte";
   import BranchWrapper from "./lib/wrappers/BranchWrapper.svelte";
   import ConfigWrapper from "./lib/wrappers/ConfigWrapper.svelte";
+  import PreviewWrapper from "./lib/wrappers/PreviewWrapper.svelte";
 
   const queryClient = new QueryClient();
 </script>
@@ -15,7 +16,9 @@
     <AuthWrapper>
       <BranchWrapper>
         <ConfigWrapper>
-          <Root />
+          <PreviewWrapper>
+            <Root />
+          </PreviewWrapper>
         </ConfigWrapper>
       </BranchWrapper>
     </AuthWrapper>
