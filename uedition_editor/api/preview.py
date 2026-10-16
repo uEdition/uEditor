@@ -18,7 +18,7 @@ from uedition_editor.settings import get_uedition_settings, init_settings
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/preview")
 
-preview_status = {"test": "generated"}
+preview_status = {}
 preview_tasks = {}
 
 

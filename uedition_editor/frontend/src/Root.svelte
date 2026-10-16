@@ -1,6 +1,4 @@
 <script lang="ts">
-  import type { CreateQueryResult } from "@tanstack/svelte-query";
-
   import ActivityIndicator from "./lib/actions/ActivityIndicator.svelte";
   import Dialogs from "./lib/dialogs/Index.svelte";
   import Editor from "./lib/editors/Index.svelte";

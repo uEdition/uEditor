@@ -6,29 +6,17 @@
 
   const { children } = $props();
 
-  let refetchInterval = $state(60000);
   const previewStatus = createQuery(() => ({
     queryKey: ["branches", appState.currentBranch?.id, "preview", "status"],
     queryFn: apiQueryHandler<string>,
-    refetchInterval: refetchInterval,
     enabled: appState.currentBranch !== null,
   }));
 
   $effect(() => {
     if (appState.currentBranch !== null && previewStatus.isSuccess) {
-      if (appState.preview !== previewStatus.data) {
-        appState.preview = previewStatus.data;
-      }
-    } else if (appState.preview !== null) {
+      appState.preview = previewStatus.data;
+    } else if (!previewStatus.isSuccess) {
       appState.preview = null;
-    }
-  });
-
-  $effect(() => {
-    const newRefetchInterval =
-      appState.preview === "generating" ? 10000 : 60000;
-    if (newRefetchInterval !== refetchInterval) {
-      refetchInterval = newRefetchInterval;
     }
   });
 </script>
