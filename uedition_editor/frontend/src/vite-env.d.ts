@@ -298,10 +298,18 @@ type SynchroniseBranchesAction = {
   callback?: () => void;
 };
 
+type GeneratePreviewAction = {
+  action: "GeneratePreview";
+  status?: string;
+  queryClient: any;
+  callback: () => void;
+};
+
 type Action =
   | LoadTextFileAction
   | SaveCurrentFileAction
-  | SynchroniseBranchesAction;
+  | SynchroniseBranchesAction
+  | GeneratePreviewAction;
 
 type TipTapAttribtes = { [key: string]: string };
 

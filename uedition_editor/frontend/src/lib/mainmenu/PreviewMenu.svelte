@@ -5,19 +5,16 @@
 
   import Icon from "../Icon.svelte";
   import { appState } from "../../state.svelte";
+  import { runAction } from "../actions/util.svelte";
 
   const queryClient = useQueryClient();
 
   async function startGenerate() {
-    const response = await window.fetch(
-      "/api/branches/" + appState.currentBranch?.id + "/preview/generate",
-      { method: "POST" },
-    );
-    if (response.status == 204) {
-      queryClient.invalidateQueries({
-        queryKey: ["branches", appState.currentBranch?.id, "preview"],
-      });
-    }
+    runAction({
+      action: "GeneratePreview",
+      queryClient: queryClient,
+      callback: () => {},
+    });
   }
 </script>
 
