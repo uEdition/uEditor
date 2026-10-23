@@ -26,7 +26,7 @@ dependencies = [
   "aioshutil",
   "fastapi",
   "httptools",
-  "httpx>=0.28.1",
+  "httpx2",
   "lxml>=6.1.1",
   "pydantic[email]>=2.13.4",
   "pydantic_settings>=2.15.0",
@@ -84,7 +84,7 @@ work_dir = "uedition_editor/frontend"
 out_dir = "tmp"
 
 [tool.hatch.envs.default]
-extra-dependencies = ["coverage[toml]>=6.5", "httpx", "pytest", "ruff==0.9.5"]
+extra-dependencies = ["coverage[toml]>=6.5", "pytest", "ruff==0.9.5"]
 
 [tool.hatch.envs.default.scripts]
 server = "uvicorn --reload --port 8000 uedition_editor:app {args}"
