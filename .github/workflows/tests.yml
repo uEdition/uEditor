@@ -33,7 +33,8 @@ jobs:
 
       - name: Install Base Dependencies
         run: |
-          sudo apt-get install python3-venv pipx
+          sudo apt-get update
+          sudo apt-get install -y python3-venv pipx
           pipx install hatch
           cd uedition_editor/frontend
           npm install
@@ -73,7 +74,8 @@ jobs:
 
       - name: Install Base Dependencies
         run: |
-          sudo apt-get install python3-venv pipx
+          sudo apt-get update
+          sudo apt-get install -y python3-venv pipx
           pipx install hatch
           cd uedition_editor/frontend
           npm install
