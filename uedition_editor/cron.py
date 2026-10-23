@@ -66,8 +66,13 @@ async def insecure_track_branches():
         local_branches.append({"id": "-", "title": "Direct Access", "nogit": True})
 
 
-@aiocron.crontab("*/5 * * * *")
-async def track_branches() -> None:
-    """Track the status of all git branches."""
-    async with uedition_lock:
-        await insecure_track_branches()
+try:
+
+    @aiocron.crontab("*/5 * * * *")
+    async def track_branches() -> None:
+        """Track the status of all git branches."""
+        async with uedition_lock:
+            await insecure_track_branches()
+
+except RuntimeError as re:
+    logger.error(re)
