@@ -49,7 +49,7 @@ jobs:
           hatch run cov
 
   e2e-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     strategy:
       matrix:
