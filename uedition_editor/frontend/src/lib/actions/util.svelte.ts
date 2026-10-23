@@ -1,5 +1,6 @@
 import { appState } from "../../state.svelte";
 
+
 /**
  * Start running a new action.
  *
@@ -15,6 +16,8 @@ export function runAction(action: Action) {
     promise = saveCurrentFile(action);
   } else if (action.action === "SynchroniseBranches") {
     promise = synchroniseBranches(action);
+  } else if (action.action === "GeneratePreview") {
+    promise = generatePreview(action);
   }
   if (promise !== null) {
     promise.finally(() => {
@@ -63,5 +66,27 @@ async function synchroniseBranches(action: SynchroniseBranchesAction) {
   await window.fetch("/api/branches", { method: "PATCH" });
   if (action.callback) {
     action.callback();
+  }
+}
+
+function sleep(timeout: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, timeout);
+  });
+}
+
+async function generatePreview(action: GeneratePreviewAction) {
+  const response = await window.fetch(
+    "/api/branches/" + appState.currentBranch?.id + "/preview/generate",
+    { method: "POST" },
+  );
+  if (response.ok) {
+    action.queryClient.invalidateQueries({
+      queryKey: ["branches", appState.currentBranch?.id, "preview"],
+    });
+    await sleep(5000);
+    while (appState.preview === "generating") {
+      await sleep(1000);
+    }
   }
 }

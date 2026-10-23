@@ -12,6 +12,7 @@
   import { title } from "../../util";
   import { appState, Dialogs } from "../../state.svelte";
   import { runAction } from "../actions/util.svelte";
+  import app from "../../main";
 
   const queryClient = useQueryClient();
 </script>

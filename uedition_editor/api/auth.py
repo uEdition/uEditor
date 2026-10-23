@@ -10,7 +10,7 @@ import jwt
 from fastapi import APIRouter, Cookie, Depends, Response
 from fastapi.exceptions import HTTPException
 from fastapi.responses import RedirectResponse
-from httpx import AsyncClient
+from httpx2 import AsyncClient
 from pydantic import BaseModel, EmailStr
 
 from uedition_editor.settings import init_settings

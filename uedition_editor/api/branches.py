@@ -16,6 +16,7 @@ from uedition_editor import cron
 from uedition_editor.api.auth import get_current_user
 from uedition_editor.api.configs import router as configs_router
 from uedition_editor.api.files import router as files_router
+from uedition_editor.api.preview import router as preview_router
 from uedition_editor.api.util import (
     BranchContextManager,
     RemoteRepositoryCallbacks,
@@ -34,6 +35,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/branches")
 router.include_router(files_router, prefix="/{branch_id}")
 router.include_router(configs_router, prefix="/{branch_id}")
+router.include_router(preview_router, prefix="/{branch_id}")
 
 
 class BranchModel(BaseModel):

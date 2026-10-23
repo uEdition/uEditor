@@ -1,5 +1,9 @@
 # Änderungsgeschichte
 
+## Dev
+
+- **Neu**: Vorschaufunktionalität hinzugefügt
+
 ## 2.2.6
 
 - **Bugfix**: Einzufassende Blöcke mit spezifischen Inhaltsblöcken korrekt verarbeiten

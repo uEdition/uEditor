@@ -12,6 +12,8 @@
         activities.push({ label: "Saving file contents" });
       } else if (action.action === "SynchroniseBranches") {
         activities.push({ label: "Synchronising branches" });
+      } else if (action.action === "GeneratePreview") {
+        activities.push({ label: "Generating preview" });
       }
     }
     return activities;
