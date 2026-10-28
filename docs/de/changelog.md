@@ -1,6 +1,6 @@
 # Änderungsgeschichte
 
-## Dev
+## 2.3.0
 
 - **Neu**: Vorschaufunktionalität hinzugefügt
 

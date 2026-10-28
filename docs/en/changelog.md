@@ -1,6 +1,6 @@
 # Changelog
 
-## Dev
+## 2.3.0
 
 - **New**: Added preview functionality
 
