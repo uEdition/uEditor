@@ -32,8 +32,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get purge -y python3-packaging python3-typing-extensions
-          sudo apt-get install -y python3-venv python3-pip
-          sudo pip install hatch
+
+      - name: Install Hatch
+        uses: threeal/pipx-install-action@v2.0.0
+        with:
+          packages: hatch
 
       - name: Build the package
         run: |
