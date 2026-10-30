@@ -31,12 +31,9 @@ jobs:
       - name: Install Base Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get purge -y python3-packaging python3-typing-extensions
-
-      - name: Install Hatch
-        uses: threeal/pipx-install-action@v2.0.0
-        with:
-          packages: hatch
+          sudo apt-get install pipx
+          pipx ensurepath
+          pipx install hatch
 
       - name: Build the package
         run: |
