@@ -32,7 +32,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-venv
-          sudo apt-get remove -y python3-packaging
           sudo pip install hatch
 
       - name: Build the package
@@ -69,7 +68,7 @@ jobs:
       - name: Install Base Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install python3-venv pipx qemu-user-static
+          sudo apt-get install python3-venv pipx qemu-user-binfmt
           pipx install hatch
 
       - name: Strip version prefix
