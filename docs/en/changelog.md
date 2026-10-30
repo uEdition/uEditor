@@ -1,5 +1,9 @@
 # Changelog
 
+## Dev
+
+- **Bugfix**: Added missing dependency to the container image
+
 ## 2.3.0
 
 - **New**: Added preview functionality

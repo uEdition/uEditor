@@ -1,5 +1,9 @@
 # Änderungsgeschichte
 
+## Dev
+
+- **Bugfix**: Fehlende Softwareabhängigkeit im Containerimage hinzugefügt
+
 ## 2.3.0
 
 - **Neu**: Vorschaufunktionalität hinzugefügt
