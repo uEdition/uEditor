@@ -1,6 +1,6 @@
 # Changelog
 
-## Dev
+## 2.3.1
 
 - **Bugfix**: Added missing dependency to the container image
 
