@@ -1,6 +1,6 @@
 # Änderungsgeschichte
 
-## Dev
+## 2.3.1
 
 - **Bugfix**: Fehlende Softwareabhängigkeit im Containerimage hinzugefügt
 
