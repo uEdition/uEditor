@@ -39,7 +39,7 @@ dependencies = [
   "uEdition",
   "typer>=0.26.7",
   "uvicorn<1",
-  "websockets>=17.3",
+  "websockets>=17.4",
 ]
 
 [project.urls]
